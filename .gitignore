@@ -38,3 +38,4 @@ pro_output.c
 *.pyc
 temptestprocsmith.c
 slsf/reportsneo/*
+covexp_results/*.mat

@@ -7,8 +7,9 @@ function [ covdata ] = get_single_model_coverage( sys )
 end
 
 function ret = get_coverage(sys)
+    % ret contains result for a single model
     ret = struct('opens', false, 'exception', false, 'exception_msg', [],...
-        'blocks', [], 'numzerocov', []);
+        'blocks', [], 'numzerocov', [], 'duration', []);
 
     num_zero_cov = 0; % blocks with zero coverage
 
@@ -26,6 +27,8 @@ function ret = get_coverage(sys)
     end
 
     try
+        time_start = tic;
+        
         testObj  = cvtest(h);
         data = cvsim(testObj);
 
@@ -53,6 +56,8 @@ function ret = get_coverage(sys)
             all_blocks(i).fullname = cur_blk_name;
             all_blocks(i).percentcov = percent_cov;
         end
+        
+        ret.duration = toc(time_start);
 
         ret.blocks = all_blocks;
         ret.numzerocov = num_zero_cov;

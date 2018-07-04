@@ -52,12 +52,23 @@ classdef BaseCovExp < handle
         function covexp_result = go(obj)
             obj.init_data();
             obj.do_analysis();
-            covexp_result = obj.result;
+            
+            % covexp_result contains everything to be saved in disc
+            covexp_result = struct('parfor', covcfg.PARFOR);
+            covexp_result.models = obj.result;
             
             % Save Result
             if ~ isempty(covcfg.RESULT_FILE)
                 save(covcfg.RESULT_FILE, 'covexp_result');
             end
+            
+            % Backup Result in the covcfg.RESULT_DIR_COVEXP directory
+            
+            nowtime_str = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
+            report_log_filename = [covcfg.RESULT_DIR_COVEXP filesep nowtime_str];
+            save(report_log_filename, 'covexp_result');
+            
+            obj.l.info(sprintf('Report saved in %s', report_log_filename));
         end
     end
     
