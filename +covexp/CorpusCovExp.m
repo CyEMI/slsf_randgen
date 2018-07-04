@@ -1,4 +1,4 @@
-classdef CorpusCovExp < emi.BaseCovExp
+classdef CorpusCovExp < covexp.BaseCovExp
     %CORPUSCOVEXP Summary of this class goes here
     %   Detailed explanation goes here
     

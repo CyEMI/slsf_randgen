@@ -1,9 +1,8 @@
 function [ covdata ] = get_single_model_coverage( sys )
 %GET_SINGLE_MODEL_COVERAGE Summary of this function goes here
-%   Detailed explanation goes here
+%   Potentially to be called from a parfor loop
     covdata = get_coverage(sys);
             
-
 end
 
 function ret = get_coverage(sys)

@@ -1,3 +1,4 @@
+covcfg.addpaths();
 corpus_cfg = analyze_complexity_cfg();
 
 cov_meta = [];

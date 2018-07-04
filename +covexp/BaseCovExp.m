@@ -33,13 +33,13 @@ classdef BaseCovExp < handle
                 obj.l.info('USING PARFOR');
                 parfor i = 1:loop_count
                     fprintf('Analyzing %d of %d models\n', i, loop_count );
-                    res(i) = emi.get_single_model_coverage(all_models{i});
+                    res(i) = covexp.get_single_model_coverage(all_models{i});
                 end
             else
                 obj.l.info('Using Simple For Loop');
                 for i = 1:loop_count
                     obj.l.info(sprintf('Analyzing %d of %d models', i, loop_count ));
-                    res(i) = emi.get_single_model_coverage(all_models{i}); %#ok<AGROW>
+                    res(i) = covexp.get_single_model_coverage(all_models{i}); %#ok<AGROW>
                 end
             end
             
@@ -50,6 +50,8 @@ classdef BaseCovExp < handle
 
         
         function covexp_result = go(obj)
+            load_system('simulink');
+            
             begin_timer = tic;
             
             obj.init_data();

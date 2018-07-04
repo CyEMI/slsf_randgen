@@ -4,8 +4,8 @@ function [ result ] = covcollectfun
 
     load_system('simulink');
     
-    exp = emi.CorpusCovExp();
-%     exp = emi.BaseCovExp(); % only for testing purpose
+    exp = covexp.CorpusCovExp();
+%     exp = covexp.BaseCovExp(); % only for testing purpose
     
     result = exp.go();
 

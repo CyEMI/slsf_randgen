@@ -1,5 +1,3 @@
-addpath('slsf');
-addpath(['3rdparty' filesep 'logging4matlab']);
-
-res = emi.covcollectfun();
+covexp.addpaths();
+res = covexp.covcollectfun();
 
