@@ -12,16 +12,19 @@ classdef covcfg
         CLOSE_MODELS = true;
         
         % Upper limit on how many models to process
-        MAX_NUM_MODEL = 10000;
+        MAX_NUM_MODEL = 500;
         
         % Will use parfor
-        PARFOR = false;
+        PARFOR = true;
         
         % Write experiment result in this file
         RESULT_FILE = 'cov_exp_result';
         
         % save corpus meta in this file
         CORPUS_COV_META = 'corpuscoverage';
+        
+        % Save coverage experiment results in this directory
+        RESULT_DIR_COVEXP = 'covexp_results';
     end
     
     methods

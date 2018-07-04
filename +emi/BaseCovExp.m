@@ -50,11 +50,16 @@ classdef BaseCovExp < handle
 
         
         function covexp_result = go(obj)
+            begin_timer = tic;
+            
             obj.init_data();
             obj.do_analysis();
             
+            total_time = toc(begin_timer);
+            obj.l.info(sprintf('Total runtime %f second ', total_time));
+            
             % covexp_result contains everything to be saved in disc
-            covexp_result = struct('parfor', covcfg.PARFOR);
+            covexp_result = struct('parfor', covcfg.PARFOR, 'total_duration', total_time);
             covexp_result.models = obj.result;
             
             % Save Result
