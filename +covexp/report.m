@@ -20,7 +20,11 @@ models = covexp_result.models;
 
 numzero = [models.numzerocov];
 
-total_blocks = arrayfun(@(p)numel(p{1}) - 1, {models.blocks});
+% Remove the empty cells from `{models.blocks}`
+model_blocks = {models.blocks};
+model_blocks = model_blocks(cellfun(@(p)~isempty(p), model_blocks));
+
+total_blocks = arrayfun(@(p)numel(p{1}) - 1, model_blocks);
 
 numzero_ratio = arrayfun(@(p,q) p/q*100.0, numzero, total_blocks);
 
