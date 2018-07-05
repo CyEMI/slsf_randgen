@@ -6,13 +6,14 @@ classdef covcfg
         BASE_DIR = '';
         
         % Which corpus group to analyze
-        CORPUS_GROUP = 'tutorial';
+%         CORPUS_GROUP = 'tutorial';
+        CORPUS_GROUP = [];
         
         OPEN_MODELS = false;
         CLOSE_MODELS = true;
         
         % Upper limit on how many models to process
-        MAX_NUM_MODEL = 500;
+        MAX_NUM_MODEL = 2000;
         
         % Will use parfor
         PARFOR = true;

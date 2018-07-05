@@ -10,7 +10,12 @@ classdef CorpusCovExp < covexp.BaseCovExp
         function init_data(obj)
             class(obj)
             load(covcfg.CORPUS_COV_META);
-            obj.models = utility.filter_struct(cov_meta, 'group', 'sys', covcfg.CORPUS_GROUP);
+            
+            if isempty(covcfg.CORPUS_GROUP)
+                obj.models = {cov_meta.sys};
+            else
+                obj.models = utility.filter_struct(cov_meta, 'group', 'sys', covcfg.CORPUS_GROUP);
+            end
         end
         
     end

@@ -1,13 +1,17 @@
 function [ ret ] = report( varargin )
 %REPORT See reports for covcollect
-%   Detailed explanation goes here
+%   varargin{1}: file to load for report
 covexp.addpaths();
 
 ret = [];
 
 l = logging.getLogger('report');
 
-result_file = covcfg.RESULT_FILE;
+if nargin < 1
+    result_file = covcfg.RESULT_FILE;
+else
+    result_file = [covcfg.RESULT_DIR_COVEXP filesep varargin{1}];
+end
 
 clear covexp_result;
 
