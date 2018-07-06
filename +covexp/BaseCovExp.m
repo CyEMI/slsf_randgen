@@ -50,12 +50,22 @@ classdef BaseCovExp < handle
 
         
         function covexp_result = go(obj)
+            obj.l.info('Loading Simulink...');
             load_system('simulink');
             
+            % Backup previous report 
+            try
+                movefile([covcfg.RESULT_FILE '.mat'], [covcfg.RESULT_FILE '.bkp.mat']);
+            catch
+            end
+            
+            % Start counting time
             begin_timer = tic;
             
+            % Start experiment
             obj.init_data();
             obj.do_analysis();
+            % End experiment
             
             total_time = toc(begin_timer);
             obj.l.info(sprintf('Total runtime %f second ', total_time));
@@ -79,6 +89,9 @@ classdef BaseCovExp < handle
             save(report_log_filename, 'covexp_result');
             
             obj.l.info(sprintf('Report saved in %s', report_log_filename));
+            
+            % Run report generation
+            covexp.report();
         end
     end
     
