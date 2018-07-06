@@ -1,6 +1,7 @@
 backup
 backup/*
 *.out
+*.err
 *~
 *.mexa64
 *.mexw64
