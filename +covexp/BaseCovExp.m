@@ -59,6 +59,11 @@ classdef BaseCovExp < handle
             catch
             end
             
+            % Add path to corpus
+            CORPUS_LOC = envcfg.CORPUS_HOME;
+            addpath(genpath(CORPUS_LOC));
+            obj.l.info(['Corpus located at ' CORPUS_LOC]);
+            
             % Start counting time
             begin_timer = tic;
             

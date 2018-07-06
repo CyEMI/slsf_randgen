@@ -1,9 +1,8 @@
-% Make sure you have set up environment variable SLSFCORPUS
-% To run in TACC you can create checkout_github_repos.job which is in
-% .gitignore
+% Before running this, copy github_data.mat from slsf/+corpus directory to
+% the current directory.
 
 addpath slsf;
-CORPUS_HOME = getenv('SLSFCORPUS');
+CORPUS_HOME = envcfg.CORPUS_HOME;
 
 if isempty(CORPUS_HOME)
     error('Please set up environet variable SLSFCORPUS');
