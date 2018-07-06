@@ -8,7 +8,6 @@ classdef CorpusCovExp < covexp.BaseCovExp
     methods
         
         function init_data(obj)
-            class(obj)
             load(covcfg.CORPUS_COV_META);
             
             if isempty(covcfg.CORPUS_GROUP)

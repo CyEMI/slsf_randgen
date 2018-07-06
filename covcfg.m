@@ -13,7 +13,7 @@ classdef covcfg
         CLOSE_MODELS = true;
         
         % Upper limit on how many models to process
-        MAX_NUM_MODEL = 40;
+        MAX_NUM_MODEL = 2;
         
         % Will use parfor
         PARFOR = true;
