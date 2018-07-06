@@ -40,3 +40,5 @@ pro_output.c
 temptestprocsmith.c
 slsf/reportsneo/*
 covexp_results/*
+*.job
+
