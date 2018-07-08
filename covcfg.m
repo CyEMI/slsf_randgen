@@ -1,19 +1,24 @@
 classdef covcfg
-    %COVCFG Summary of this class goes here
+    %COVCFG Configure `covcollect` - collecting coverage of models 
     %   Detailed explanation goes here
     
     properties(Constant = true)
+        
+        EXP_MODE = covexp.Expmode.SUBGROUP;
+        SUBGROUP_BEGIN = 1;
+        SUBGROUP_END = 200;
+        
+        % Upper limit on how many models to process
+        MAX_NUM_MODEL = 200;
+        
         BASE_DIR = '';
         
-        % Which corpus group to analyze
+        % Which corpus group to analyze (e.g. tutorial)
 %         CORPUS_GROUP = 'tutorial';
-        CORPUS_GROUP = [];
+        CORPUS_GROUP = []; % Analyze all corpus groups.
         
         OPEN_MODELS = false;
         CLOSE_MODELS = true;
-        
-        % Upper limit on how many models to process
-        MAX_NUM_MODEL = 2;
         
         % Will use parfor
         PARFOR = true;
