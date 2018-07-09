@@ -4,11 +4,12 @@ classdef covcfg
     
     properties(Constant = true)
         
-        EXP_MODE = covexp.Expmode.SUBGROUP;
+        EXP_MODE = covexp.Expmode.SUBGROUP_AUTO;
         SUBGROUP_BEGIN = 1;
         SUBGROUP_END = 100;
         
         % Upper limit on how many models to process
+        % For SUBGROUP_AUTO, process these many models 
         MAX_NUM_MODEL = 100;
         
         SIMULATION_TIMEOUT = 300;   % seconds
@@ -28,7 +29,9 @@ classdef covcfg
         % Model IDs to skip, start with x
         SKIP_LIST = struct(...
             'x89','',...    % interactive
-            'x90', ''...    % interactive
+            'x90', '',...    % interactive
+            'x651', '',...   % "deadlock"
+            'x652', ''...    % "deadlock"
             );
         
         % Write experiment result in this file
@@ -39,6 +42,10 @@ classdef covcfg
         
         % Save coverage experiment results in this directory
         RESULT_DIR_COVEXP = 'covexp_results';
+        
+        % Expmode.SUBGROUP_AUTO
+        SUBGROUP_AUTO_DATA = 'cov_exp_subgroup';
+   
     end
     
     methods

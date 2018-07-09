@@ -35,9 +35,49 @@ classdef BaseCovExp < handle
                 'sldemo_mdlref_variants_enum'};
         end
         
+        function manage_subgroup_auto(obj)
+            if covcfg.EXP_MODE ~= covexp.Expmode.SUBGROUP_AUTO
+                return;
+            end
+            
+            obj.l.info('SUBGROUP AUTO mode...');
+            
+            restart = false;
+            
+            try
+                load(covcfg.SUBGROUP_AUTO_DATA);
+                
+                sga_begin = sga_end + 1; %#ok<NODEF>
+                sga_end = sga_begin + covcfg.MAX_NUM_MODEL - 1;
+                
+                if sga_begin > numel(obj.models)
+                    restart = true;
+                end
+                
+            catch
+                obj.l.info('Data file missing, create new');
+                restart = true;
+            end
+            
+            if restart
+                obj.l.info('SUBGROUP AUTO mode: restarting');
+                sga_begin = 1;
+                sga_end = covcfg.MAX_NUM_MODEL;
+            end
+            
+            sga_end = min(sga_end, numel(obj.models));
+            
+            save(covcfg.SUBGROUP_AUTO_DATA, 'sga_begin', 'sga_end');
+            
+            obj.subgroup_begin = sga_begin;
+            obj.subgroup_end = sga_end;
+        end
+        
         function do_analysis(obj)
             % Analyze ALL models
             all_models = obj.models;
+            
+            obj.manage_subgroup_auto();
             
             if covcfg.EXP_MODE.is_subgroup
                 all_models = all_models(obj.subgroup_begin:obj.subgroup_end);
