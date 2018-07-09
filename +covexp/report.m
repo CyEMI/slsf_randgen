@@ -42,6 +42,9 @@ tabulate(haszero);
 l.info('Does Model Open?');
 tabulate([models.opens]);
 
+l.info('Does Model time-out?');
+tabulate([models.timedout]);
+
 l.info('Does Model error?');
 tabulate([models.exception]);
 

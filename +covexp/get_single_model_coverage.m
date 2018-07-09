@@ -9,15 +9,21 @@ function ret = get_coverage(sys)
     % ret contains result for a single model
     ret = struct(...
         'opens', false,...
+        'timedout', false,...
+        'simdur', [],...
         'exception', false,...
         'exception_msg', [],...
         'sys', sys,...
         'blocks', [],...
         'numzerocov', [],...
         'duration', []);
+    
+    l = logging.getLogger('singlemodel');
 
     num_zero_cov = 0; % blocks with zero coverage
-
+    
+    % Does it open?
+    
     try
         h = load_system(sys);
         if covcfg.OPEN_MODELS
@@ -31,6 +37,35 @@ function ret = get_coverage(sys)
         return;
     end
 
+    % Does it run within timeout limit?
+    
+    try
+        time_start = tic;
+        
+        simob = utility.TimedSim(sys, covcfg.SIMULATION_TIMEOUT, l);
+        ret.timedout = simob.start();
+
+        if ret.timedout
+            % Close
+            covexp.sys_close(sys);
+            return;
+        end
+        
+        ret.simdur = toc(time_start);
+        
+    catch e
+        ret.exception = true;
+        ret.exception_msg = e.identifier;
+     
+        getReport(e)
+        
+        % Close
+        covexp.sys_close(sys);
+    end
+    
+    
+    % Now collect coverage!
+    
     try
         time_start = tic;
         
@@ -68,13 +103,15 @@ function ret = get_coverage(sys)
         ret.numzerocov = num_zero_cov;
         
         % Close
-        if covcfg.CLOSE_MODELS
-            close_system(sys);
-        end
+        covexp.sys_close(sys);
     catch e
         ret.exception = true;
         ret.exception_msg = e.identifier;
+        
         getReport(e)
+        
+        % Close
+        covexp.sys_close(sys);
     end
 
 end

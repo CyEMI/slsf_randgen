@@ -5,11 +5,13 @@ classdef covcfg
     properties(Constant = true)
         
         EXP_MODE = covexp.Expmode.SUBGROUP;
-        SUBGROUP_BEGIN = 1;
-        SUBGROUP_END = 200;
+        SUBGROUP_BEGIN = 89;
+        SUBGROUP_END = 89;
         
         % Upper limit on how many models to process
         MAX_NUM_MODEL = 200;
+        
+        SIMULATION_TIMEOUT = 30;
         
         BASE_DIR = '';
         
@@ -21,7 +23,7 @@ classdef covcfg
         CLOSE_MODELS = true;
         
         % Will use parfor
-        PARFOR = true;
+        PARFOR = false;
         
         % Write experiment result in this file
         RESULT_FILE = 'cov_exp_result';
