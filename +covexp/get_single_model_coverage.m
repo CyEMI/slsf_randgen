@@ -1,18 +1,21 @@
-function [ covdata ] = get_single_model_coverage( sys )
+function [ covdata ] = get_single_model_coverage( sys, model_id )
 %GET_SINGLE_MODEL_COVERAGE Summary of this function goes here
 %   Potentially to be called from a parfor loop
-    covdata = get_coverage(sys);
+    covdata = get_coverage(sys, model_id);
             
 end
 
-function ret = get_coverage(sys)
+function ret = get_coverage(sys, model_id)
     % ret contains result for a single model
     ret = struct(...
+        'm_id', model_id,...
+        'skipped', false,...
         'opens', false,...
         'timedout', false,...
         'simdur', [],...
         'exception', false,...
         'exception_msg', [],...
+        'exception_ob', [],...
         'sys', sys,...
         'blocks', [],...
         'numzerocov', [],...
@@ -21,6 +24,11 @@ function ret = get_coverage(sys)
     l = logging.getLogger('singlemodel');
 
     num_zero_cov = 0; % blocks with zero coverage
+    
+    if isfield(covcfg.SKIP_LIST, sprintf('x%d', model_id))
+        ret.skipped = true;
+        return;
+    end
     
     % Does it open?
     
@@ -56,6 +64,7 @@ function ret = get_coverage(sys)
     catch e
         ret.exception = true;
         ret.exception_msg = e.identifier;
+        ret.exception_ob = e;
      
         getReport(e)
         
@@ -107,6 +116,7 @@ function ret = get_coverage(sys)
     catch e
         ret.exception = true;
         ret.exception_msg = e.identifier;
+        ret.exception_ob = e;
         
         getReport(e)
         

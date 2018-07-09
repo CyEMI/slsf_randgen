@@ -6,7 +6,9 @@
 #SBATCH -n 20                     # request all 16 cores 
 #SBATCH -p gpu                 # designate queue 
 #SBATCH -t 24:00:00               # designate max run time 
-#SBATCH -A Find-bugs-in-Simulin              # charge job to myproject 
+#SBATCH -A Find-bugs-in-Simulin              # charge job to myproject
+#SBATCH --mail-user cyphyemi@gmail.com
+#SBATCH --mail-type all 
 
 module load gcc
 module load mkl
@@ -14,4 +16,4 @@ module load matlab
 
 export SLSFCORPUS="$WORK/corpus"
 
-matlab -nodesktop -nodisplay -nosplash < covcollect.m
+matlab -nodesktop -nodisplay -nosplash -r 'covcollect(); quit();'

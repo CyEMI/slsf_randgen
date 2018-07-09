@@ -42,8 +42,10 @@ classdef BaseCovExp < handle
             if covcfg.EXP_MODE.is_subgroup
                 all_models = all_models(obj.subgroup_begin:obj.subgroup_end);
                 log_append = sprintf('[%d - %d]', obj.subgroup_begin, obj.subgroup_end);
+                model_id_offset = obj.subgroup_begin - 1;
             else
                 log_append = '';
+                model_id_offset = 0;
             end
             
             loop_count = min(numel(all_models), covcfg.MAX_NUM_MODEL);
@@ -52,13 +54,15 @@ classdef BaseCovExp < handle
                 obj.l.info('USING PARFOR');
                 parfor i = 1:loop_count
                     fprintf('%s Analyzing %d of %d models\n', log_append, i, loop_count );
-                    res(i) = covexp.get_single_model_coverage(all_models{i});
+                    model_id = model_id_offset + i;
+                    res(i) = covexp.get_single_model_coverage(all_models{i}, model_id);
                 end
             else
                 obj.l.info('Using Simple For Loop');
                 for i = 1:loop_count
                     obj.l.info(sprintf('%s Analyzing %d of %d models', log_append, i, loop_count ));
-                    res(i) = covexp.get_single_model_coverage(all_models{i}); %#ok<AGROW>
+                    model_id = model_id_offset + i;
+                    res(i) = covexp.get_single_model_coverage(all_models{i}, model_id); %#ok<AGROW>
                     
                     % Save
                     obj.save_result(res, []);
@@ -107,7 +111,7 @@ classdef BaseCovExp < handle
             obj.l.info(sprintf('Total runtime %f second ', total_time));
             
             % covexp_result contains everything to be saved in disc
-            covexp_result = save_result(obj.result, total_time);
+            covexp_result = obj.save_result(obj.result, total_time);
             
             % Save Result
             if ~ isempty(covcfg.RESULT_FILE)

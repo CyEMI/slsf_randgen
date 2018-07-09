@@ -5,13 +5,13 @@ classdef covcfg
     properties(Constant = true)
         
         EXP_MODE = covexp.Expmode.SUBGROUP;
-        SUBGROUP_BEGIN = 89;
-        SUBGROUP_END = 89;
+        SUBGROUP_BEGIN = 1;
+        SUBGROUP_END = 100;
         
         % Upper limit on how many models to process
-        MAX_NUM_MODEL = 200;
+        MAX_NUM_MODEL = 100;
         
-        SIMULATION_TIMEOUT = 30;
+        SIMULATION_TIMEOUT = 300;   % seconds
         
         BASE_DIR = '';
         
@@ -24,6 +24,12 @@ classdef covcfg
         
         % Will use parfor
         PARFOR = false;
+        
+        % Model IDs to skip, start with x
+        SKIP_LIST = struct(...
+            'x89','',...    % interactive
+            'x90', ''...    % interactive
+            );
         
         % Write experiment result in this file
         RESULT_FILE = 'cov_exp_result';
