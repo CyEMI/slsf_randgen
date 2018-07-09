@@ -59,6 +59,9 @@ classdef BaseCovExp < handle
                 for i = 1:loop_count
                     obj.l.info(sprintf('%s Analyzing %d of %d models', log_append, i, loop_count ));
                     res(i) = covexp.get_single_model_coverage(all_models{i}); %#ok<AGROW>
+                    
+                    % Save
+                    obj.save_result(res, []);
                 end
             end
             
