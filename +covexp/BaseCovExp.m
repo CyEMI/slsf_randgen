@@ -79,6 +79,9 @@ classdef BaseCovExp < handle
             
             obj.manage_subgroup_auto();
             
+            obj.l.info('Loading Simulink...');
+            load_system('simulink');
+            
             if covcfg.EXP_MODE.is_subgroup
                 all_models = all_models(obj.subgroup_begin:obj.subgroup_end);
                 log_append = sprintf('[%d - %d]', obj.subgroup_begin, obj.subgroup_end);
@@ -118,9 +121,6 @@ classdef BaseCovExp < handle
         function covexp_result = go(obj)
             obj.exp_start_time = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
             obj.report_log_filename = obj.get_logfile_name(obj.exp_start_time);
-            
-            obj.l.info('Loading Simulink...');
-            load_system('simulink');
             
             % Backup previous report 
             try
