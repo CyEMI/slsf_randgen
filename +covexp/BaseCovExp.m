@@ -11,6 +11,9 @@ classdef BaseCovExp < handle
         result;
         l; % logger
         
+        exp_start_time;
+        report_log_filename;
+        
         % If Expmode is SUBGROUP, then use following configurations
         subgroup_begin;
         subgroup_end;
@@ -66,7 +69,8 @@ classdef BaseCovExp < handle
 
         
         function covexp_result = go(obj)
-            exp_start_time = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
+            obj.exp_start_time = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
+            obj.report_log_filename = obj.get_logfile_name(obj.exp_start_time);
             
             obj.l.info('Loading Simulink...');
             load_system('simulink');
@@ -100,6 +104,20 @@ classdef BaseCovExp < handle
             obj.l.info(sprintf('Total runtime %f second ', total_time));
             
             % covexp_result contains everything to be saved in disc
+            covexp_result = save_result(obj.result, total_time);
+            
+            % Save Result
+            if ~ isempty(covcfg.RESULT_FILE)
+                save(covcfg.RESULT_FILE, 'covexp_result');
+            end
+            
+            obj.l.info(sprintf('Report saved in %s', obj.report_log_filename));
+            
+            % Run report generation
+            covexp.report();
+        end
+        
+        function covexp_result = save_result(obj, models, total_time)
             covexp_result = struct(...
                 'parfor', covcfg.PARFOR,...
                 'group', covcfg.CORPUS_GROUP,...
@@ -107,22 +125,10 @@ classdef BaseCovExp < handle
                 'subgroup_begin', obj.subgroup_begin,...
                 'subgroup_end', obj.subgroup_end,...
                 'total_duration', total_time);
-            covexp_result.models = obj.result;
             
-            % Save Result
-            if ~ isempty(covcfg.RESULT_FILE)
-                save(covcfg.RESULT_FILE, 'covexp_result');
-            end
+            covexp_result.models = models;
             
-            % Backup Result in the covcfg.RESULT_DIR_COVEXP directory
-            
-            report_log_filename = obj.get_logfile_name(exp_start_time);
-            save(report_log_filename, 'covexp_result');
-            
-            obj.l.info(sprintf('Report saved in %s', report_log_filename));
-            
-            % Run report generation
-            covexp.report();
+            save(obj.report_log_filename, 'covexp_result');
         end
         
         function ret = get_logfile_name(obj, exp_start_time)

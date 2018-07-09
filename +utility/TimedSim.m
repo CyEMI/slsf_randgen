@@ -42,7 +42,7 @@ classdef TimedSim
             try
                 extraData.sim_status = get_param(extraData.sys,'SimulationStatus');
                 if strcmp(extraData.sim_status, 'running')
-                    set_param(extraData.generator.sys, 'SimulationCommand', 'stop');
+                    set_param(extraData.sys, 'SimulationCommand', 'stop');
                 end
             catch e
                 % Do Nothing
