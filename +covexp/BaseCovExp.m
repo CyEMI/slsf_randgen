@@ -21,12 +21,19 @@ classdef BaseCovExp < handle
     
     methods
         
-        function obj = BaseCovExp()
+        function obj = BaseCovExp(varargin)
+            covexp.addpaths();
+            
             obj.l = logging.getLogger('BaseCovExp');
             obj.l.info('Calling BaseCovExp constructor');
             
-            obj.subgroup_begin = covcfg.SUBGROUP_BEGIN;
-            obj.subgroup_end = covcfg.SUBGROUP_END;
+            if nargin == 2
+                obj.subgroup_begin = varargin{1};
+                obj.subgroup_end = varargin{2};
+            else
+                obj.subgroup_begin = covcfg.SUBGROUP_BEGIN;
+                obj.subgroup_end = covcfg.SUBGROUP_END;
+            end
         end
         
         function init_data(obj)
@@ -131,10 +138,7 @@ classdef BaseCovExp < handle
             
             % Add path to corpus
             if isempty(covcfg.CORPUS_GROUP) || ~ strcmp(covcfg.CORPUS_GROUP, 'tutorial')
-                CORPUS_LOC = getenv('SLSFCORPUS');
-                if isempty(CORPUS_LOC)
-                    error('Set up environment variable SLSFCORPUS');
-                end
+                CORPUS_LOC = covcfg.CORPUS_HOME;
 
                 addpath(genpath(CORPUS_LOC));
                 obj.l.info(['Corpus located at ' CORPUS_LOC]);

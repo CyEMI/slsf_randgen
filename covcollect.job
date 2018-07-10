@@ -16,4 +16,4 @@ module load matlab
 
 export SLSFCORPUS="$WORK/corpus"
 
-matlab -nodesktop -nodisplay -nosplash -r 'covcollect(); quit();'
+matlab -nodesktop -nodisplay -nosplash -r 'covexp.covcollect(); quit();'

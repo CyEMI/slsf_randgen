@@ -7,6 +7,10 @@ classdef CorpusCovExp < covexp.BaseCovExp
     
     methods
         
+        function obj = CorpusCovExp(varargin)
+            obj = obj@covexp.BaseCovExp(varargin{:});
+        end
+        
         function init_data(obj)
             load(covcfg.CORPUS_COV_META);
             
