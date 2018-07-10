@@ -4,15 +4,15 @@ classdef covcfg
     
     properties(Constant = true)
         
-        EXP_MODE = covexp.Expmode.SUBGROUP_AUTO;
-        SUBGROUP_BEGIN = 1;
-        SUBGROUP_END = 5;
+        EXP_MODE = covexp.Expmode.SUBGROUP;
+        SUBGROUP_BEGIN = 530;
+        SUBGROUP_END = 533;
         
         % Upper limit on how many models to process
         % For SUBGROUP_AUTO, process these many models 
         MAX_NUM_MODEL = 50;
         
-        SIMULATION_TIMEOUT = 300;   % seconds
+        SIMULATION_TIMEOUT = 500;   % seconds
         
         BASE_DIR = '';
         
@@ -28,10 +28,7 @@ classdef covcfg
         
         % Model IDs to skip, start with x
         SKIP_LIST = struct(...
-            'x89','',...    % interactive
-            'x90', '',...    % interactive
-            'x651', '',...   % "deadlock"
-            'x652', ''...    % "deadlock"
+            'x494', ''...    % "deadlock"
             );
         
         % Write experiment result in this file

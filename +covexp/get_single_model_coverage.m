@@ -5,6 +5,21 @@ function [ covdata ] = get_single_model_coverage( sys, model_id )
             
 end
 
+function new_st =  handle_stoptime(sys, l)
+    new_st = [];
+    current_st = get_param(sys, 'StopTime');
+    try
+        current_st = eval(current_st);
+        if ~isfinite(current_st)
+            l.info('StopTime will be changed');
+            new_st = int2str(covcfg.SIMULATION_TIMEOUT * 2); % heuristic
+            set_param(sys, 'StopTime', new_st);
+        end
+    catch e
+        getError(e)
+    end
+end
+
 function ret = get_coverage(sys, model_id)
     % ret contains result for a single model
     ret = struct(...
@@ -19,6 +34,7 @@ function ret = get_coverage(sys, model_id)
         'sys', sys,...
         'blocks', [],...
         'numzerocov', [],...
+        'stoptime_changed', [],...
         'duration', []);
     
     l = logging.getLogger('singlemodel');
@@ -45,6 +61,8 @@ function ret = get_coverage(sys, model_id)
         return;
     end
 
+    ret.stoptime_changed = handle_stoptime(sys, l);
+    
     % Does it run within timeout limit?
     
     try
