@@ -16,7 +16,11 @@ function new_st =  handle_stoptime(sys, l)
             set_param(sys, 'StopTime', new_st);
         end
     catch e
-        getError(e)
+        try
+            getError(e)
+        catch
+            e %#ok<NOPRT>
+        end
     end
 end
 
@@ -35,6 +39,7 @@ function ret = get_coverage(sys, model_id)
         'blocks', [],...
         'numzerocov', [],...
         'stoptime_changed', [],...
+        'loc', [],...
         'duration', []);
     
     l = logging.getLogger('singlemodel');
@@ -62,7 +67,7 @@ function ret = get_coverage(sys, model_id)
     end
 
     ret.stoptime_changed = handle_stoptime(sys, l);
-    
+    ret.loc = get_model_loc(sys);
     % Does it run within timeout limit?
     
     try
@@ -142,6 +147,13 @@ function ret = get_coverage(sys, model_id)
         covexp.sys_close(sys);
     end
 
+end
+
+function ret = get_model_loc(sys)
+    sys_loc = strsplit(get_param(sys, 'FileName'), filesep);
+    corpus_loc = strsplit(covcfg.CORPUS_HOME, filesep);
+    
+    ret = sys_loc(numel(corpus_loc) + 1: end);
 end
 
 function ret = get_all_blocks(sys)

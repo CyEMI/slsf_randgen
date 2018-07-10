@@ -5,8 +5,8 @@ classdef covcfg
     properties(Constant = true)
         
         EXP_MODE = covexp.Expmode.SUBGROUP;
-        SUBGROUP_BEGIN = 251;
-        SUBGROUP_END = 272;
+        SUBGROUP_BEGIN = 201;
+        SUBGROUP_END = 205;
         
         % Upper limit on how many models to process
         % For SUBGROUP_AUTO, process these many models 
@@ -28,6 +28,7 @@ classdef covcfg
         
         % Model IDs to skip, start with x
         SKIP_LIST = struct(...
+            'x226', '',...
             'x494', ''...   
             );
         
@@ -45,7 +46,14 @@ classdef covcfg
    
     end
     
-    methods
+    methods(Static)
+        function ret = CORPUS_HOME()
+            ret = getenv('SLSFCORPUS');
+            
+            if isempty(ret)
+                error('Please set up environment variable SLSFCORPUS');
+            end
+        end
     end
     
 end
