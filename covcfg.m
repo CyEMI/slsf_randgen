@@ -33,6 +33,8 @@ classdef covcfg
             'x719', '',...
             'x762', '',...
             'x800', '',...
+            'x852', '',...
+            'x860', '',...
             'x838', ''...
             );
         
@@ -47,6 +49,12 @@ classdef covcfg
         
         % Expmode.SUBGROUP_AUTO
         SUBGROUP_AUTO_DATA = 'cov_exp_subgroup';
+        
+        % MATLAB uses different formats for month and minute in from and to
+        % coversion to date and string!
+        
+        DATETIME_STR_TO_DATE = 'yyyy-MM-dd-HH-mm-ss';
+        DATETIME_DATE_TO_STR = 'yyyy-mm-dd-HH-MM-SS';
    
     end
     

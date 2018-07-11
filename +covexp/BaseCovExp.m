@@ -128,7 +128,7 @@ classdef BaseCovExp < handle
 
         
         function covexp_result = go(obj)
-            obj.exp_start_time = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
+            obj.exp_start_time = datestr(now, covcfg.DATETIME_DATE_TO_STR);
             
             % Backup previous report 
             try
