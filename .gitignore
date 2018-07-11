@@ -42,3 +42,4 @@ slsf/reportsneo/*
 covexp_results/*
 *.job
 envcfg.m
+*.slxc

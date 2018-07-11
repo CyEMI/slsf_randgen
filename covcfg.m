@@ -6,7 +6,7 @@ classdef covcfg
         
         EXP_MODE = covexp.Expmode.SUBGROUP;
         SUBGROUP_BEGIN = 1;
-        SUBGROUP_END = 41;
+        SUBGROUP_END = 1;
         
         % Upper limit on how many models to process
         % For SUBGROUP_AUTO, process these many models 

@@ -116,6 +116,12 @@ function ret = get_coverage(sys, model_id)
 
             all_blocks(i).fullname = cur_blk_name;
             all_blocks(i).percentcov = percent_cov;
+            
+            try
+                all_blocks(i).blocktype = get_param(cur_blk, 'blocktype');
+            catch
+                all_blocks(i).blocktype = [];
+            end
         end
         
         ret.duration = toc(time_start);
