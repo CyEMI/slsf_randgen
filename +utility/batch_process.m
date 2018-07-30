@@ -1,5 +1,5 @@
 function [ ret ] = batch_process( report_dir, variable_name, filename_filters, data_filter )
-%BATCH_PROCESS Summary of this function goes here
+%BATCH_PROCESS Explores `report_dir`
 %   Detailed explanation goes here
 
 function load_result = load_from_each_file(cur_file)
@@ -11,13 +11,9 @@ function load_result = load_from_each_file(cur_file)
     end
 end
 
-files = dir([report_dir filesep '*.mat' ]);
+files = utility.dir_process(report_dir, '*.mat', false, filename_filters);
 
-files = {files.name};
-
-files = files(cellfun(@(x)all(cellfun(@(p)p{1}(x, p(2:end)), filename_filters)), files));
-
-ret = cellfun(@load_from_each_file, files, 'UniformOutput', false);
+ret = cellfun(@load_from_each_file, files(:, 1), 'UniformOutput', false);
 
 end
 

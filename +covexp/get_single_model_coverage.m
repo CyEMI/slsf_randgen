@@ -1,8 +1,16 @@
-function [ covdata ] = get_single_model_coverage( sys, model_id )
-%GET_SINGLE_MODEL_COVERAGE Summary of this function goes here
+function [ covdata ] = get_single_model_coverage( sys, model_id, model_path )
+%GET_SINGLE_MODEL_COVERAGE Gets coverage and other information for a model
 %   Potentially to be called from a parfor loop
+
+    if ~isempty(model_path)
+        addpath(model_path);
+    end
+    
     covdata = get_coverage(sys, model_id);
             
+    if ~isempty(model_path)
+        rmpath(model_path);
+    end
 end
 
 function new_st =  handle_stoptime(sys, l)

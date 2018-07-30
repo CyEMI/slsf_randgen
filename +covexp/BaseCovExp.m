@@ -7,7 +7,13 @@ classdef BaseCovExp < handle
     end
     
     properties
-        models;
+        models; % cell of model names
+        
+        models_path; % cell of model locations, can be empty
+        
+        % add individual model paths before analyzing the model?
+        USE_MODELS_PATH = covcfg.USE_MODELS_PATH;
+        
         result;
         l; % logger
         
@@ -83,6 +89,11 @@ classdef BaseCovExp < handle
         function do_analysis(obj)
             % Analyze ALL models
             all_models = obj.models;
+            all_models_path = obj.models_path;
+            
+            if ~ obj.USE_MODELS_PATH
+                all_models_path = cell(size(all_models));
+            end
             
             obj.manage_subgroup_auto();
             
@@ -107,14 +118,14 @@ classdef BaseCovExp < handle
                 parfor i = 1:loop_count
                     fprintf('%s Analyzing %d of %d models\n', log_append, i, loop_count );
                     model_id = model_id_offset + i;
-                    res(i) = covexp.get_single_model_coverage(all_models{i}, model_id);
+                    res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i});
                 end
             else
                 obj.l.info('Using Simple For Loop');
                 for i = 1:loop_count
                     obj.l.info(sprintf('%s Analyzing %d of %d models', log_append, i, loop_count ));
                     model_id = model_id_offset + i;
-                    res(i) = covexp.get_single_model_coverage(all_models{i}, model_id); %#ok<AGROW>
+                    res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}); %#ok<AGROW>
                     
                     % Save
                     obj.save_result(res, []);
@@ -137,7 +148,7 @@ classdef BaseCovExp < handle
             end
             
             % Add path to corpus
-            if isempty(covcfg.CORPUS_GROUP) || ~ strcmp(covcfg.CORPUS_GROUP, 'tutorial')
+            if ~obj.USE_MODELS_PATH && ( isempty(covcfg.CORPUS_GROUP) || ~ strcmp(covcfg.CORPUS_GROUP, 'tutorial') )
                 CORPUS_LOC = covcfg.CORPUS_HOME;
 
                 addpath(genpath(CORPUS_LOC));

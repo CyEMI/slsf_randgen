@@ -8,6 +8,12 @@ classdef covcfg
         SUBGROUP_BEGIN = 1;
         SUBGROUP_END = 1;
         
+        USE_MODELS_PATH = true;
+        
+        % Generate lists of models before experiment
+        GENERATE_MODELS_LIST = true;
+        GENERATE_MODELS_FILENAME = 'generated_model_list';
+        
         % Upper limit on how many models to process
         % For SUBGROUP_AUTO, process these many models 
         MAX_NUM_MODEL = 50;
@@ -64,6 +70,14 @@ classdef covcfg
             
             if isempty(ret)
                 error('Please set up environment variable SLSFCORPUS');
+            end
+        end
+        
+        function ret = EXPLORE_DIR()
+            ret = getenv('COVEXPEXPLORE');
+            
+            if isempty(ret)
+                error('Please set up environment variable COVEXPEXPLORE where we look for models.');
             end
         end
     end

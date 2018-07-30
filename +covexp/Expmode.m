@@ -3,9 +3,9 @@ classdef Expmode
     %   Detailed explanation goes here
     
     enumeration
-        SUBGROUP,...    % analyze a subsection of the available models
-        SUBGROUP_AUTO, ... % Automatically managed subgroup
-        ALL             % analyze all models
+        SUBGROUP,...        % analyze a subsection of the available models
+        SUBGROUP_AUTO, ...  % Automatically managed subgroup
+        ALL                 % analyze all models
     end
     
     methods

@@ -1,6 +1,6 @@
 function [ models ] = merge_reports(date_from, varargin )
 %MERGE_REPORTS Summary of this function goes here
-%   Detailed explanation goes here
+%   varargin{1} is subdirectory to look for.
 
 covexp.addpaths();
 
