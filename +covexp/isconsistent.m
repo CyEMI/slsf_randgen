@@ -64,4 +64,5 @@ end
 
 function ret = delete_fields(p)
     ret = rmfield(p, 'duration');
+    ret = rmfield(ret, 'simdur');
 end
