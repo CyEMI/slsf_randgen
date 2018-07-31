@@ -6,6 +6,7 @@ classdef ExploreCovExp < covexp.CorpusCovExp
     properties
         EXPLORE_SUBDIRS = true;
         DATA_VAR_NAME = 'generated_model_list';
+        EXPLORE_DIR_LOC = covcfg.EXPLORE_DIR;
     end
     
     methods
@@ -33,7 +34,8 @@ classdef ExploreCovExp < covexp.CorpusCovExp
         
         function generate_model_list(obj)
             obj.l.info('Generating model list...');
-            models_and_dirs = utility.dir_process(covcfg.EXPLORE_DIR, '*.slx', obj.EXPLORE_SUBDIRS, {});
+            models_and_dirs = utility.dir_process(obj.EXPLORE_DIR_LOC, '', true, {{@utility.file_extension_filter, {'slx', 'mdl'}}});
+            obj.l.info(sprintf('Generated list of %d models', numel(models_and_dirs)));
             
             model_names = cellfun(@(p)utility.strip_last_split(p, '.'), models_and_dirs(:, 1), 'UniformOutput', false);
             models_and_dirs(:, 1) = model_names;
