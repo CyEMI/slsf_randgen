@@ -6,7 +6,7 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path )
         addpath(model_path);
     end
     
-    covdata = get_coverage(sys, model_id);
+    covdata = get_coverage(sys, model_id, model_path);
             
     if ~isempty(model_path)
         rmpath(model_path);
@@ -32,12 +32,13 @@ function new_st =  handle_stoptime(sys, l)
     end
 end
 
-function ret = get_coverage(sys, model_id)
+function ret = get_coverage(sys, model_id, model_path)
     % ret contains result for a single model
     ret = covexp.get_report_datatype();
     
     ret.m_id = model_id;
     ret.sys = sys;
+    ret.loc_input = model_path;
     
     l = logging.getLogger('singlemodel');
 
