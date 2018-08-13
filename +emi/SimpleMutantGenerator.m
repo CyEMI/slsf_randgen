@@ -12,7 +12,7 @@ classdef SimpleMutantGenerator < emi.BaseMutantGenerator
         end
         
         function implement_mutation(obj)
-            
+            obj.strategy_dead_block_removal();
         end
     end
     

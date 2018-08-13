@@ -105,8 +105,10 @@ classdef BaseModelMutator < handle
             for i=1:obj.num_mutants
                 a_mutant = emi.SimpleMutantGenerator(i, obj.sys,...
                     obj.exp_data, obj.REPORT_DIR_FOR_THIS_MODEL);
+                
                 a_mutant.live_blocks = obj.live;
                 a_mutant.dead_blocks = obj.dead;
+                
                 a_mutant.go()
                 obj.mutants{i} = a_mutant.result;
             end
@@ -119,9 +121,9 @@ classdef BaseModelMutator < handle
             
             % remove model name from the blocks
             blocks(:, 'fullname') = cellfun(@(p) utility.strip_first_split(...
-                p, {'/', '\'}, filesep) ,blocks{:, 'fullname'}, 'UniformOutput', false);
+                p, '/', '/') ,blocks{:, 'fullname'}, 'UniformOutput', false);
             
-            deads = cellfun(@(p) p <0 ,blocks{:,'percentcov'});
+            deads = cellfun(@(p) p ==0 ,blocks{:,'percentcov'});
             
             obj.dead = blocks(deads, :);
             obj.live = blocks(~deads, :);

@@ -15,6 +15,12 @@ classdef cfg
         MUTANTS_PER_MODEL = 1;
         
         REPORTS_DIR = 'emi_results';
+        
+        % Remove this percentage of dead blocks
+        DEAD_BLOCK_REMOVE_PERCENT = 0.1;
+        
+        % Force pauses for debugging
+        DELETE_BLOCK_P = true;
     end
     
     methods (Static = true)
