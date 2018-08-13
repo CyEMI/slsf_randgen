@@ -14,6 +14,14 @@ classdef BaseMainLoop < handle
         exp_start_time;
         
         exp_data;
+        
+    end
+    
+    properties(Access = private)
+    end
+    
+    properties(Constant = true)
+        
     end
     
     methods
@@ -40,7 +48,31 @@ classdef BaseMainLoop < handle
             
             obj.exp_data.REPORTS_BASE = [emi.cfg.REPORTS_DIR filesep obj.exp_start_time];
             mkdir(obj.exp_data.REPORTS_BASE);
+            
             copyfile(['+emi' filesep 'cfg.m'], obj.exp_data.REPORTS_BASE);
+        end
+        
+        function handle_random_number_seed(obj)
+            if emi.cfg.LOAD_RNG_STATE
+                % Backup the variable first
+                try
+                    copyfile(emi.cfg.WS_FILE_NAME, obj.exp_data.REPORTS_BASE);
+                catch 
+                    emi.error(['Did not find previously saved state'...
+                        ' of `random number generator (RNG)`. Are you'...
+                        ' running this script for the first time in this'...
+                        ' machine? Then set `LOAD_RNG_STATE = false` in '...
+                        '`+emi/cfg.m` file before first-time run.'], obj.l);
+                end
+                
+                obj.l.info('Restoring random number generator state from disc');
+                
+                vars_read = load(emi.cfg.WS_FILE_NAME);
+                rng(vars_read.(emi.cfg.RNG_VARNAME_IN_WS));
+            else
+                obj.l.info('Starting new random number state...');
+                rng(0,'twister');
+            end
         end
         
         function go(obj)
@@ -49,6 +81,8 @@ classdef BaseMainLoop < handle
             emi.cfg.validate_configurations();
             
             obj.init();
+            
+            obj.handle_random_number_seed();
             
             obj.load_models_list();
             obj.apply_model_list_filters();

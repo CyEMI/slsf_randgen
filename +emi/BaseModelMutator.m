@@ -16,7 +16,6 @@ classdef BaseModelMutator < handle
         result;
         
         num_mutants;
-        mutants;
         
         l = logging.getLogger('emi.BaseModelMutator');
         
@@ -35,6 +34,8 @@ classdef BaseModelMutator < handle
             assert(~isempty(obj.model_data));
             assert(~isempty(obj.exp_no));
             
+            obj.save_random_number_generator_state();
+            
             obj.init();
             
             if ~ obj.open_model()
@@ -51,6 +52,11 @@ classdef BaseModelMutator < handle
             obj.close_model();
         end
         
+        function save_random_number_generator_state(~)
+            rng_state = rng; %#ok<NASGU>
+            save(emi.cfg.WS_FILE_NAME, emi.cfg.RNG_VARNAME_IN_WS);
+        end
+        
         
         function init(obj)
             obj.model_data = table2struct(obj.model_data);
@@ -59,7 +65,7 @@ classdef BaseModelMutator < handle
             
             obj.choose_num_mutants();
             
-            obj.result = emi.get_report_datatype(obj.exp_no, obj.m_id);
+            obj.result = emi.ReportForModel(obj.exp_no, obj.m_id);
             
             % Create Directories
             obj.REPORT_DIR_FOR_THIS_MODEL = [obj.exp_data.REPORTS_BASE filesep int2str(obj.exp_no)];
@@ -68,7 +74,7 @@ classdef BaseModelMutator < handle
         
         function choose_num_mutants(obj)
             obj.num_mutants = emi.cfg.MUTANTS_PER_MODEL;
-            obj.mutants = cell(obj.num_mutants, 1);
+            obj.result.mutants = cell(obj.num_mutants, 1);
         end
         
         function add_exception_in_result(obj, e)
@@ -103,6 +109,7 @@ classdef BaseModelMutator < handle
         
         function create_mutants(obj)
             for i=1:obj.num_mutants
+                obj.open_model();
                 a_mutant = emi.SimpleMutantGenerator(i, obj.sys,...
                     obj.exp_data, obj.REPORT_DIR_FOR_THIS_MODEL);
                 
@@ -110,7 +117,9 @@ classdef BaseModelMutator < handle
                 a_mutant.dead_blocks = obj.dead;
                 
                 a_mutant.go()
-                obj.mutants{i} = a_mutant.result;
+                obj.result.mutants{i} = a_mutant.result;
+                
+                obj.save_my_result();
             end
         end
         
@@ -129,7 +138,13 @@ classdef BaseModelMutator < handle
             obj.live = blocks(~deads, :);
         end
         
-        function enable_signal_logging(obj)
+        function save_my_result(obj)
+            modelreport = obj.result.get_report();  %#ok<NASGU>
+            save([obj.REPORT_DIR_FOR_THIS_MODEL filesep...
+                emi.cfg.REPORT_FOR_A_MODEL_FILENAME], emi.cfg.REPORT_FOR_A_MODEL_VARNAME);
+        end
+        
+        function enable_signal_logging(~)
             
         end
         
