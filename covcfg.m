@@ -5,8 +5,12 @@ classdef covcfg
     properties(Constant = true)
         
         EXP_MODE = covexp.Expmode.SUBGROUP;
+        
+        % Instead of corpus models, analyze a directory to discover models
+        EXPLORE_A_DIRECTORY = true;
+        
         SUBGROUP_BEGIN = 1;
-        SUBGROUP_END = 1;
+        SUBGROUP_END = 3;
         
         USE_MODELS_PATH = true;
         
@@ -16,7 +20,7 @@ classdef covcfg
         
         % Upper limit on how many models to process
         % For SUBGROUP_AUTO, process these many models 
-        MAX_NUM_MODEL = 50;
+        MAX_NUM_MODEL = 500;
         
         SIMULATION_TIMEOUT = 150;   % seconds
         
@@ -30,7 +34,7 @@ classdef covcfg
         CLOSE_MODELS = true;
         
         % Will use parfor
-        PARFOR = false;
+        PARFOR = true;
         
         % Model IDs to skip, start with x
         SKIP_LIST = struct(...
@@ -45,16 +49,16 @@ classdef covcfg
             );
         
         % Write experiment result in this file
-        RESULT_FILE = 'cov_exp_result';
+        RESULT_FILE = ['workdata' filesep 'cov_exp_result'];
         
         % save corpus meta in this file
-        CORPUS_COV_META = 'corpuscoverage';
+        CORPUS_COV_META = ['workdata' filesep 'corpuscoverage'];
         
         % Save coverage experiment results in this directory
         RESULT_DIR_COVEXP = 'covexp_results';
         
         % Expmode.SUBGROUP_AUTO
-        SUBGROUP_AUTO_DATA = 'cov_exp_subgroup';
+        SUBGROUP_AUTO_DATA = ['workdata' filesep 'cov_exp_subgroup'];
         
         % MATLAB uses different formats for month and minute in from and to
         % coversion to date and string!

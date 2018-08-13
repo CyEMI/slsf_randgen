@@ -4,7 +4,7 @@ classdef cfg
     
     properties(Constant = true)
         
-        NUM_MAINLOOP_ITER = 100;
+        NUM_MAINLOOP_ITER = 1;
         
         PARFOR = false;
         
@@ -19,7 +19,7 @@ classdef cfg
         
         INTERACTIVE_MODE = false;
         
-        MUTANTS_PER_MODEL = 10;
+        MUTANTS_PER_MODEL = 1;
         
         REPORTS_DIR = 'emi_results';
         
