@@ -1,13 +1,35 @@
-function [ covdata ] = get_single_model_coverage( sys, model_id, model_path )
+function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur_exp_dir )
 %GET_SINGLE_MODEL_COVERAGE Gets coverage and other information for a model
 %   Potentially to be called from a parfor loop
 
+    report_loc = [covcfg.CACHE_DIR filesep num2str(model_id)];
+
+    if covcfg.USE_CACHED_RESULTS
+        try
+            covdata = load(report_loc);
+            return;
+        catch
+        end
+    end
+    
     if ~isempty(model_path)
         addpath(model_path);
     end
     
+    cur_datetime = datestr(now, covcfg.DATETIME_DATE_TO_STR);
+    touch_loc = [cur_exp_dir filesep covcfg.TOUCHED_MODELS_DIR...
+        filesep cur_datetime '___' num2str(model_id) '.txt'];
+    
+    dummy = 'a'; %#ok<NASGU>
+    save(touch_loc, 'dummy');
+    
     covdata = get_coverage(sys, model_id, model_path);
-            
+    
+    save(report_loc, '-struct', 'covdata');
+    
+    % Delete the touched file
+    delete(touch_loc);
+    
     if ~isempty(model_path)
         rmpath(model_path);
     end

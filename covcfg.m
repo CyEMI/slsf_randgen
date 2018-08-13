@@ -4,7 +4,7 @@ classdef covcfg
     
     properties(Constant = true)
         
-        EXP_MODE = covexp.Expmode.SUBGROUP;
+        EXP_MODE = covexp.Expmode.GROUP;
         
         % Instead of corpus models, analyze a directory to discover models
         EXPLORE_A_DIRECTORY = true;
@@ -16,11 +16,11 @@ classdef covcfg
         
         % Generate lists of models before experiment
         GENERATE_MODELS_LIST = true;
-        GENERATE_MODELS_FILENAME = 'generated_model_list';
+        GENERATE_MODELS_FILENAME = ['workdata' filesep 'generated_model_list'];
         
         % Upper limit on how many models to process
         % For SUBGROUP_AUTO, process these many models 
-        MAX_NUM_MODEL = 500;
+        MAX_NUM_MODEL = 5000;
         
         SIMULATION_TIMEOUT = 150;   % seconds
         
@@ -37,16 +37,17 @@ classdef covcfg
         PARFOR = true;
         
         % Model IDs to skip, start with x
-        SKIP_LIST = struct(...
-            'x226', '',...
-            'x494', '',... 
-            'x719', '',...
-            'x762', '',...
-            'x800', '',...
-            'x852', '',...
-            'x860', '',...
-            'x838', ''...
-            );
+        SKIP_LIST = struct();
+%         SKIP_LIST = struct(...
+%             'x226', '',...
+%             'x494', '',... 
+%             'x719', '',...
+%             'x762', '',...
+%             'x800', '',...
+%             'x852', '',...
+%             'x860', '',...
+%             'x838', ''...
+%             );
         
         % Write experiment result in this file
         RESULT_FILE = ['workdata' filesep 'cov_exp_result'];
@@ -56,6 +57,13 @@ classdef covcfg
         
         % Save coverage experiment results in this directory
         RESULT_DIR_COVEXP = 'covexp_results';
+        CACHE_DIR = 'covexp_results_cache';
+        USE_CACHED_RESULTS = true;
+        % For each experiment, save COMBINED result in following file
+        
+        RESULT_FILENAME = 'covexp_result';
+        
+        TOUCHED_MODELS_DIR = 'touched';
         
         % Expmode.SUBGROUP_AUTO
         SUBGROUP_AUTO_DATA = ['workdata' filesep 'cov_exp_subgroup'];

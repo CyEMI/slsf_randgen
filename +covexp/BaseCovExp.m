@@ -23,6 +23,8 @@ classdef BaseCovExp < handle
         % If Expmode is SUBGROUP, then use following configurations
         subgroup_begin;
         subgroup_end;
+        
+        CUR_EXP_DIR;
     end
     
     methods
@@ -112,20 +114,22 @@ classdef BaseCovExp < handle
             end
             
             loop_count = min(numel(all_models), covcfg.MAX_NUM_MODEL);
+            
+            cur_exp_dir = obj.CUR_EXP_DIR;
                         
             if covcfg.PARFOR
                 obj.l.info('USING PARFOR');
                 parfor i = 1:loop_count
                     fprintf('%s Analyzing %d of %d models\n', log_append, i, loop_count );
                     model_id = model_id_offset + i;
-                    res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i});
+                    res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
                 end
             else
                 obj.l.info('Using Simple For Loop');
                 for i = 1:loop_count
                     obj.l.info(sprintf('%s Analyzing %d of %d models', log_append, i, loop_count ));
                     model_id = model_id_offset + i;
-                    res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}); %#ok<AGROW>
+                    res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); %#ok<AGROW>
                     
                     % Save
                     obj.save_result(res, []);
@@ -140,6 +144,10 @@ classdef BaseCovExp < handle
         
         function covexp_result = go(obj)
             obj.exp_start_time = datestr(now, covcfg.DATETIME_DATE_TO_STR);
+            obj.CUR_EXP_DIR = [covcfg.RESULT_DIR_COVEXP filesep obj.exp_start_time];
+            
+            mkdir(obj.CUR_EXP_DIR);
+            mkdir([obj.CUR_EXP_DIR filesep covcfg.TOUCHED_MODELS_DIR]);
             
             % Backup previous report 
             try
@@ -194,8 +202,8 @@ classdef BaseCovExp < handle
             save(obj.report_log_filename, 'covexp_result');
         end
         
-        function ret = get_logfile_name(obj, exp_start_time)
-            ret = [covcfg.RESULT_DIR_COVEXP filesep exp_start_time];
+        function ret = get_logfile_name(obj, ~)
+            ret = [obj.CUR_EXP_DIR filesep covcfg.RESULT_FILENAME];
             if covcfg.EXP_MODE.is_subgroup
                 ret = sprintf('%s_%d_%d', ret, obj.subgroup_begin, obj.subgroup_end);
             end
