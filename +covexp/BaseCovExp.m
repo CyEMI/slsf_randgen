@@ -122,15 +122,23 @@ classdef BaseCovExp < handle
                 parfor i = 1:loop_count
                     fprintf('%s Analyzing %d of %d models\n', log_append, i, loop_count );
                     model_id = model_id_offset + i;
-                    res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
+                    try
+                        res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
+                    catch 
+                        res(i) = covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
+                    end
                 end
             else
                 obj.l.info('Using Simple For Loop');
                 for i = 1:loop_count
                     obj.l.info(sprintf('%s Analyzing %d of %d models', log_append, i, loop_count ));
                     model_id = model_id_offset + i;
-                    res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); %#ok<AGROW>
                     
+                    try
+                        res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); %#ok<AGROW>
+                    catch
+                        res(i) = covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); %#ok<AGROW>
+                    end
                     % Save
                     obj.save_result(res, []);
                 end
@@ -154,6 +162,9 @@ classdef BaseCovExp < handle
                 movefile([covcfg.RESULT_FILE '.mat'], [covcfg.RESULT_FILE '.bkp.mat']);
             catch
             end
+            
+            % Delete cluster jobs
+            utility.delete_cluster_jobs(covcfg.PARFOR);
             
             % Add path to corpus
             if ~obj.USE_MODELS_PATH && ( isempty(covcfg.CORPUS_GROUP) || ~ strcmp(covcfg.CORPUS_GROUP, 'tutorial') )

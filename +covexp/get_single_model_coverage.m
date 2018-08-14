@@ -109,7 +109,7 @@ function ret = get_coverage(sys, model_id, model_path)
         ret.exception_msg = e.identifier;
         ret.exception_ob = e;
      
-        getReport(e)
+%         getReport(e)
         
         % Close
         covexp.sys_close(sys);
