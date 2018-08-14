@@ -123,11 +123,12 @@ classdef BaseCovExp < handle
                     fprintf('%s Analyzing %d of %d models\n', log_append, i, loop_count );
                     model_id = model_id_offset + i;
                     try
-                        res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
+                        covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
                     catch 
-                        res(i) = covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
+                        covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
                     end
                 end
+                res = struct();
             else
                 obj.l.info('Using Simple For Loop');
                 for i = 1:loop_count
@@ -164,7 +165,7 @@ classdef BaseCovExp < handle
             end
             
             % Delete cluster jobs
-            utility.delete_cluster_jobs(covcfg.PARFOR);
+%             utility.delete_cluster_jobs(covcfg.PARFOR);
             
             % Add path to corpus
             if ~obj.USE_MODELS_PATH && ( isempty(covcfg.CORPUS_GROUP) || ~ strcmp(covcfg.CORPUS_GROUP, 'tutorial') )
@@ -184,6 +185,11 @@ classdef BaseCovExp < handle
             
             total_time = toc(begin_timer);
             obj.l.info(sprintf('Total runtime %f second ', total_time));
+            
+            if covcfg.PARFOR
+                obj.l.info('No report generated due to PARFOR. Results are cached');
+                return;
+            end
             
             % covexp_result contains everything to be saved in disc
             covexp_result = obj.save_result(obj.result, total_time);

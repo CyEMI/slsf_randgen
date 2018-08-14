@@ -8,7 +8,7 @@ ret.m_id = model_id;
 ret.sys = sys;
 
 if covcfg.USE_CACHED_RESULTS
-    report_loc = [covcfg.CACHE_DIR filesep num2str(model_id)];
+    report_loc = [covcfg.CACHE_DIR filesep num2str(model_id) '.mat'];
     delete(report_loc);
     try
         ret = covexp.get_single_model_coverage(sys, model_id, model_path, cur_exp_dir);
