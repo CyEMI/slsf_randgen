@@ -15,7 +15,7 @@ classdef cfg
         % running this tool 24/7 and doing new stuff everytime the script
         % is run.
         
-        LOAD_RNG_STATE = false;
+        LOAD_RNG_STATE = true;
         
         INTERACTIVE_MODE = false;
         
@@ -26,6 +26,15 @@ classdef cfg
         % Remove this percentage of dead blocks
         DEAD_BLOCK_REMOVE_PERCENT = 0.5;
         
+        % If any error occurs, replicate the experiment in next run
+        REPLICATE_EXP_IF_ANY_ERROR = true;
+        
+        % Force opens
+        
+        % don't close a mutant if it did not compile/run
+        KEEP_ERROR_MUTANT_OPEN = true;
+        KEEP_ERROR_MUTANT_PARENT_OPEN = true;
+        
         % Force pauses for debugging
         DELETE_BLOCK_P = false;
         
@@ -35,7 +44,16 @@ classdef cfg
         WORK_DATA_DIR = 'workdata';
         WS_FILE_NAME_ = 'savedws.mat';
         
-        % Name of the variable for storing random number generator state
+        % Name of the variable for storing random number generator state.
+        % We need to save two states because first we randomly select the
+        % models we want to mutate. We save this state in
+        % `MODELS_RNG_VARNAME_IN_WS`. This is required to replicate a
+        % failed experiment. Next, before mutating each of the models, we
+        % again save the RNG state in `RNG_VARNAME_IN_WS`
+        
+        % Before generating list of models
+        MODELS_RNG_VARNAME_IN_WS = 'rng_state_models';
+        % Before creating mutants for *a* model
         RNG_VARNAME_IN_WS = 'rng_state';
         
         % file name for results of a model
@@ -43,6 +61,7 @@ classdef cfg
         % `REPORTS_DIR`/{EXP_ID}/`REPORT_FOR_A_MODEL_FILENAME`
         REPORT_FOR_A_MODEL_FILENAME = 'modelreport';
         REPORT_FOR_A_MODEL_VARNAME = 'modelreport';
+        
     end
     
     methods (Static = true)

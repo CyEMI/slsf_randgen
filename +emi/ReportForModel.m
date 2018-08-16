@@ -23,6 +23,26 @@ classdef ReportForModel < handle
             ret = utility.get_struct_from_object(obj);
         end
         
+        function ret = is_ok(obj)
+            % Note: not checking mutant results
+            ret = true;
+            
+            if ~isempty(obj.exception) && obj.exception
+                ret = false;
+                return;
+            end
+        end
+        
+        function ret = are_mutants_ok(obj)
+            ret = true;
+            
+            if isempty(obj.mutants)
+                return;
+            end
+            
+            ret = all(cellfun(@(p)p.is_ok(),obj.mutants));
+        end
+        
     end
     
 end

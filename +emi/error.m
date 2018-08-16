@@ -1,7 +1,8 @@
-function error( err_msg, l )
+function error( varargin )
 %FATAL log the error and end script.
 %   Detailed explanation goes here
-l.critical(err_msg);
+l = varargin{1};
+l.critical(varargin{2:end});
 error('FATAL ERROR!');
 end
 

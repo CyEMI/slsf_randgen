@@ -26,6 +26,38 @@ classdef BaseMainLoop < handle
     
     methods
         
+        function go(obj)
+            obj.l.info('--- Starting Main Loop! ---')
+            
+            emi.cfg.validate_configurations();
+            
+            obj.init();
+            
+            obj.handle_random_number_seed();
+            
+            obj.save_rng_state_for_model_list(true);
+            
+            obj.load_models_list();
+            obj.apply_model_list_filters();
+            
+            obj.choose_models();
+            ret = obj.process_all_models();
+            
+            % Save the current state if we don't need to reproduce the
+            % experiment in next run
+            
+            if ~ emi.cfg.REPLICATE_EXP_IF_ANY_ERROR || all(ret) 
+                % No need to reproduce; save RNG state
+                obj.l.info('Will NOT reproduce the experiment next time!');
+                obj.save_rng_state_for_model_list(true);
+            end
+            
+            obj.l.info('--- Returning from Main Loop! ---');
+        end
+    end
+    
+    methods(Access = protected)
+        
         function load_models_list(obj)
             read_data = load(obj.model_list);
             models_data = read_data.(obj.data_var_name);
@@ -58,39 +90,35 @@ classdef BaseMainLoop < handle
                 try
                     copyfile(emi.cfg.WS_FILE_NAME, obj.exp_data.REPORTS_BASE);
                 catch 
-                    emi.error(['Did not find previously saved state'...
+                    emi.error(obj.l, ['Did not find previously saved state'...
                         ' of `random number generator (RNG)`. Are you'...
                         ' running this script for the first time in this'...
                         ' machine? Then set `LOAD_RNG_STATE = false` in '...
-                        '`+emi/cfg.m` file before first-time run.'], obj.l);
+                        '`+emi/cfg.m` file before first-time run.']);
                 end
                 
                 obj.l.info('Restoring random number generator state from disc');
                 
                 vars_read = load(emi.cfg.WS_FILE_NAME);
-                rng(vars_read.(emi.cfg.RNG_VARNAME_IN_WS));
+                rng(vars_read.(emi.cfg.MODELS_RNG_VARNAME_IN_WS));
             else
                 obj.l.info('Starting new random number state...');
                 rng(0,'twister');
+                % Create the file so that append does not error later
+                obj.save_rng_state_for_model_list(false);
             end
         end
         
-        function go(obj)
-            obj.l.info('--- Starting Main Loop! ---')
+        function save_rng_state_for_model_list(~, do_append)
+            rng_state_models = rng; %#ok<NASGU>
             
-            emi.cfg.validate_configurations();
-            
-            obj.init();
-            
-            obj.handle_random_number_seed();
-            
-            obj.load_models_list();
-            obj.apply_model_list_filters();
-            
-            obj.choose_models();
-            obj.process_all_models();
-            
-            obj.l.info('--- Returning from Main Loop! ---')
+            if do_append
+                save(emi.cfg.WS_FILE_NAME,...
+                    emi.cfg.MODELS_RNG_VARNAME_IN_WS, '-append');
+            else
+                save(emi.cfg.WS_FILE_NAME,...
+                    emi.cfg.MODELS_RNG_VARNAME_IN_WS);
+            end
         end
         
         function choose_models(obj)
@@ -98,15 +126,20 @@ classdef BaseMainLoop < handle
                 randi([1, size(obj.models, 1)], 1, emi.cfg.NUM_MAINLOOP_ITER), :);
         end
         
-        function process_all_models(obj)
+        function ret = process_all_models(obj)
             models_cpy = obj.models;
             
+            num_models = size(models_cpy, 1);
+            
+            ret = zeros(num_models, 1);
+            
             if emi.cfg.PARFOR
-                error('TODO')
+                error('TODO');
             else
-                for i=1:size(models_cpy, 1)
-                    obj.l.info(sprintf('Processing %d of %d models', i, size(models_cpy, 1)));
-                    emi.mutate_single_model(i, models_cpy(1, :), obj.exp_data);
+                for i=1:num_models
+                    obj.l.info(sprintf('Processing %d of %d models', i, num_models));
+                    a_result = emi.mutate_single_model(i, models_cpy(i, :), obj.exp_data);
+                    ret(i) = a_result.is_ok() && a_result.are_mutants_ok();
                 end
             end
         end

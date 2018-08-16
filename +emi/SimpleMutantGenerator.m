@@ -1,6 +1,5 @@
 classdef SimpleMutantGenerator < emi.BaseMutantGenerator
-    %SIMPLEMUTANTGENERATOR Summary of this class goes here
-    %   Detailed explanation goes here
+    %SIMPLEMUTANTGENERATOR Implements a MutantGenerator
     
     properties
     end
@@ -14,6 +13,9 @@ classdef SimpleMutantGenerator < emi.BaseMutantGenerator
         function implement_mutation(obj)
             obj.strategy_dead_block_removal();
         end
+    end
+    
+    methods(Access = protected)
     end
     
 end

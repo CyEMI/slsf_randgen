@@ -35,7 +35,7 @@ classdef ExploreCovExp < covexp.CorpusCovExp
         function generate_model_list(obj)
             obj.l.info('Generating model list...');
             models_and_dirs = utility.dir_process(obj.EXPLORE_DIR_LOC, '', true, {{@utility.file_extension_filter, {'slx', 'mdl'}}});
-            obj.l.info(sprintf('Generated list of %d models', numel(models_and_dirs)));
+            obj.l.info('Generated list of %d models', size(models_and_dirs, 1));
             
             model_names = cellfun(@(p)utility.strip_last_split(p, '.'), models_and_dirs(:, 1), 'UniformOutput', false);
             models_and_dirs(:, 1) = model_names;

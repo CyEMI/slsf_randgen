@@ -58,7 +58,13 @@ classdef cell < handle
         end
         
         function ret = get_cell(obj)
+            % Returns row vector
             ret = obj.data(1:obj.len);
+        end
+        
+        function ret = get_cell_T(obj)
+            % Returns column vector
+            ret = reshape(obj.get_cell(), obj.len, 1);
         end
         
         function obj = extend(obj, other_cell)
@@ -80,10 +86,6 @@ classdef cell < handle
             end
             
             fprintf('\n');
-        end
-        
-        function obj = nargin_test(obj, x)
-            fprintf('Nargin: %d\n', nargin);
         end
         
     end

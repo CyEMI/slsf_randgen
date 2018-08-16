@@ -1,10 +1,13 @@
-classdef BaseModelMutator < handle
+classdef (Abstract) BaseModelMutator < handle
     %BASEMODELMUTATOR Mutates a single model to create k mutants
-    %   Actual mutants are created by calling instances of
-    %   BaseMutantGenerator
+    %   Individual mutants are created by calling instances of
+    %   BaseMutantGenerator implementations
     
     properties
-        
+        result;
+    end
+    
+    properties(Access=protected)
         exp_data;
         REPORT_DIR_FOR_THIS_MODEL;
         
@@ -13,7 +16,6 @@ classdef BaseModelMutator < handle
         
         sys;
         m_id;
-        result;
         
         num_mutants;
         
@@ -25,9 +27,12 @@ classdef BaseModelMutator < handle
     
     methods
         
-        function obj = BaseModelMutator(exp_data)
+        function obj = BaseModelMutator(exp_data, exp_no, model_data)
+            % Constructor
             obj.exp_data = exp_data;
-        end
+            obj.exp_no = exp_no;
+            obj.model_data = model_data;
+        end    
         
         function go(obj)
             
@@ -42,19 +47,29 @@ classdef BaseModelMutator < handle
                 return;
             end
             
+            ret = false;
+            
             try
-                obj.process_single_model();
+                ret = obj.process_single_model();
             catch e
                 obj.add_exception_in_result(e);
                 obj.l.error(getReport(e, 'extended'));
             end
             
-            obj.close_model();
+            if ~ ret && emi.cfg.KEEP_ERROR_MUTANT_PARENT_OPEN
+               obj.open_model(true); 
+            else
+                obj.close_model();
+            end
         end
+        
+    end
+    
+    methods(Access = protected)
         
         function save_random_number_generator_state(~)
             rng_state = rng; %#ok<NASGU>
-            save(emi.cfg.WS_FILE_NAME, emi.cfg.RNG_VARNAME_IN_WS);
+            save(emi.cfg.WS_FILE_NAME, emi.cfg.RNG_VARNAME_IN_WS, '-append');
         end
         
         
@@ -84,11 +99,23 @@ classdef BaseModelMutator < handle
             obj.result.exception_id = e.identifier;
         end
         
-        function opens = open_model(obj)
+        function opens = open_model(obj, varargin)
+            % varargin{1}: boolean: whether to use open_system by force.
+            
+            if nargin > 1
+                use_open_system = varargin{1};
+            else
+                use_open_system = false;
+            end
+            
             opens = true;
             addpath(obj.model_data.loc_input);
             try
-                emi.open_or_load_model(obj.sys);
+                if use_open_system
+                    open_system(obj.sys);
+                else
+                    emi.open_or_load_model(obj.sys);
+                end
             catch e
                 opens = false;
                 obj.l.error('Model did not open');
@@ -99,15 +126,17 @@ classdef BaseModelMutator < handle
             rmpath(obj.model_data.loc_input);
         end
         
-        function process_single_model(obj)
+        function ret = process_single_model(obj)
             obj.get_dead_and_live_blocks();
             
             obj.enable_signal_logging();
             
-            obj.create_mutants();
+            ret = obj.create_mutants();
         end
         
-        function create_mutants(obj)
+        function ret = create_mutants(obj)
+            ret = true;
+            
             for i=1:obj.num_mutants
                 obj.open_model();
                 a_mutant = emi.SimpleMutantGenerator(i, obj.sys,...
@@ -120,6 +149,12 @@ classdef BaseModelMutator < handle
                 obj.result.mutants{i} = a_mutant.result;
                 
                 obj.save_my_result();
+                
+                if ~ a_mutant.result.is_ok
+                    obj.l.error('Breaking from mutant gen loop due to error');
+                    ret = false;
+                    break;
+                end
             end
         end
         

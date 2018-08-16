@@ -1,5 +1,5 @@
 classdef SimpleMainLoop < emi.BaseMainLoop
-    %SIMPLEMAINLOOP Summary of this class goes here
+    %SIMPLEMAINLOOP Implementation of BaseMainLoop
     %   Detailed explanation goes here
     
     properties
