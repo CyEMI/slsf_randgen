@@ -16,16 +16,36 @@ classdef TimedSim
             obj.l = loggerOb;
         end
         
-        function timed_out = start(obj)
+        function timed_out = start(obj, varargin)
+            % First argument, if present, denotes whether to only compile
+            compile_only = false;
+            
+            if nargin > 1
+                compile_only = varargin{1};
+            end
+            
             timed_out = false;
             obj.sim_status = [];
             myTimer = timer('StartDelay', obj.duration, 'TimerFcn', {@utility.TimedSim.sim_timeout_callback, obj});
             start(myTimer);
             try
-                sim(obj.sys);
+                if compile_only
+                    % Sending the compile command results in error similar
+                    % to the bug we reported for slicing. So not reporting
+                    % it
+                    obj.l.info('Updating %s...', obj.sys);
+%                     eval([obj.sys '([], [], [], ''compile'')']);
+%                     eval([obj.sys '([], [], [], ''term'')']);
+                    set_param(obj.sys,'SimulationCommand','Update');
+                else
+                    obj.l.info('Simulating %s...', obj.sys);
+                    sim(obj.sys);
+                end
                 
                 stop(myTimer);
                 delete(myTimer);
+                
+                obj.l.info('Compile/simulation completed');
             catch e
                 throw(e);
             end

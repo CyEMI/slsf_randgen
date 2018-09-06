@@ -10,6 +10,8 @@ classdef cfg
         
         INPUT_MODEL_LIST = covcfg.RESULT_FILE
         
+        SIMULATION_TIMEOUT = covcfg.SIMULATION_TIMEOUT;
+        
         % Load previously saved random number seed. This would NOT
         % reproduce previous experiment results, but useful for actually
         % running this tool 24/7 and doing new stuff everytime the script

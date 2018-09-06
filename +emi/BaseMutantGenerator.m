@@ -102,6 +102,14 @@ classdef BaseMutantGenerator < handle
         function init(obj)
             %%
             obj.create_copy_of_original();
+            
+            % Compile
+            try
+                simob = utility.TimedSim(obj.sys, emi.cfg.SIMULATION_TIMEOUT, obj.l);
+                simob.start(true);
+            catch 
+                emi.error(obj.l, 'Error compiling mutant at the very beginning!');
+            end
         end
         
         function is_ok = compile_and_run(obj)
