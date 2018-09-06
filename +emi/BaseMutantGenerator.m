@@ -16,7 +16,7 @@ classdef BaseMutantGenerator < handle
         
         my_id;
         
-        sys; % mutant
+        sys; % Current mutant
         
         l = logging.getLogger('MutantGenerator');
         
@@ -251,9 +251,9 @@ classdef BaseMutantGenerator < handle
             if is_if_block
                 % Delete successors? Just first one in the path?
                 % Note: should not apply `delete_a_block` recursively to
-                % successors.
-%                 rowfun(@(~,b,~) obj.delete_a_block(get_param(b, 'Name'), block_parent),...
-%                     destinations, 'ExtractCellContents', true, 'ErrorHandler', @utility.rowfun_eh);
+                % successors, since a successor's predecessor is this block
+
+                obj.address_unconnected_ports(false, true, false, sources, [], block_parent);
             elseif ~ is_block_not_action_subsystem
                 obj.address_unconnected_ports(true, true, true, sources, destinations, block_parent);
                 [my_s, my_d] = obj.get_my_block_ports(block, sources, destinations);
@@ -306,14 +306,29 @@ classdef BaseMutantGenerator < handle
         end
         
         function add_type_compatible_blocks(obj, do_s, do_d, sources, dests, parent_sys)
-            %%
+            %% if `do_s` is true, add a Sink-like block, and connect all
+            % block-ports from `sources` --> new Sink-like block.
+            % Similarly, connect all block-ports from `dests` if `do_d` is
+            % true: "new Source-like block" --> \forall block-ports \in
+            % `dests`.
+            
+            if do_s && do_d
+                try
+                    obj.add_dtc_block_in_middle(sources, dests, parent_sys);
+                catch e
+                    disp(e);
+                end
+                return;
+            end
+            
             function ret = helper(b, p, is_handling_source)
+                %%
                 ret = true;
                 
                 if is_handling_source
                     new_blk_type = 'simulink/Sinks/Terminator';
                 else
-                    new_blk_type = 'simulink/Sources/Ground';
+                    new_blk_type = 'simulink/Sources/Constant';
                 end
                 
                 [new_blk_name, ~] = obj.add_new_block_in_model(parent_sys, new_blk_type);
@@ -325,7 +340,6 @@ classdef BaseMutantGenerator < handle
                 end
                 
                 for i=1:length(b)
-                
                     if is_handling_source
                         s_blk = b{i};
                         s_prt = int2str(p(i));
@@ -354,6 +368,56 @@ classdef BaseMutantGenerator < handle
             if do_d
                 rowfun(@(~, b, p) helper(get_param(b, 'Name'), p + 1, false),dests, 'ExtractCellContents', true);
             end
+        end
+        
+        function add_dtc_block_in_middle(obj, sources, dests, parent_sys)
+            %% Adds a Data-type Converter block between each source -> dest
+            % connection
+            
+            source_ptr = 0;
+            
+            for d = 1:size(dests, 1)
+                cur_d = dests{d, :};
+                
+                d_blk = get_param(cur_d{2}, 'Name');
+                d_prt = cur_d{3} + 1;
+                
+                if ~ iscell(d_blk)
+                    d_blk = {d_blk};
+                end
+                
+                for j = 1: numel(d_blk)
+                    % Add new DTC block
+                    [new_blk_name, ~] = obj.add_new_block_in_model(parent_sys, 'simulink/Signal Attributes/Data Type Conversion');
+                    
+                    % Connect DTC -> destination
+                    try
+                        add_line(parent_sys, [new_blk_name '/1'], [d_blk{j} '/' int2str(d_prt(j))],...
+                        'autorouting','on');
+                    catch e
+                        disp(e);
+                    end
+                    
+                    % Connect source -> DTC
+                    source_ptr = source_ptr +1;
+                    src_i = source_ptr;
+                    
+                    if src_i > size(sources, 1)
+                        src_i = 1; % TODO select random
+                    end
+                    
+                    cur_src = sources{src_i, :};
+                    
+                    try
+                        add_line(parent_sys, [get_param(cur_src{2}, 'Name') '/'...
+                        int2str(cur_src{3} + 1)], [new_blk_name '/1' ],...
+                        'autorouting','on');
+                    catch e
+                        disp(e);
+                    end
+                end
+            end
+            
         end
         
         function reconnect_ports(~)
