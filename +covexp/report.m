@@ -15,10 +15,23 @@ end
 
 clear covexp_result;
 
-load(result_file);
-
+load(result_file); %#ok<LOAD>
 
 models = covexp_result.models;
+
+% General stats
+
+l.info('Does Model Open?');
+tabulate([models.opens]);
+
+l.info('Does Model Compile?');
+tabulate([models.compiles]);
+
+l.info('Does Model time-out?');
+tabulate([models.timedout]);
+
+l.info('Does Model error?');
+tabulate([models.exception]);
 
 % Number of zero blocks
 
@@ -43,16 +56,6 @@ end
 l.info('Does model has at least one block with no cov?');
 haszero = arrayfun(@(p)p>0, numzero);
 tabulate(haszero);
-
-l.info('Does Model Open?');
-tabulate([models.opens]);
-
-l.info('Does Model time-out?');
-tabulate([models.timedout]);
-
-l.info('Does Model error?');
-tabulate([models.exception]);
-
 
 end
 

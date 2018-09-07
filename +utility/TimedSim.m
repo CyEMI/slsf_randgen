@@ -33,10 +33,10 @@ classdef TimedSim
                     % Sending the compile command results in error similar
                     % to the bug we reported for slicing. So not reporting
                     % it
-                    obj.l.info('Updating %s...', obj.sys);
-%                     eval([obj.sys '([], [], [], ''compile'')']);
-%                     eval([obj.sys '([], [], [], ''term'')']);
-                    set_param(obj.sys,'SimulationCommand','Update');
+                    obj.l.info('Compiling %s...', obj.sys);
+                    eval([obj.sys '([], [], [], ''compile'')']);
+                    eval([obj.sys '([], [], [], ''term'')']);
+%                     set_param(obj.sys,'SimulationCommand','Update');
                 else
                     obj.l.info('Simulating %s...', obj.sys);
                     sim(obj.sys);

@@ -14,6 +14,18 @@ classdef covcfg
         
         USE_MODELS_PATH = true;
         
+        % Perform experiments even if cached data is found
+        FORCE_UPDATE_CACHED_RESULT = false;
+        
+        % List of all available experiments
+        EXPERIMENTS = {...
+            @covexp.get_coverage,...
+            @covexp.check_model_compiles...
+        };
+        
+        % Will only collect these data. Elements are index of EXPERIMENTS
+        DO_THESE_EXPERIMENTS = [1]; %#ok<NBRAK>
+        
         % Generate lists of models before experiment
         GENERATE_MODELS_LIST = true;
         GENERATE_MODELS_FILENAME = ['workdata' filesep 'generated_model_list'];
@@ -34,7 +46,8 @@ classdef covcfg
         CLOSE_MODELS = true;
         
         % Will use parfor
-        PARFOR = true;
+        PARFOR = false;
+        
         
         % Model IDs to skip, start with x
 %         SKIP_LIST = struct();
@@ -67,7 +80,10 @@ classdef covcfg
         
         % Save coverage experiment results in this directory
         RESULT_DIR_COVEXP = 'covexp_results';
+        
+        USE_MODEL_PATH_AS_CACHE_LOCATION = true;
         CACHE_DIR = 'covexp_results_cache';
+        
         USE_CACHED_RESULTS = true;
         % For each experiment, save COMBINED result in following file
         
