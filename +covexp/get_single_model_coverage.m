@@ -2,12 +2,7 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
 %GET_SINGLE_MODEL_COVERAGE Gets coverage and other information for a model
 %   Potentially to be called from a parfor loop
 
-    if covcfg.USE_MODEL_PATH_AS_CACHE_LOCATION
-        assert(~isempty(model_path), 'Model path can not be empty if using model location as cache directory');
-        report_loc = [model_path filesep sys '__covdata'];
-    else
-        report_loc = [covcfg.CACHE_DIR filesep num2str(model_id)];
-    end
+    report_loc = covexp.get_model_cache_filename(sys, model_id, model_path);
 
     do_append = false;
     
@@ -34,12 +29,20 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
     save(touch_loc, 'dummy');
     
     [covdata, h] = covexp.check_model_opens(sys, model_id, model_path);
-    
+        
     if ~ covdata.skipped && covdata.opens
+        
         for i = 1:numel(covcfg.DO_THESE_EXPERIMENTS)
-            cur_experi = covcfg.EXPERIMENTS{covcfg.DO_THESE_EXPERIMENTS(i)};
-            covdata = cur_experi(sys, h, covdata);
+            try
+                cur_experi = covcfg.EXPERIMENTS{covcfg.DO_THESE_EXPERIMENTS(i)};
+                covdata = cur_experi(sys, h, covdata);
+            catch e
+                disp(e);
+                error('Experiment %d threw error', i);
+            end
         end
+        
+        covexp.sys_close(sys);
     end
     
     if do_append

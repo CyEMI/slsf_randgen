@@ -17,7 +17,7 @@ classdef cfg
         % running this tool 24/7 and doing new stuff everytime the script
         % is run.
         
-        LOAD_RNG_STATE = true;
+        LOAD_RNG_STATE = false;
         
         INTERACTIVE_MODE = false;
         
@@ -45,6 +45,14 @@ classdef cfg
         % Save random number seed and others
         WORK_DATA_DIR = 'workdata';
         WS_FILE_NAME_ = 'savedws.mat';
+        
+        % logger level
+        LOGGER_LEVEL = logging.logging.DEBUG;
+        
+        % Debug/Interactive mode for a particular subsystem
+        
+%         DEBUG_SUBSYSTEM = struct('cfblk224', 1);
+        DEBUG_SUBSYSTEM = struct;
         
         % Name of the variable for storing random number generator state.
         % We need to save two states because first we randomly select the

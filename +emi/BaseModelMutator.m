@@ -23,6 +23,7 @@ classdef (Abstract) BaseModelMutator < handle
         
         dead;
         live;
+        compiled_types;
     end
     
     methods
@@ -49,6 +50,17 @@ classdef (Abstract) BaseModelMutator < handle
             
             ret = false;
             
+            original_backup_created = false;
+            original_backup = [obj.sys '_original'];
+            
+            if ~ isempty(emi.cfg.DEBUG_SUBSYSTEM)
+                obj.l.info('Keeping original model open');
+                save_system(obj.sys, [tempdir filesep original_backup]);
+                open_system(original_backup);
+                original_backup_created = true;
+            end
+            
+            
             try
                 ret = obj.process_single_model();
             catch e
@@ -60,6 +72,11 @@ classdef (Abstract) BaseModelMutator < handle
                obj.open_model(true); 
             else
                 obj.close_model();
+            end
+            
+            if original_backup_created
+                bdclose(original_backup);
+                delete([tempdir filesep original_backup '.slx']);
             end
         end
         
@@ -144,6 +161,7 @@ classdef (Abstract) BaseModelMutator < handle
                 
                 a_mutant.live_blocks = obj.live;
                 a_mutant.dead_blocks = obj.dead;
+                a_mutant.compiled_types = obj.compiled_types;
                 
                 a_mutant.go()
                 obj.result.mutants{i} = a_mutant.result;
@@ -159,18 +177,35 @@ classdef (Abstract) BaseModelMutator < handle
         end
         
         function get_dead_and_live_blocks(obj)
-            blocks = struct2table(obj.model_data.blocks);
-            blocks = blocks(rowfun(@(~,p,~) ~isempty(p{1}) , blocks(:,:),...
-                'OutputFormat', 'uniform'), :);
             
-            % remove model name from the blocks
-            blocks(:, 'fullname') = cellfun(@(p) utility.strip_first_split(...
-                p, '/', '/') ,blocks{:, 'fullname'}, 'UniformOutput', false);
+            function x = get_nonempty(x)
+                x = x(rowfun(@(~,p,~) ~isempty(p{1}) , x(:,:),...
+                'OutputFormat', 'uniform'), :);
+            end
+            
+            function x = remove_model_names(x)
+                % remove model name from the blocks
+                x(:, 'fullname') = cellfun(@(p) utility.strip_first_split(...
+                    p, '/', '/') ,x{:, 'fullname'}, 'UniformOutput', false);
+            end
+            
+            blocks = struct2table(obj.model_data.blocks);
+            blocks = get_nonempty(blocks);
+            blocks = remove_model_names(blocks);
             
             deads = cellfun(@(p) p ==0 ,blocks{:,'percentcov'});
             
             obj.dead = blocks(deads, :);
             obj.live = blocks(~deads, :);
+            
+            % compiled types
+            ctypes = struct2table(obj.model_data.datatypes);
+            ctypes = get_nonempty(ctypes);
+            ctypes = remove_model_names(ctypes);
+            
+            obj.compiled_types = ctypes;
+            
+            % compiled data types
         end
         
         function save_my_result(obj)

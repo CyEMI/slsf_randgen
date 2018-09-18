@@ -8,6 +8,11 @@ classdef BaseMutantGenerator < handle
         
         dead_blocks;        % Of original model
         live_blocks;        % Of original model
+        compiled_types;
+        
+        % stats
+        num_deleted = 0;
+        num_skip_delete = 0;
     end
     
     properties(Access = protected)
@@ -48,6 +53,10 @@ classdef BaseMutantGenerator < handle
             obj.sys = sprintf('%s_%d', original_sys, my_id);
             
             obj.result = emi.ReportForMutant(my_id);
+            
+            obj.l.setLogLevel(emi.cfg.LOGGER_LEVEL);
+            
+            
         end
         
         function go(obj)
@@ -65,6 +74,8 @@ classdef BaseMutantGenerator < handle
                 obj.l.error(['Error while mutant generation: '  e.identifier]);
                 rethrow(e);
             end
+            
+            obj.l.info('Deleted: %d; Delete skipped: %d', obj.num_deleted, obj.num_skip_delete);
             
             % run mutant
             if ~ obj.compile_and_run()
@@ -103,13 +114,6 @@ classdef BaseMutantGenerator < handle
             %%
             obj.create_copy_of_original();
             
-            % Compile
-            try
-                simob = utility.TimedSim(obj.sys, emi.cfg.SIMULATION_TIMEOUT, obj.l);
-                simob.start(true);
-            catch 
-                emi.error(obj.l, 'Error compiling mutant at the very beginning!');
-            end
         end
         
         function is_ok = compile_and_run(obj)
@@ -159,7 +163,17 @@ classdef BaseMutantGenerator < handle
             
             cellfun(@(p) obj.delete_a_block(p, []), blocks_to_delete);
             
-        end        
+        end
+        
+        function ret = skip_delete(~, blk)
+            % Check whether `blk` should not be deleted.
+            skips = utility.map();
+            
+            skips.put('Delay', 1);
+            skips.put('UnitDelay', 1);
+            
+            ret = skips.contains(get_param(blk, 'BlockType'));
+        end
         
         function ret = delete_a_block(obj, block, sys_for_context)
             %% DELETE A BLOCK `block`
@@ -173,17 +187,34 @@ classdef BaseMutantGenerator < handle
                 return;
             end
             
+            if obj.skip_delete(block)
+                obj.l.debug('Not deleting as pre-configured %s', block);
+                obj.num_skip_delete = obj.num_skip_delete + 1;
+                return;
+            end
+            
+            obj.num_deleted = obj.num_deleted + 1;
+            
             try
                 connections = struct2table(get_param(block, 'PortConnectivity'));
             catch e
                 % the block was not found. Was it already deleted?
                 error(e.identifier);
             end
-                
             
-            emi.hilite_system(block, emi.cfg.DELETE_BLOCK_P);
+            try
+                [block_parent, this_block] = utility.strip_last_split(block, '/');
+            catch e
+                obj.l.error('Input was: %s', block);
+                error(e.identifier);
+            end
+               
+            % Pause for containing (parent) subsystem?
+            pause_ss = emi.pause_for_ss(block_parent);
             
-            emi.pause_interactive(emi.cfg.DELETE_BLOCK_P, 'Delete block %s', block);
+            emi.hilite_system(block, emi.cfg.DELETE_BLOCK_P || pause_ss);
+            
+            emi.pause_interactive(emi.cfg.DELETE_BLOCK_P || pause_ss, 'Delete block %s', block);
             
             
             % See 'PortConnectivity' in https://www.mathworks.com/help/simulink/slref/common-block-parameters.html
@@ -222,14 +253,6 @@ classdef BaseMutantGenerator < handle
                 ret = true;
             end
             
-            try
-                [block_parent, this_block] = utility.strip_last_split(block, '/');
-            catch e
-                getReport(e)
-                obj.l.error('Input was: %s', block);
-                error(e.identifier);
-            end
-            
             % Delete source -> block connections
             rowfun(@(a,b,c) delete_connection(block_parent, get_param(b, 'Name'),...
                 int2str(c + 1), this_block, str2double(a), false),...
@@ -250,7 +273,8 @@ classdef BaseMutantGenerator < handle
                 try
                     delete_block(block);
                 catch e
-                    error(e.identifier);
+                    disp(e.identifier);
+                    error('Error deleting block!');
                 end
             end
             
@@ -260,13 +284,17 @@ classdef BaseMutantGenerator < handle
                 % Delete successors? Just first one in the path?
                 % Note: should not apply `delete_a_block` recursively to
                 % successors, since a successor's predecessor is this block
-
+                obj.l.debug('(!) Deleted If Block!');
+                % Do not reconnect!
                 obj.address_unconnected_ports(false, true, false, sources, [], block_parent);
             elseif ~ is_block_not_action_subsystem
+                obj.l.debug('(!) Did NOT delete Action Subsystem!');
                 obj.address_unconnected_ports(true, true, true, sources, destinations, block_parent);
-                [my_s, my_d] = obj.get_my_block_ports(block, sources, destinations);
-                obj.address_unconnected_ports(true, true, true, my_d, my_s, block_parent);
+                
+%                 [my_s, my_d] = obj.get_my_block_ports(block, sources, destinations);
+%                 obj.address_unconnected_ports(true, true, true, my_d, my_s, block_parent);
             else
+                obj.l.debug('(!) Deleted regular Block!');
                 % Reconnect source - destinations
                 % May want to do it randomly. Because leaving them
                 % unconnected should not matter and can be good test
@@ -307,26 +335,30 @@ classdef BaseMutantGenerator < handle
         end
             
         
-        function address_unconnected_ports(obj, reconnect, do_s, do_d, sources, dests, parent_sys) %#ok<INUSL>
+        function address_unconnected_ports(obj, reconnect, do_s, do_d, sources, dests, parent_sys)
             %%
             % TODO randomly choose a strategy
-            obj.add_type_compatible_blocks(do_s, do_d, sources, dests, parent_sys);
+            obj.add_type_compatible_blocks(do_s, do_d, sources, dests, parent_sys, reconnect);
         end
         
-        function add_type_compatible_blocks(obj, do_s, do_d, sources, dests, parent_sys)
+        function add_type_compatible_blocks(obj, do_s, do_d, sources, dests, parent_sys, reconnect)
             %% if `do_s` is true, add a Sink-like block, and connect all
             % block-ports from `sources` --> new Sink-like block.
             % Similarly, connect all block-ports from `dests` if `do_d` is
             % true: "new Source-like block" --> \forall block-ports \in
             % `dests`.
             
-            if do_s && do_d
+            if reconnect && do_s && do_d
+                obj.l.debug('Will put Data-type converter');
                 try
                     obj.add_dtc_block_in_middle(sources, dests, parent_sys);
                 catch e
                     disp(e);
+                    error('Error adding block in middle');
                 end
                 return;
+            else
+                obj.l.debug('Will NOT put Data-type converter');
             end
             
             function ret = helper(b, p, is_handling_source)
@@ -378,6 +410,30 @@ classdef BaseMutantGenerator < handle
             end
         end
         
+        function ret = get_compiled_type(obj, parent, current_block, porttype)
+            % `porttype` can be 'Inport' or 'Outport'
+            try
+                block_key = utility.strip_first_split([parent '/' current_block], '/', '/');
+                dt = obj.compiled_types{strcmp(obj.compiled_types.fullname, block_key), 'datatype'};
+                ret = dt{1}.(porttype);
+            catch e
+                error('Block not found in compiled datatypes');
+            end
+        end
+        
+        function add_dtc_block_compiled_types(obj, parent, blkname, blkprt, dtc, dtc_out_type)
+            src_outtype = obj.get_compiled_type(parent, blkname, 'Outport');
+            assert(isscalar(blkprt));
+            
+            desired_type = src_outtype{blkprt};
+            
+            s = struct;
+            s(1).Inport= {desired_type};
+            s(1).Outport = {dtc_out_type};
+            
+            obj.compiled_types = [obj.compiled_types; {utility.strip_first_split([parent '/' dtc], '/', '/'), s}];
+        end
+        
         function add_dtc_block_in_middle(obj, sources, dests, parent_sys)
             %% Adds a Data-type Converter block between each source -> dest
             % connection
@@ -395,13 +451,28 @@ classdef BaseMutantGenerator < handle
                 end
                 
                 for j = 1: numel(d_blk)
+                    % what's the type of this destination block's jth input
+                    % port?
+                    
                     % Add new DTC block
-                    [new_blk_name, ~] = obj.add_new_block_in_model(parent_sys, 'simulink/Signal Attributes/Data Type Conversion');
+                    try
+                        inport_types = obj.get_compiled_type(parent_sys, d_blk{j}, 'Inport');
+                        dtc_out_type = inport_types{d_prt(j)}; % Outport type of DTC block
+                        [new_blk_name, ~] = obj.add_new_block_in_model(parent_sys, 'simulink/Signal Attributes/Data Type Conversion',...
+                            struct('OutDataTypeStr', dtc_out_type));
+                        
+                        obj.l.debug('Added new DTC block %s', new_blk_name);
+                   
+                    catch e
+                        disp('data type adding error');
+                        disp(e);
+                    end
                     
                     % Connect DTC -> destination
                     try
                         add_line(parent_sys, [new_blk_name '/1'], [d_blk{j} '/' int2str(d_prt(j))],...
                         'autorouting','on');
+                        obj.l.debug('Connected %s/1 ---> %s/%d', new_blk_name, d_blk{j}, d_prt(j));
                     catch e
                         disp(e);
                     end
@@ -416,10 +487,18 @@ classdef BaseMutantGenerator < handle
                     
                     cur_src = sources{src_i, :};
                     
+                    src_bname = get_param(cur_src{2}, 'Name');
+                    src_prt = cur_src{3} + 1;
+                    
+                    % add new DTC block in compiled data types
+                   
+                    obj.add_dtc_block_compiled_types(parent_sys, src_bname, src_prt, new_blk_name, dtc_out_type);
+                    
                     try
-                        add_line(parent_sys, [get_param(cur_src{2}, 'Name') '/'...
-                        int2str(cur_src{3} + 1)], [new_blk_name '/1' ],...
+                        add_line(parent_sys, [src_bname '/'...
+                        int2str(src_prt)], [new_blk_name '/1' ],...
                         'autorouting','on');
+                        obj.l.debug('Connected %s/%d ---> %s/1', src_bname, src_prt, new_blk_name);
                     catch e
                         disp(e);
                     end
@@ -456,10 +535,25 @@ classdef BaseMutantGenerator < handle
             obj.newly_added_block_counter = obj.newly_added_block_counter + 1;
         end
         
-        function [new_blk_name, h] = add_new_block_in_model(obj, parent_sys, new_blk_type)
+        function [new_blk_name, h] = add_new_block_in_model(obj, parent_sys, new_blk_type, varargin)
             %%
+            
+            if nargin == 3
+                blk_params = struct;
+            else
+                blk_params = varargin{1};
+            end
+            
             new_blk_name = obj.get_new_block_name();
             h = add_block(new_blk_type, [parent_sys '/' new_blk_name]);
+            
+            % Configure block params
+            blk_param_names = fieldnames(blk_params);
+            
+            for i=1:numel(blk_param_names)
+                p = blk_param_names{i};
+                set_param(h, p, blk_params.(p));
+            end
         end
     end
     

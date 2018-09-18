@@ -2,13 +2,13 @@ function [ ret ] = single_model_result_error( sys, model_id, model_path, cur_exp
 %SINGLE_MODEL_RESULT_ERROR delete cached result and try again.
 %   Detailed explanation goes here
 
-ret = covexp.get_report_datatype();
+ret = struct;
 
 ret.m_id = model_id;
 ret.sys = sys;
 
 if covcfg.USE_CACHED_RESULTS
-    report_loc = [covcfg.CACHE_DIR filesep num2str(model_id) '.mat'];
+    report_loc = [covexp.get_model_cache_filename(sys, model_id, model_path) '.mat'];
     delete(report_loc);
     try
         ret = covexp.get_single_model_coverage(sys, model_id, model_path, cur_exp_dir);

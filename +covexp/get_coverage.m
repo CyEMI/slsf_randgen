@@ -42,7 +42,7 @@ function ret = get_coverage(sys, h, ret)
         testObj  = cvtest(h);
         data = cvsim(testObj);
 
-        blocks = get_all_blocks(h);
+        blocks = covexp.get_all_blocks(h);
 
         all_blocks = struct;
 
@@ -78,8 +78,6 @@ function ret = get_coverage(sys, h, ret)
         ret.blocks = all_blocks;
         ret.numzerocov = num_zero_cov;
         
-        % Close
-        covexp.sys_close(sys);
     catch e
         ret.exception = true;
         ret.exception_msg = e.identifier;
@@ -87,8 +85,6 @@ function ret = get_coverage(sys, h, ret)
         
         getReport(e)
         
-        % Close
-        covexp.sys_close(sys);
     end
 
 end
@@ -98,11 +94,6 @@ function ret = get_model_loc(sys)
     corpus_loc = strsplit(covcfg.CORPUS_HOME, filesep);
     
     ret = sys_loc(numel(corpus_loc) + 1: end);
-end
-
-function ret = get_all_blocks(sys)
-    ret = find_system(sys, 'LookUnderMasks', 'all');
-%     ret = find_system(sys, 'LookUnderMasks', 'all', 'Variants', 'AllVariants');    
 end
 
 function new_st =  handle_stoptime(sys, l)

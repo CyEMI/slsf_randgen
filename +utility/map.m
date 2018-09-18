@@ -23,19 +23,12 @@ classdef map < handle
             obj.data = struct;
             
             if nargin >0
-%                 disp('MyMap called with argument!');
                 for i = 1:2:numel(varargin)
                     obj.put(varargin{i}, varargin{i+1});
                 end
-%             else
-%                 disp('MyMap with NO arguments');
             end
             
         end
-        
-%         function obj = test(obj, a, b)
-%             fprintf('varargin: %d\n', nargin);
-%          end
         
         function ret =  create_if_not_exists(obj, k, classn)
             if obj.contains(k)
@@ -46,21 +39,25 @@ classdef map < handle
             end
         end
         
+        function ret = mvn(~, s)
+            ret = matlab.lang.makeValidName(s);
+        end
+        
         
         function put(obj, k, v)
-            effective_key = util.mvn(k);
+            effective_key = obj.mvn(k);
             obj.data.(effective_key) = v;
         end
         
         function ret = contains(obj, k)
-            ret = isfield(obj.data, util.mvn(k));
+            ret = isfield(obj.data, obj.mvn(k));
         end
         
         function ret = get(obj, k)
-            if ~ isfield(obj.data, util.mvn(k))
+            if ~ isfield(obj.data, obj.mvn(k))
                 ret = [];
             else
-                ret = obj.data.(util.mvn(k));
+                ret = obj.data.(obj.mvn(k));
             end
         end
         

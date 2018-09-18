@@ -16,6 +16,11 @@ classdef TimedSim
             obj.l = loggerOb;
         end
         
+        function term(obj)
+            % Invoke the term command after compiling
+            eval([obj.sys '([], [], [], ''term'')']);
+        end
+        
         function timed_out = start(obj, varargin)
             % First argument, if present, denotes whether to only compile
             compile_only = false;
@@ -35,7 +40,6 @@ classdef TimedSim
                     % it
                     obj.l.info('Compiling %s...', obj.sys);
                     eval([obj.sys '([], [], [], ''compile'')']);
-                    eval([obj.sys '([], [], [], ''term'')']);
 %                     set_param(obj.sys,'SimulationCommand','Update');
                 else
                     obj.l.info('Simulating %s...', obj.sys);

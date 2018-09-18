@@ -19,12 +19,12 @@ classdef covcfg
         
         % List of all available experiments
         EXPERIMENTS = {...
-            @covexp.get_coverage,...
-            @covexp.check_model_compiles...
+            @covexp.get_coverage,...            % 1
+            @covexp.check_model_compiles...     % 2
         };
         
         % Will only collect these data. Elements are index of EXPERIMENTS
-        DO_THESE_EXPERIMENTS = [1]; %#ok<NBRAK>
+        DO_THESE_EXPERIMENTS = [1 2];
         
         % Generate lists of models before experiment
         GENERATE_MODELS_LIST = true;
