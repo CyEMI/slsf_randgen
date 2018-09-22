@@ -21,7 +21,8 @@ classdef (Abstract) BaseModelMutator < handle
         
         l = logging.getLogger('emi.BaseModelMutator');
         
-        dead;
+        block_data; % Data for each block
+        dead; 
         live;
         compiled_types;
     end
@@ -159,6 +160,7 @@ classdef (Abstract) BaseModelMutator < handle
                 a_mutant = emi.SimpleMutantGenerator(i, obj.sys,...
                     obj.exp_data, obj.REPORT_DIR_FOR_THIS_MODEL);
                 
+                a_mutant.blocks = obj.block_data;
                 a_mutant.live_blocks = obj.live;
                 a_mutant.dead_blocks = obj.dead;
                 a_mutant.compiled_types = obj.compiled_types;
@@ -193,12 +195,16 @@ classdef (Abstract) BaseModelMutator < handle
             blocks = get_nonempty(blocks);
             blocks = remove_model_names(blocks);
             
+            obj.block_data = blocks;
+            
             deads = cellfun(@(p) p ==0 ,blocks{:,'percentcov'});
             
             obj.dead = blocks(deads, :);
             obj.live = blocks(~deads, :);
             
             % compiled types
+            % TODO to improve performance can merge with previous blocks
+            % struct
             ctypes = struct2table(obj.model_data.datatypes);
             ctypes = get_nonempty(ctypes);
             ctypes = remove_model_names(ctypes);

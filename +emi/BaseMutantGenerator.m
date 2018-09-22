@@ -6,6 +6,7 @@ classdef BaseMutantGenerator < handle
         %%
         result;
         
+        blocks;
         dead_blocks;        % Of original model
         live_blocks;        % Of original model
         compiled_types;
@@ -67,6 +68,9 @@ classdef BaseMutantGenerator < handle
             
             % Create Mutant!
             
+            % TODO for efficiency consider caching this
+            obj.preprocess_model();
+            
             try
                 obj.implement_mutation();
             catch e
@@ -75,6 +79,7 @@ classdef BaseMutantGenerator < handle
                 rethrow(e);
             end
             
+            % TODO do this when filtering list of blocks to be efficient
             obj.l.info('Deleted: %d; Delete skipped: %d', obj.num_deleted, obj.num_skip_delete);
             
             % run mutant
@@ -166,7 +171,7 @@ classdef BaseMutantGenerator < handle
         end
         
         function ret = skip_delete(~, blk)
-            % Check whether `blk` should not be deleted.
+            %% Check whether `blk` should not be deleted.
             skips = utility.map();
             
             skips.put('Delay', 1);
@@ -175,12 +180,43 @@ classdef BaseMutantGenerator < handle
             ret = skips.contains(get_param(blk, 'BlockType'));
         end
         
+        
+        function preprocess_model(obj)
+            if emi.cfg.PRE_ANNOTATE_TYPE
+                obj.pre_annotate_types;
+            end
+        end
+        
+        function ret = filter_block_by_type(obj, blktype)
+            %%
+            ret = obj.blocks{strcmpi(obj.blocks.blocktype, blktype),1};
+        end
+        
+        function pre_annotate_types(obj)
+            %%
+            configs = {...
+                    {'Delay', @preprocess_delay_blocks}...
+                };
+            for i=1:numel(configs)
+                cur = configs{i};
+                filter_fcn = cur{2};
+                target_blocks = obj.filter_block_by_type(cur{1});
+                cellfun(@(p)filter_fcn(obj, p),target_blocks);
+            end
+        end
+        
+        function ret= preprocess_delay_blocks(obj, blkname)
+            ret = true;
+            
+        end
+        
         function ret = delete_a_block(obj, block, sys_for_context)
             %% DELETE A BLOCK `block`
             
             ret = true;
             
             if iscell(block)
+                % Recursive call when `block` is a cell
                 for b_i = 1:numel(block)
                     obj.delete_a_block([sys_for_context '/' block{b_i}], sys_for_context);
                 end
@@ -348,7 +384,7 @@ classdef BaseMutantGenerator < handle
             % true: "new Source-like block" --> \forall block-ports \in
             % `dests`.
             
-            if reconnect && do_s && do_d
+            if emi.cfg.DTC_RECONNECT && reconnect && do_s && do_d
                 obj.l.debug('Will put Data-type converter');
                 try
                     obj.add_dtc_block_in_middle(sources, dests, parent_sys);
@@ -360,6 +396,19 @@ classdef BaseMutantGenerator < handle
             else
                 obj.l.debug('Will NOT put Data-type converter');
             end
+            
+            if emi.cfg.DTC_RECONNECT && ~reconnect
+                % We deleted an If block and are now trying to put a
+                % terminator at the If block's predecessor. Skip doing this
+                % as we'd also have to choose a data-type for the
+                % terminator for obj.compiled_types
+                return;
+            end
+            
+            % We chose not to put DTC and reconnect the predecessors and
+            % successors of a deleted block. In the following code, use
+            % other strategies e.g. putting "sink-like" and/or
+            % "source-like" blocks for unconnected ports.
             
             function ret = helper(b, p, is_handling_source)
                 %%
@@ -411,7 +460,7 @@ classdef BaseMutantGenerator < handle
         end
         
         function ret = get_compiled_type(obj, parent, current_block, porttype)
-            % `porttype` can be 'Inport' or 'Outport'
+            %% `porttype` can be 'Inport' or 'Outport'
             try
                 block_key = utility.strip_first_split([parent '/' current_block], '/', '/');
                 dt = obj.compiled_types{strcmp(obj.compiled_types.fullname, block_key), 'datatype'};
@@ -422,6 +471,13 @@ classdef BaseMutantGenerator < handle
         end
         
         function add_dtc_block_compiled_types(obj, parent, blkname, blkprt, dtc, dtc_out_type)
+            %% Register a newly added `dtc` block's source and destination
+            % types in the compiled-types database (i.e. obj.compiled_types)
+            
+            if ~emi.cfg.DTC_RECONNECT || ~emi.cfg.DTC_SPECIFY_TYPE
+                return;
+            end
+            
             src_outtype = obj.get_compiled_type(parent, blkname, 'Outport');
             assert(isscalar(blkprt));
             
@@ -451,21 +507,28 @@ classdef BaseMutantGenerator < handle
                 end
                 
                 for j = 1: numel(d_blk)
-                    % what's the type of this destination block's jth input
-                    % port?
                     
                     % Add new DTC block
                     try
-                        inport_types = obj.get_compiled_type(parent_sys, d_blk{j}, 'Inport');
-                        dtc_out_type = inport_types{d_prt(j)}; % Outport type of DTC block
+                        % what's the type of this destination block's jth input
+                        % port?
+                        if emi.cfg.DTC_SPECIFY_TYPE
+                            inport_types = obj.get_compiled_type(parent_sys, d_blk{j}, 'Inport');
+                            dtc_out_type = inport_types{d_prt(j)}; % Outport type of DTC block
+                            dtc_type_params = struct('OutDataTypeStr', dtc_out_type);
+                        else
+                            dtc_out_type = [];
+                            dtc_type_params = struct;
+                        end
+                        
                         [new_blk_name, ~] = obj.add_new_block_in_model(parent_sys, 'simulink/Signal Attributes/Data Type Conversion',...
-                            struct('OutDataTypeStr', dtc_out_type));
+                            dtc_type_params);
                         
                         obj.l.debug('Added new DTC block %s', new_blk_name);
                    
                     catch e
-                        disp('data type adding error');
                         disp(e);
+                        error('data type adding error');
                     end
                     
                     % Connect DTC -> destination
@@ -475,6 +538,7 @@ classdef BaseMutantGenerator < handle
                         obj.l.debug('Connected %s/1 ---> %s/%d', new_blk_name, d_blk{j}, d_prt(j));
                     catch e
                         disp(e);
+                        error('dtc->dest line adding error');
                     end
                     
                     % Connect source -> DTC
@@ -501,6 +565,7 @@ classdef BaseMutantGenerator < handle
                         obj.l.debug('Connected %s/%d ---> %s/1', src_bname, src_prt, new_blk_name);
                     catch e
                         disp(e);
+                        error('connecting src->dtc');
                     end
                 end
             end
@@ -518,8 +583,8 @@ classdef BaseMutantGenerator < handle
                 return;
             end
             
-            blocks = obj.dead_blocks{:, 'fullname'};
-            cellfun(@(p) emi.hilite_system([obj.sys '/' p]), blocks, 'UniformOutput', false);
+            d_blocks = obj.dead_blocks{:, 'fullname'};
+            cellfun(@(p) emi.hilite_system([obj.sys '/' p]), d_blocks, 'UniformOutput', false);
         end
         
         function ret = sample_dead_blocks_to_delete(obj)

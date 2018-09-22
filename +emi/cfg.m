@@ -17,7 +17,7 @@ classdef cfg
         % running this tool 24/7 and doing new stuff everytime the script
         % is run.
         
-        LOAD_RNG_STATE = false;
+        LOAD_RNG_STATE = true;
         
         INTERACTIVE_MODE = false;
         
@@ -37,6 +37,9 @@ classdef cfg
         KEEP_ERROR_MUTANT_OPEN = true;
         KEEP_ERROR_MUTANT_PARENT_OPEN = true;
         
+        % mutant not compiling
+        STOP_IF_ERROR = true;
+        
         % Force pauses for debugging
         DELETE_BLOCK_P = false;
         
@@ -51,8 +54,9 @@ classdef cfg
         
         % Debug/Interactive mode for a particular subsystem
         
-%         DEBUG_SUBSYSTEM = struct('cfblk224', 1);
+%         DEBUG_SUBSYSTEM = struct('cfblk234', 1);
         DEBUG_SUBSYSTEM = struct;
+        
         
         % Name of the variable for storing random number generator state.
         % We need to save two states because first we randomly select the
@@ -71,6 +75,15 @@ classdef cfg
         % `REPORTS_DIR`/{EXP_ID}/`REPORT_FOR_A_MODEL_FILENAME`
         REPORT_FOR_A_MODEL_FILENAME = 'modelreport';
         REPORT_FOR_A_MODEL_VARNAME = 'modelreport';
+        
+        % Put Data-type converter when reconnecting
+        DTC_RECONNECT = true;
+        
+        % Specify type of a DTC block
+        DTC_SPECIFY_TYPE = true;
+        
+        % Pre-annotate blocks with types
+        PRE_ANNOTATE_TYPE = true;
         
     end
     

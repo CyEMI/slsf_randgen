@@ -140,6 +140,12 @@ classdef BaseMainLoop < handle
                     obj.l.info(sprintf('Processing %d of %d models', i, num_models));
                     a_result = emi.mutate_single_model(i, models_cpy(i, :), obj.exp_data);
                     ret(i) = a_result.is_ok() && a_result.are_mutants_ok();
+                    
+                    if emi.cfg.STOP_IF_ERROR && ~ret(i)
+                        obj.l.error('Breaking from MAIN LOOP since model/mutant error');
+                        break;
+                    end
+                    
                 end
             end
         end
