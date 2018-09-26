@@ -4,7 +4,7 @@ classdef cfg
     
     properties(Constant = true)
         
-        NUM_MAINLOOP_ITER = 1;
+        NUM_MAINLOOP_ITER = 10;
         
         PARFOR = false;
         
@@ -55,8 +55,9 @@ classdef cfg
         % Debug/Interactive mode for a particular subsystem
         
 %         DEBUG_SUBSYSTEM = struct('cfblk234', 1);
-        DEBUG_SUBSYSTEM = struct;
+        DEBUG_SUBSYSTEM = struct([]); % So that isempty would work
         
+        RETURN_AFTER_PREPROCESSING_MUTANT = true;
         
         % Name of the variable for storing random number generator state.
         % We need to save two states because first we randomly select the
@@ -79,8 +80,10 @@ classdef cfg
         % Put Data-type converter when reconnecting
         DTC_RECONNECT = true;
         
-        % Specify type of a DTC block
+        % Specify input and output data-type of a DTC block.
+        % TODO may need to do it for other blocks
         DTC_SPECIFY_TYPE = true;
+        DTC_SPECIFY_TYPE_COMPILE_CHECK = true;
         
         % Pre-annotate blocks with types
         PRE_ANNOTATE_TYPE = true;

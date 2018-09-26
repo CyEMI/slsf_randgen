@@ -60,6 +60,22 @@ classdef BaseMutantGenerator < handle
             
         end
         
+        function ret = compile_model_and_return(obj, phase, close_on_success)
+            %% phase is a string for logging purpose
+            % run mutant
+            ret = obj.compile_and_run();
+            if ~ ret
+                obj.l.error('Mutant %d did not compile/run: %s', obj.my_id, phase);
+                
+                if emi.cfg.KEEP_ERROR_MUTANT_OPEN
+                    open_system(obj.sys);
+                end
+            elseif close_on_success
+                % Close Model
+                obj.close_model();
+            end
+        end
+        
         function go(obj)
             %%
             obj.init();
@@ -70,6 +86,15 @@ classdef BaseMutantGenerator < handle
             
             % TODO for efficiency consider caching this
             obj.preprocess_model();
+            
+            if ~ obj.compile_model_and_return('PREPROCESSING', emi.cfg.RETURN_AFTER_PREPROCESSING_MUTANT)
+                error('Compile after preprocess failed');
+            end
+            
+            if emi.cfg.RETURN_AFTER_PREPROCESSING_MUTANT
+                obj.l.info('Returning after preprocessing, not creating actual mutants');
+                return;
+            end
             
             try
                 obj.implement_mutation();
@@ -82,17 +107,7 @@ classdef BaseMutantGenerator < handle
             % TODO do this when filtering list of blocks to be efficient
             obj.l.info('Deleted: %d; Delete skipped: %d', obj.num_deleted, obj.num_skip_delete);
             
-            % run mutant
-            if ~ obj.compile_and_run()
-                obj.l.error('Mutant %d did not compile/run', obj.my_id);
-                
-                if emi.cfg.KEEP_ERROR_MUTANT_OPEN
-                    open_system(obj.sys);
-                end
-            else
-                % Close Model
-                obj.close_model();
-            end
+            obj.compile_model_and_return('MUTANT-GEN', true);
             
             obj.l.info(['End mutant generation: ' obj.sys]);
         end
@@ -132,7 +147,8 @@ classdef BaseMutantGenerator < handle
                 obj.result.timedout = simob.start();
 
                 if obj.result.timedout
-                    return;
+                    obj.l.info('Timeout occured!');
+                    return; % TODO are we saving this timeout status?
                 end
             catch e
                 obj.result.exception = true;
@@ -183,7 +199,8 @@ classdef BaseMutantGenerator < handle
         
         function preprocess_model(obj)
             if emi.cfg.PRE_ANNOTATE_TYPE
-                obj.pre_annotate_types;
+                obj.pre_annotate_types_all_blocks();
+%                 obj.pre_annotate_types;
             end
         end
         
@@ -192,8 +209,27 @@ classdef BaseMutantGenerator < handle
             ret = obj.blocks{strcmpi(obj.blocks.blocktype, blktype),1};
         end
         
+        function pre_annotate_types_all_blocks(obj)
+            %% Insert DTC before all blocks all input ports
+            target_blocks = obj.blocks{2:end,1}; % First one is the model itself?
+            
+            function ret = helper(blkname)
+                blkname = [obj.sys '/' blkname];
+                try
+                    [~,sources,~] = emi.slsf.get_connections(blkname, true, false);
+                catch e
+                    disp(e);
+                end
+                
+                self_as_destination = emi.slsf.create_port_connectivity_data(blkname, size(sources, 1), 0);
+                ret = obj.preprocess_a_block(blkname, sources, self_as_destination);
+            end
+            
+            cellfun(@helper,target_blocks);
+        end
+        
         function pre_annotate_types(obj)
-            %%
+            %% Filter blocks by type and then apply a function on that block
             configs = {...
                     {'Delay', @preprocess_delay_blocks}...
                 };
@@ -201,13 +237,41 @@ classdef BaseMutantGenerator < handle
                 cur = configs{i};
                 filter_fcn = cur{2};
                 target_blocks = obj.filter_block_by_type(cur{1});
-                cellfun(@(p)filter_fcn(obj, p),target_blocks);
+                cellfun(@(p)filter_fcn(obj, [obj.sys '/' p]),target_blocks);
             end
         end
         
-        function ret= preprocess_delay_blocks(obj, blkname)
-            ret = true;
+        function ret= preprocess_a_block(obj, blkname, sources, self_as_destination)
+            %% Adds a DTC block before ALL input ports
+            % sources contains all predecessors of `blkname`
+            % self_as_destination is a crafted port-connectivity data
+            % structure which contains the `blkname` block itself as
+            % destination. Since we need to put DTC as predecessor -> DTC
+            % -> blkname
+            ret = true; % for cellfun
             
+            if isempty(sources)
+                return;
+            end
+            
+            [parent, this_block] = utility.strip_last_split(blkname, '/');
+            emi.slsf.delete_src_to_block(parent, this_block, sources);
+            
+            try
+                obj.add_dtc_block_in_middle(sources, self_as_destination, parent);
+            catch e
+                disp(e);
+                error('Error adding block during preprocessing');
+            end
+        end
+        
+        function ret = preprocess_delay_blocks(obj, blkname)
+            %% Add DTC block at the 2nd/delay port of a Delay block
+            [~,sources,~] = emi.slsf.get_connections(blkname, true, false);
+            sources = sources(strcmp(sources.Type, '2'), :);
+            % Destination is just one port: the 2nd port at a delay block
+            self_as_destination = emi.slsf.create_port_connectivity_data(blkname, 1, 1);
+            ret = obj.preprocess_a_block(blkname,sources, self_as_destination);
         end
         
         function ret = delete_a_block(obj, block, sys_for_context)
@@ -231,20 +295,10 @@ classdef BaseMutantGenerator < handle
             
             obj.num_deleted = obj.num_deleted + 1;
             
-            try
-                connections = struct2table(get_param(block, 'PortConnectivity'));
-            catch e
-                % the block was not found. Was it already deleted?
-                error(e.identifier);
-            end
+            [connections,sources,destinations] = emi.slsf.get_connections(block, true, true);
             
-            try
-                [block_parent, this_block] = utility.strip_last_split(block, '/');
-            catch e
-                obj.l.error('Input was: %s', block);
-                error(e.identifier);
-            end
-               
+            [block_parent, this_block] = utility.strip_last_split(block, '/');
+            
             % Pause for containing (parent) subsystem?
             pause_ss = emi.pause_for_ss(block_parent);
             
@@ -252,51 +306,10 @@ classdef BaseMutantGenerator < handle
             
             emi.pause_interactive(emi.cfg.DELETE_BLOCK_P || pause_ss, 'Delete block %s', block);
             
-            
-            % See 'PortConnectivity' in https://www.mathworks.com/help/simulink/slref/common-block-parameters.html
-            % if block is action-subsystem, don't inclue the `ifaction`
-            % port in sources
-            sources = connections(rowfun(@(q, p) ~isempty(p) && ~strcmpi(q, 'ifaction'),...
-                connections(:,{'Type', 'SrcPort'}), 'OutputFormat', 'uniform',...
-                'ExtractCellContents', true), {'Type','SrcBlock', 'SrcPort'});
-            
-            destinations = connections(cellfun(@(p) ~isempty(p), connections{:, 'DstPort'}), {'Type','DstBlock', 'DstPort'});
-            
             is_if_block = strcmp(get_param(block, 'blockType'), 'If');
             
-            
-            % Delete existing lines
-            function ret = delete_connection(sys, s_b, s_p, d_b, d_p, is_if)
-                %% Delete a connection
-                if ~ iscell(d_b)
-                    d_b = {d_b};
-                end
-                
-                for i=1:numel(d_b)
-                    if is_if
-                        dest_port = 'ifaction';
-                    else
-                        dest_port = int2str(d_p(i));
-                    end
-                    
-                    try
-                        delete_line(sys, [s_b '/' s_p], [d_b{i} '/' dest_port]);
-                    catch err
-                        error(err.identifier)
-                    end
-                end
-                
-                ret = true;
-            end
-            
-            % Delete source -> block connections
-            rowfun(@(a,b,c) delete_connection(block_parent, get_param(b, 'Name'),...
-                int2str(c + 1), this_block, str2double(a), false),...
-                sources, 'ExtractCellContents', true);
-            
-            % Delete block -> destination connections
-            rowfun(@(a,b,c) delete_connection(block_parent, this_block, a, get_param(b, 'Name'), c + 1, is_if_block),...
-                destinations, 'ExtractCellContents', true, 'ErrorHandler', @utility.rowfun_eh);
+            emi.slsf.delete_src_to_block(block_parent, this_block, sources);
+            emi.slsf.delete_block_to_dest(block_parent, this_block, destinations, is_if_block);
             
             % Delete if not Action subsystem
             is_block_not_action_subsystem = all(...
@@ -341,33 +354,8 @@ classdef BaseMutantGenerator < handle
         end
         
         function [my_s, my_d] =  get_my_block_ports(~, blk, sources, dests)
-            % Note: first column of the return types is garbage and should
-            % not be used!
-            my_handle = get_param(blk, 'Handle');
-            
-            % Sources
-            
-            new_blk = cell(size(sources, 1), 1);
-            new_prt = cell(size(sources, 1), 1);
-            
-            for i=1:size(sources, 1)
-                new_blk{i} = my_handle;
-                new_prt{i} = i-1;
-            end
-            
-            my_s = table(new_blk, new_blk, new_prt);
-            
-            % Destinations
-            
-            new_blk = cell(size(dests, 1), 1);
-            new_prt = cell(size(dests, 1), 1);
-            
-            for i=1:size(dests, 1)
-                new_blk{i} = my_handle;
-                new_prt{i} = i-1;
-            end
-            
-            my_d = table(new_blk, new_blk, new_prt);
+            my_s = emi.slsf.create_port_connectivity_data(blk, size(sources, 1), 0);
+            my_d = emi.slsf.create_port_connectivity_data(blk, size(dests, 1), 0);
         end
             
         
@@ -401,7 +389,7 @@ classdef BaseMutantGenerator < handle
                 % We deleted an If block and are now trying to put a
                 % terminator at the If block's predecessor. Skip doing this
                 % as we'd also have to choose a data-type for the
-                % terminator for obj.compiled_types
+                % terminator (sink-like) for obj.compiled_types
                 return;
             end
             
@@ -515,7 +503,7 @@ classdef BaseMutantGenerator < handle
                         if emi.cfg.DTC_SPECIFY_TYPE
                             inport_types = obj.get_compiled_type(parent_sys, d_blk{j}, 'Inport');
                             dtc_out_type = inport_types{d_prt(j)}; % Outport type of DTC block
-                            dtc_type_params = struct('OutDataTypeStr', dtc_out_type);
+                            dtc_type_params = struct('OutDataTypeStr', emi.slsf.get_datatype(dtc_out_type));
                         else
                             dtc_out_type = [];
                             dtc_type_params = struct;
@@ -549,7 +537,8 @@ classdef BaseMutantGenerator < handle
                         src_i = 1; % TODO select random
                     end
                     
-                    cur_src = sources{src_i, :};
+                    cur_src = sources(src_i, :);
+                    cur_src = table2cell(cur_src);
                     
                     src_bname = get_param(cur_src{2}, 'Name');
                     src_prt = cur_src{3} + 1;
