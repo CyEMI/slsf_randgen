@@ -51,11 +51,11 @@ classdef BaseMutantGenerator < handle
             obj.exp_data = exp_data;
             obj.base_dir_for_this_model = base_dir_for_this_model;
             
-            obj.sys = sprintf('%s_%d', original_sys, my_id);
+            obj.sys = sprintf('%s_%d_%d', original_sys, exp_data.exp_no, my_id);
             
             obj.result = emi.ReportForMutant(my_id);
             
-            obj.l.setLogLevel(emi.cfg.LOGGER_LEVEL);
+            obj.l.setCommandWindowLevel(emi.cfg.LOGGER_LEVEL);
             
             
         end
@@ -68,7 +68,10 @@ classdef BaseMutantGenerator < handle
                 obj.l.error('Mutant %d did not compile/run: %s', obj.my_id, phase);
                 
                 if emi.cfg.KEEP_ERROR_MUTANT_OPEN
+                    % Model is dirty - save manually.
                     open_system(obj.sys);
+                else
+                    save_system(obj.sys);
                 end
             elseif close_on_success
                 % Close Model
@@ -88,7 +91,9 @@ classdef BaseMutantGenerator < handle
             obj.preprocess_model();
             
             if ~ obj.compile_model_and_return('PREPROCESSING', emi.cfg.RETURN_AFTER_PREPROCESSING_MUTANT)
-                error('Compile after preprocess failed');
+                obj.l.error('Compile after preprocess failed');
+                obj.result.preprocess_error = true;
+                return;
             end
             
             if emi.cfg.RETURN_AFTER_PREPROCESSING_MUTANT
@@ -100,7 +105,7 @@ classdef BaseMutantGenerator < handle
                 obj.implement_mutation();
             catch e
                 obj.close_model();
-                obj.l.error(['Error while mutant generation: '  e.identifier]);
+                obj.l.error(['Error while mutant generation (our bug?): '  e.identifier]);
                 rethrow(e);
             end
             

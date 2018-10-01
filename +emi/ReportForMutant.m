@@ -8,8 +8,11 @@ classdef ReportForMutant < handle
         timedout = [];
         exception = [];
         
+        preprocess_error = false;
+        
         exception_id = [] ;
         exception_ob = [] ;
+        
     end
     
     methods
@@ -33,7 +36,7 @@ classdef ReportForMutant < handle
                 is_ex = false;
             end
             
-            ret = ~is_to && ~is_ex;
+            ret = ~obj.preprocess_error && ~is_to && ~is_ex;
         end
         
     end

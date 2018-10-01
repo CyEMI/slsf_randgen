@@ -32,7 +32,10 @@ classdef (Abstract) BaseModelMutator < handle
         function obj = BaseModelMutator(exp_data, exp_no, model_data)
             % Constructor
             obj.exp_data = exp_data;
+            
+            obj.exp_data.exp_no = exp_no;
             obj.exp_no = exp_no;
+            
             obj.model_data = model_data;
         end    
         
@@ -51,22 +54,16 @@ classdef (Abstract) BaseModelMutator < handle
             
             ret = false;
             
-            original_backup_created = false;
-            original_backup = [obj.sys '_original'];
-            
-            if ~ isempty(emi.cfg.DEBUG_SUBSYSTEM)
-                obj.l.info('Keeping original model open');
-                save_system(obj.sys, [tempdir filesep original_backup]);
-                open_system(original_backup);
-                original_backup_created = true;
-            end
-            
+            original_model_backup = obj.backup_original_model();
             
             try
                 ret = obj.process_single_model();
             catch e
+                % TODO check if this code is ever executed, since getReport
+                % should error
                 obj.add_exception_in_result(e);
-                obj.l.error(getReport(e, 'extended'));
+%                 obj.l.error(getReport(e, 'extended'));
+                obj.l.error('Error in processing single model: %s', e.identifier);
             end
             
             if ~ ret && emi.cfg.KEEP_ERROR_MUTANT_PARENT_OPEN
@@ -75,10 +72,8 @@ classdef (Abstract) BaseModelMutator < handle
                 obj.close_model();
             end
             
-            if original_backup_created
-                bdclose(original_backup);
-                delete([tempdir filesep original_backup '.slx']);
-            end
+            obj.delete_original_backup(original_model_backup);
+
         end
         
     end
@@ -103,6 +98,24 @@ classdef (Abstract) BaseModelMutator < handle
             % Create Directories
             obj.REPORT_DIR_FOR_THIS_MODEL = [obj.exp_data.REPORTS_BASE filesep int2str(obj.exp_no)];
             mkdir(obj.REPORT_DIR_FOR_THIS_MODEL);
+        end
+        
+        function original_backup = backup_original_model(obj)
+            original_backup = [];
+            
+            if ~ isempty(emi.cfg.DEBUG_SUBSYSTEM)
+                original_backup = [obj.sys '_original'];
+                obj.l.info('Keeping original model open for debugging mutants');
+                save_system(obj.sys, [tempdir filesep original_backup]);
+                open_system(original_backup);
+            end
+        end
+        
+        function delete_original_backup(~, original_backup)
+            if ~isempty(original_backup)
+                bdclose(original_backup);
+                delete([tempdir filesep original_backup '.slx']);
+            end
         end
         
         function choose_num_mutants(obj)

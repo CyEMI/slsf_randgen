@@ -34,11 +34,11 @@ classdef cfg
         % Force opens
         
         % don't close a mutant if it did not compile/run
-        KEEP_ERROR_MUTANT_OPEN = true;
-        KEEP_ERROR_MUTANT_PARENT_OPEN = true;
+        KEEP_ERROR_MUTANT_OPEN = false;
+        KEEP_ERROR_MUTANT_PARENT_OPEN = false;
         
-        % mutant not compiling
-        STOP_IF_ERROR = true;
+        % Break from the main loop if any model mutation errors
+        STOP_IF_ERROR = false;
         
         % Force pauses for debugging
         DELETE_BLOCK_P = false;
@@ -50,7 +50,7 @@ classdef cfg
         WS_FILE_NAME_ = 'savedws.mat';
         
         % logger level
-        LOGGER_LEVEL = logging.logging.DEBUG;
+        LOGGER_LEVEL = logging.logging.INFO;
         
         % Debug/Interactive mode for a particular subsystem
         
