@@ -61,7 +61,7 @@ classdef cfg
         
         % If you've already cached the preprocessing results, no need to do
         % that again
-        DONT_PREPROCESS = true; 
+        DONT_PREPROCESS = false; 
         
         % Name of the variable for storing random number generator state.
         % We need to save two states because first we randomly select the

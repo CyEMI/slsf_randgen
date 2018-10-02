@@ -11,8 +11,8 @@ classdef BaseMutantGenerator < handle
         live_blocks;        % Of original model
         compiled_types;
         
-        preprocess_only;
-        dont_preprocess;
+        preprocess_only;    % Exit after pre-processing
+        dont_preprocess;    % Do everything after pre-processing phase
         
         % stats
         num_deleted = 0;
@@ -37,6 +37,8 @@ classdef BaseMutantGenerator < handle
         
         newly_added_block_counter = 0;
         newly_added_block_prefix = 'cyemi';
+        
+        model_builders; % map containing model builders for each subsystem
     end
     
     methods (Abstract)
@@ -62,6 +64,8 @@ classdef BaseMutantGenerator < handle
             
             obj.result = emi.ReportForMutant(my_id);
             
+            obj.model_builders = utility.map();
+            
             obj.l.setCommandWindowLevel(emi.cfg.LOGGER_LEVEL);
             
         end
@@ -78,6 +82,7 @@ classdef BaseMutantGenerator < handle
         function handle_preprocess_only_case(obj)
             %%
             if ~ obj.preprocess_only
+                return;
             end
             
             try
@@ -215,6 +220,22 @@ classdef BaseMutantGenerator < handle
             if ~ emi.cfg.INTERACTIVE_MODE
                 bdclose(obj.sys);
             end
+        end
+        
+        function ret = get_model_builder(obj, parent)
+            %%
+            if obj.model_builders.contains(parent)
+                ret = obj.model_builders.get(parent);
+            else
+                ret = emi.slsf.ModelBuilder(parent);
+                ret.init();
+                obj.model_builders.put(parent, ret);
+            end
+        end
+        
+        function ret = get_pos_for_next_block(obj, parent)
+            %%
+            ret = obj.get_model_builder(parent).get_new_block_position();
         end
         
         function strategy_dead_block_removal(obj)
@@ -647,7 +668,8 @@ classdef BaseMutantGenerator < handle
             end
             
             new_blk_name = obj.get_new_block_name();
-            h = add_block(new_blk_type, [parent_sys '/' new_blk_name]);
+            h = add_block(new_blk_type, [parent_sys '/' new_blk_name],...
+                'Position', obj.get_pos_for_next_block(parent_sys));
             
             % Configure block params
             blk_param_names = fieldnames(blk_params);
