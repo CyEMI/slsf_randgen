@@ -137,7 +137,7 @@ classdef BaseCovExp < handle
                     
                     try
                         res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); %#ok<AGROW>
-                    catch
+                    catch e
                         res(i) = covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); %#ok<AGROW>
                     end
                     % Save

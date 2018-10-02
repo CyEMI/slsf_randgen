@@ -21,19 +21,23 @@ models = covexp_result.models;
 
 % General stats
 
-l.info('Does Model Open?');
-tabulate([models.opens]);
+safe_tabulate('opens', models, 'Does Model Open?', l);
 
-l.info('Does Model Compile?');
-tabulate([models.compiles]);
+safe_tabulate('compiles', models, 'Does Model Compile?', l);
 
-l.info('Does Model time-out?');
-tabulate([models.timedout]);
+safe_tabulate('timedout', models, 'Does Model time-out?', l);
 
-l.info('Does Model error?');
-tabulate([models.exception]);
+safe_tabulate('exception', models, 'Does Model error?', l);
+
+safe_tabulate('peprocess_skipped', models, 'Preprocess: skipped?', l);
+safe_tabulate('preprocess_error', models, 'Preprocess: error?', l);
+
 
 % Number of zero blocks
+
+if ~ isfield(models, 'numzerocov')
+    return;
+end
 
 numzero = [models.numzerocov];
 
@@ -57,5 +61,16 @@ l.info('Does model has at least one block with no cov?');
 haszero = arrayfun(@(p)p>0, numzero);
 tabulate(haszero);
 
+end
+
+
+function safe_tabulate(fieldn, data, text, l)
+    if ~isfield(data, fieldn)
+        l.info('%s not found in report data', fieldn);
+        return;
+    end
+    
+    l.info(text);
+    tabulate([data.(fieldn)]);
 end
 

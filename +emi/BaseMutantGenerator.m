@@ -11,6 +11,9 @@ classdef BaseMutantGenerator < handle
         live_blocks;        % Of original model
         compiled_types;
         
+        preprocess_only;
+        dont_preprocess;
+        
         % stats
         num_deleted = 0;
         num_skip_delete = 0;
@@ -20,9 +23,9 @@ classdef BaseMutantGenerator < handle
         %%
         original_sys;
         
-        my_id;
+        my_id;                      % mutant number
         
-        sys; % Current mutant
+        sys;                        % Mutant model name
         
         l = logging.getLogger('MutantGenerator');
         
@@ -44,20 +47,43 @@ classdef BaseMutantGenerator < handle
     methods
         %% Public Methods
         
-        function obj = BaseMutantGenerator(my_id, original_sys, exp_data, base_dir_for_this_model)
+        function obj = BaseMutantGenerator(my_id, original_sys, exp_data,...
+                base_dir_for_this_model, preprocess_only, dont_preprocess)
             %% Constructor
             obj.my_id = my_id;
             obj.original_sys = original_sys;
             obj.exp_data = exp_data;
             obj.base_dir_for_this_model = base_dir_for_this_model;
             
-            obj.sys = sprintf('%s_%d_%d', original_sys, exp_data.exp_no, my_id);
+            obj.preprocess_only = preprocess_only;
+            obj.dont_preprocess = dont_preprocess;
+            
+            obj.get_sys();
             
             obj.result = emi.ReportForMutant(my_id);
             
             obj.l.setCommandWindowLevel(emi.cfg.LOGGER_LEVEL);
             
+        end
+        
+        function get_sys(obj)
+            %%
+            if obj.preprocess_only
+                obj.sys = sprintf('%s_%s', obj.original_sys, emi.cfg.MUTANT_PREPROCESSED_FILE_SUFFIX);
+            else
+                obj.sys = sprintf('%s_%d_%d', obj.original_sys, obj.exp_data.exp_no, obj.my_id);
+            end
+        end
+        
+        function handle_preprocess_only_case(obj)
+            %%
+            if ~ obj.preprocess_only
+            end
             
+            try
+                delete([obj.base_dir_for_this_model filesep obj.sys emi.cfg.MUTANT_PREPROCESSED_FILE_EXT]);
+            catch
+            end
         end
         
         function ret = compile_model_and_return(obj, phase, close_on_success)
@@ -85,19 +111,7 @@ classdef BaseMutantGenerator < handle
             
             obj.l.info(['Begin mutant generation ' obj.sys]);
             
-            % Create Mutant!
-            
-            % TODO for efficiency consider caching this
-            obj.preprocess_model();
-            
-            if ~ obj.compile_model_and_return('PREPROCESSING', emi.cfg.RETURN_AFTER_PREPROCESSING_MUTANT)
-                obj.l.error('Compile after preprocess failed');
-                obj.result.preprocess_error = true;
-                return;
-            end
-            
-            if emi.cfg.RETURN_AFTER_PREPROCESSING_MUTANT
-                obj.l.info('Returning after preprocessing, not creating actual mutants');
+            if obj.handle_preprocess()
                 return;
             end
             
@@ -121,8 +135,36 @@ classdef BaseMutantGenerator < handle
     methods(Access = protected)
         %% Protected Methods
         
+        function return_after_this = handle_preprocess(obj)
+            %%
+            % `return_after_this` indicates if we should return immediately
+            % from the calling method.
+            return_after_this = false;
+            
+            if obj.dont_preprocess
+                return;
+            end
+            
+            obj.preprocess_model();
+            
+            pp_only = emi.cfg.RETURN_AFTER_PREPROCESSING_MUTANT || obj.preprocess_only;
+            
+            if ~ obj.compile_model_and_return('PREPROCESSING', pp_only)
+                obj.l.error('Compile after preprocess failed');
+                obj.result.preprocess_error = true;
+                return_after_this = true;
+                return;
+            end
+            
+            if pp_only
+                obj.l.info('Returning after preprocessing, not creating actual mutants');
+                return_after_this = true;
+                return;
+            end
+        end
+        
         function create_copy_of_original(obj)
-            %% 
+            %%
             save_system(obj.original_sys, [obj.base_dir_for_this_model filesep obj.sys]);
             
             try
@@ -137,6 +179,7 @@ classdef BaseMutantGenerator < handle
         
         function init(obj)
             %%
+            obj.handle_preprocess_only_case();
             obj.create_copy_of_original();
             
         end
@@ -150,7 +193,7 @@ classdef BaseMutantGenerator < handle
                 
                 simob = utility.TimedSim(obj.sys, covcfg.SIMULATION_TIMEOUT, obj.l);
                 obj.result.timedout = simob.start();
-
+                
                 if obj.result.timedout
                     obj.l.info('Timeout occured!');
                     return; % TODO are we saving this timeout status?
@@ -180,7 +223,7 @@ classdef BaseMutantGenerator < handle
                 obj.l.warn('No dead blocks in the original model!');
                 return;
             end
-                        
+            
             blocks_to_delete = obj.sample_dead_blocks_to_delete();
             blocks_to_delete = cellfun(@(p) [obj.sys '/' p], blocks_to_delete, 'UniformOutput', false);
             
@@ -205,7 +248,7 @@ classdef BaseMutantGenerator < handle
         function preprocess_model(obj)
             if emi.cfg.PRE_ANNOTATE_TYPE
                 obj.pre_annotate_types_all_blocks();
-%                 obj.pre_annotate_types;
+                %                 obj.pre_annotate_types;
             end
         end
         
@@ -236,7 +279,7 @@ classdef BaseMutantGenerator < handle
         function pre_annotate_types(obj)
             %% Filter blocks by type and then apply a function on that block
             configs = {...
-                    {'Delay', @preprocess_delay_blocks}...
+                {'Delay', @preprocess_delay_blocks}...
                 };
             for i=1:numel(configs)
                 cur = configs{i};
@@ -321,7 +364,7 @@ classdef BaseMutantGenerator < handle
                 ~strcmpi(connections{:, 'Type'}, 'ifaction'));
             
             emi.hilite_system(block, emi.cfg.DELETE_BLOCK_P, 'fade');
-           
+            
             
             if is_block_not_action_subsystem
                 try
@@ -345,8 +388,8 @@ classdef BaseMutantGenerator < handle
                 obj.l.debug('(!) Did NOT delete Action Subsystem!');
                 obj.address_unconnected_ports(true, true, true, sources, destinations, block_parent);
                 
-%                 [my_s, my_d] = obj.get_my_block_ports(block, sources, destinations);
-%                 obj.address_unconnected_ports(true, true, true, my_d, my_s, block_parent);
+                %                 [my_s, my_d] = obj.get_my_block_ports(block, sources, destinations);
+                %                 obj.address_unconnected_ports(true, true, true, my_d, my_s, block_parent);
             else
                 obj.l.debug('(!) Deleted regular Block!');
                 % Reconnect source - destinations
@@ -362,7 +405,7 @@ classdef BaseMutantGenerator < handle
             my_s = emi.slsf.create_port_connectivity_data(blk, size(sources, 1), 0);
             my_d = emi.slsf.create_port_connectivity_data(blk, size(dests, 1), 0);
         end
-            
+        
         
         function address_unconnected_ports(obj, reconnect, do_s, do_d, sources, dests, parent_sys)
             %%
@@ -436,7 +479,7 @@ classdef BaseMutantGenerator < handle
                     
                     try
                         add_line(parent_sys, [s_blk '/' s_prt], [d_blk '/' d_prt],...
-                        'autorouting','on');
+                            'autorouting','on');
                     catch e
                         disp(e);
                     end
@@ -518,7 +561,7 @@ classdef BaseMutantGenerator < handle
                             dtc_type_params);
                         
                         obj.l.debug('Added new DTC block %s', new_blk_name);
-                   
+                        
                     catch e
                         disp(e);
                         error('data type adding error');
@@ -527,7 +570,7 @@ classdef BaseMutantGenerator < handle
                     % Connect DTC -> destination
                     try
                         add_line(parent_sys, [new_blk_name '/1'], [d_blk{j} '/' int2str(d_prt(j))],...
-                        'autorouting','on');
+                            'autorouting','on');
                         obj.l.debug('Connected %s/1 ---> %s/%d', new_blk_name, d_blk{j}, d_prt(j));
                     catch e
                         disp(e);
@@ -549,13 +592,13 @@ classdef BaseMutantGenerator < handle
                     src_prt = cur_src{3} + 1;
                     
                     % add new DTC block in compiled data types
-                   
+                    
                     obj.add_dtc_block_compiled_types(parent_sys, src_bname, src_prt, new_blk_name, dtc_out_type);
                     
                     try
                         add_line(parent_sys, [src_bname '/'...
-                        int2str(src_prt)], [new_blk_name '/1' ],...
-                        'autorouting','on');
+                            int2str(src_prt)], [new_blk_name '/1' ],...
+                            'autorouting','on');
                         obj.l.debug('Connected %s/%d ---> %s/1', src_bname, src_prt, new_blk_name);
                     catch e
                         disp(e);
@@ -567,7 +610,7 @@ classdef BaseMutantGenerator < handle
         end
         
         function reconnect_ports(~)
-            %% 
+            %%
             
         end
         
@@ -587,7 +630,7 @@ classdef BaseMutantGenerator < handle
             chosen_blocks = randi([1, size(obj.dead_blocks, 1)], 1, obj.num_dead_blocks_to_remove);
             ret = obj.dead_blocks{chosen_blocks, 'fullname'};
         end
-
+        
         function ret = get_new_block_name(obj)
             %%
             ret = sprintf('%s_%d', obj.newly_added_block_prefix, obj.newly_added_block_counter);

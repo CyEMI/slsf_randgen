@@ -19,6 +19,9 @@ classdef (Abstract) BaseModelMutator < handle
         
         num_mutants;
         
+        disable_saving_result = false; % e.g. during preprocessing
+        dont_preprocess;
+        
         l = logging.getLogger('emi.BaseModelMutator');
         
         block_data; % Data for each block
@@ -37,6 +40,9 @@ classdef (Abstract) BaseModelMutator < handle
             obj.exp_no = exp_no;
             
             obj.model_data = model_data;
+            
+            % Whether to preprocess before mutant generation
+            obj.dont_preprocess = emi.cfg.DONT_PREPROCESS;
         end    
         
         function go(obj)
@@ -57,7 +63,7 @@ classdef (Abstract) BaseModelMutator < handle
             original_model_backup = obj.backup_original_model();
             
             try
-                ret = obj.process_single_model();
+                ret = obj.process_single_model(false);
             catch e
                 % TODO check if this code is ever executed, since getReport
                 % should error
@@ -91,9 +97,8 @@ classdef (Abstract) BaseModelMutator < handle
             obj.sys = obj.model_data.sys;
             obj.m_id = obj.model_data.m_id;
             
-            obj.choose_num_mutants();
-            
             obj.result = emi.ReportForModel(obj.exp_no, obj.m_id);
+            obj.choose_num_mutants();
             
             % Create Directories
             obj.REPORT_DIR_FOR_THIS_MODEL = [obj.exp_data.REPORTS_BASE filesep int2str(obj.exp_no)];
@@ -118,8 +123,12 @@ classdef (Abstract) BaseModelMutator < handle
             end
         end
         
-        function choose_num_mutants(obj)
-            obj.num_mutants = emi.cfg.MUTANTS_PER_MODEL;
+        function choose_num_mutants(obj, varargin)
+            if nargin == 1
+                obj.num_mutants = emi.cfg.MUTANTS_PER_MODEL;
+            else
+                obj.num_mutants = varargin{1};
+            end
             obj.result.mutants = cell(obj.num_mutants, 1);
         end
         
@@ -157,21 +166,21 @@ classdef (Abstract) BaseModelMutator < handle
             rmpath(obj.model_data.loc_input);
         end
         
-        function ret = process_single_model(obj)
+        function ret = process_single_model(obj, preprocess_only)
             obj.get_dead_and_live_blocks();
             
             obj.enable_signal_logging();
             
-            ret = obj.create_mutants();
+            ret = obj.create_mutants(preprocess_only);
         end
         
-        function ret = create_mutants(obj)
+        function ret = create_mutants(obj, preprocess_only)
             ret = true;
             
             for i=1:obj.num_mutants
                 obj.open_model();
                 a_mutant = emi.SimpleMutantGenerator(i, obj.sys,...
-                    obj.exp_data, obj.REPORT_DIR_FOR_THIS_MODEL);
+                    obj.exp_data, obj.REPORT_DIR_FOR_THIS_MODEL, preprocess_only, obj.dont_preprocess);
                 
                 a_mutant.blocks = obj.block_data;
                 a_mutant.live_blocks = obj.live;
@@ -228,6 +237,10 @@ classdef (Abstract) BaseModelMutator < handle
         end
         
         function save_my_result(obj)
+            if obj.disable_saving_result
+                return;
+            end
+            
             modelreport = obj.result.get_report();  %#ok<NASGU>
             save([obj.REPORT_DIR_FOR_THIS_MODEL filesep...
                 emi.cfg.REPORT_FOR_A_MODEL_FILENAME], emi.cfg.REPORT_FOR_A_MODEL_VARNAME);

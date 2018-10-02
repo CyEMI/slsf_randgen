@@ -1,19 +1,16 @@
-function [ret, h] = check_model_opens(sys, model_id, model_path)
+function [model_result, h] = check_model_opens(sys, model_id, model_path, model_result)
 %CHECK_MODEL_OPENS Summary of this function goes here
 %   Detailed explanation goes here
 
-% ret contains result for a single model
-ret = struct;
+model_result.m_id = model_id;
+model_result.sys = sys;
+model_result.loc_input = model_path;
 
-ret.m_id = model_id;
-ret.sys = sys;
-ret.loc_input = model_path;
-
-ret.skipped = false;
-ret.opens = false;
+model_result.skipped = false;
+model_result.opens = false;
 
 if isfield(covcfg.SKIP_LIST, sprintf('x%d', model_id))
-    ret.skipped = true;
+    model_result.skipped = true;
     return;
 end
 
@@ -24,11 +21,10 @@ try
     if covcfg.OPEN_MODELS
         open_system(sys);
     end
-    ret.opens = true;
+    model_result.opens = true;
 catch
 %     ret.exception = true;
 %     ret.exception_msg = e.identifier;
-%     getReport(e)
 end
 
 end

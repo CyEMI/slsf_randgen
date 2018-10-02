@@ -4,7 +4,7 @@ classdef cfg
     
     properties(Constant = true)
         
-        NUM_MAINLOOP_ITER = 10;
+        NUM_MAINLOOP_ITER = 1;
         
         PARFOR = false;
         
@@ -59,6 +59,10 @@ classdef cfg
         
         RETURN_AFTER_PREPROCESSING_MUTANT = true;
         
+        % If you've already cached the preprocessing results, no need to do
+        % that again
+        DONT_PREPROCESS = true; 
+        
         % Name of the variable for storing random number generator state.
         % We need to save two states because first we randomly select the
         % models we want to mutate. We save this state in
@@ -87,6 +91,9 @@ classdef cfg
         
         % Pre-annotate blocks with types
         PRE_ANNOTATE_TYPE = true;
+        
+        MUTANT_PREPROCESSED_FILE_SUFFIX = 'pp';
+        MUTANT_PREPROCESSED_FILE_EXT = '.slx';
         
     end
     

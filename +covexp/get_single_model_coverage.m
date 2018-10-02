@@ -6,6 +6,8 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
 
     do_append = false;
     
+    covdata = struct;
+    
     if covcfg.USE_CACHED_RESULTS
         try
             covdata = load(report_loc);
@@ -28,7 +30,11 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
     dummy = 'a'; %#ok<NASGU>
     save(touch_loc, 'dummy');
     
-    [covdata, h] = covexp.check_model_opens(sys, model_id, model_path);
+    if ~covcfg.REUSE_CACHED_RESULT
+        covdata = struct;
+    end
+    
+    [covdata, h] = covexp.check_model_opens(sys, model_id, model_path, covdata);
         
     if ~ covdata.skipped && covdata.opens
         

@@ -38,7 +38,7 @@ classdef BaseMainLoop < handle
             obj.save_rng_state_for_model_list(true);
             
             obj.load_models_list();
-            obj.apply_model_list_filters();
+            obj.models = emi.model_list_filter(obj.models);
             
             obj.choose_models();
             ret = obj.process_all_models();
@@ -62,14 +62,6 @@ classdef BaseMainLoop < handle
             read_data = load(obj.model_list);
             models_data = read_data.(obj.data_var_name);
             obj.models = struct2table(models_data.models);
-        end
-        
-        
-        function apply_model_list_filters(obj)
-            % No exception, num_zero_cov > 0
-            obj.models = obj.models(rowfun(@(p, q, c)~p && c && ~isempty(q) &&...
-                q{1}>0, obj.models(:, {'exception', 'numzerocov', 'compiles'}),...
-                'OutputFormat', 'uniform'), :);
         end
         
         function init(obj)

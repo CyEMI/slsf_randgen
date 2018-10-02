@@ -9,30 +9,66 @@ classdef covcfg
         % Instead of corpus models, analyze a directory to discover models
         EXPLORE_A_DIRECTORY = true;
         
+        % Upper limit on how many models to process
+        % For SUBGROUP_AUTO, process these many models 
+        
+        % WARNING if you are adding a new type of experiment, it's easy to
+        % have bug in the code initially. Please experiment with 1-2 models
+        % first so that you do not discard many of the cached results for
+        % ALL of your models!
+        MAX_NUM_MODEL = 500;
+        
+        % Subgrouping is not used for Expmode.All
         SUBGROUP_BEGIN = 1;
         SUBGROUP_END = 3;
         
         USE_MODELS_PATH = true;
         
-        % Perform experiments even if cached data is found
-        FORCE_UPDATE_CACHED_RESULT = false;
+        %%%%%%%%%% Caching Result %%%%%%%%%%%%%
+        
+        % Global turn on/off caching results. Even if you turn off, we will
+        % save the results as cache, just won't use it next time. This can
+        % be helpful if cached data becomes inconsistent; setting it to
+        % false would rewrite the caches.
+        % If you run into errors when merging reports for all
+        % models, including 'Subscripted assignment between dissimilar
+        % structures', then try setting it to false.
+        % Note: this does not depend on any other caching configuration
+        % variables.
+        USE_CACHED_RESULTS = true;
+        
+        % Perform experiments even if cached data is found. Useful when we
+        % want to recompute. If you just want to aggregate previously
+        % stored caches, set to false. 
+        FORCE_UPDATE_CACHED_RESULT = true;
+        
+        % When force update is on, instead of throwing away previously
+        % cached results try to reuse it FOR THE EXPERIMENTS WHICH WILL NOT
+        % BE RUN. 
+        REUSE_CACHED_RESULT = true;
+        
+        % If get error for any model, delete cached result and retry. This
+        % is useful when MATLAB craches/gets killed and the result was not
+        % cached properly.
+        DELETE_CACHE_IF_ERROR = false;
+        
+        %%%%%%%%% Experiments to Perform %%%%%%%%%%%
         
         % List of all available experiments
         EXPERIMENTS = {...
             @covexp.get_coverage,...            % 1
-            @covexp.check_model_compiles...     % 2
+            @covexp.check_model_compiles,...     % 2
+            @emi.preprocess_models...           % 3
         };
         
-        % Will only collect these data. Elements are index of EXPERIMENTS
-        DO_THESE_EXPERIMENTS = [1 2];
+        % Will only run these experiments. Elements are index of EXPERIMENTS
+%         DO_THESE_EXPERIMENTS = [1 2]; % Multiple experiments
+        DO_THESE_EXPERIMENTS = 3;   % Single experiment
         
         % Generate lists of models before experiment
         GENERATE_MODELS_LIST = true;
-        GENERATE_MODELS_FILENAME = ['workdata' filesep 'generated_model_list'];
         
-        % Upper limit on how many models to process
-        % For SUBGROUP_AUTO, process these many models 
-        MAX_NUM_MODEL = 5000;
+        GENERATE_MODELS_FILENAME = ['workdata' filesep 'generated_model_list'];
         
         SIMULATION_TIMEOUT = 150;   % seconds
         
@@ -84,7 +120,6 @@ classdef covcfg
         USE_MODEL_PATH_AS_CACHE_LOCATION = true;
         CACHE_DIR = 'covexp_results_cache';
         
-        USE_CACHED_RESULTS = true;
         % For each experiment, save COMBINED result in following file
         
         RESULT_FILENAME = 'covexp_result';

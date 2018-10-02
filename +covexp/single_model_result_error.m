@@ -4,6 +4,10 @@ function [ ret ] = single_model_result_error( sys, model_id, model_path, cur_exp
 
 ret = struct;
 
+if ~ covcfg.DELETE_CACHE_IF_ERROR
+    return;
+end
+
 ret.m_id = model_id;
 ret.sys = sys;
 
