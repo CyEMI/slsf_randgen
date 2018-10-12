@@ -102,7 +102,7 @@ classdef BaseMutantGenerator < handle
                     % Model is dirty - save manually.
                     open_system(obj.sys);
                 else
-                    save_system(obj.sys);
+                    obj.close_model();
                 end
             elseif close_on_success
                 % Close Model

@@ -19,8 +19,8 @@ classdef covcfg
         MAX_NUM_MODEL = 500;
         
         % Subgrouping is not used for Expmode.All
-        SUBGROUP_BEGIN = 1;
-        SUBGROUP_END = 3;
+        SUBGROUP_BEGIN = 30;
+        SUBGROUP_END = 60;
         
         USE_MODELS_PATH = true;
         
@@ -40,7 +40,7 @@ classdef covcfg
         % Perform experiments even if cached data is found. Useful when we
         % want to recompute. If you just want to aggregate previously
         % stored caches, set to false. 
-        FORCE_UPDATE_CACHED_RESULT = true;
+        FORCE_UPDATE_CACHED_RESULT = false;
         
         % When force update is on, instead of throwing away previously
         % cached results try to reuse it FOR THE EXPERIMENTS WHICH WILL NOT
@@ -58,12 +58,13 @@ classdef covcfg
         EXPERIMENTS = {...
             @covexp.get_coverage,...            % 1
             @covexp.check_model_compiles,...     % 2
-            @emi.preprocess_models...           % 3
+            @emi.preprocess_models,...           % 3
+            @covexp.get_model_simulates...      % 4
         };
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
 %         DO_THESE_EXPERIMENTS = [1 2]; % Multiple experiments
-        DO_THESE_EXPERIMENTS = 3;   % Single experiment
+        DO_THESE_EXPERIMENTS = 4;   % Single experiment
         
         % Generate lists of models before experiment
         GENERATE_MODELS_LIST = true;
@@ -71,6 +72,8 @@ classdef covcfg
         GENERATE_MODELS_FILENAME = ['workdata' filesep 'generated_model_list'];
         
         SIMULATION_TIMEOUT = 150;   % seconds
+        
+        SAVE_RESULT_AS_JSON = true;
         
         BASE_DIR = '';
         

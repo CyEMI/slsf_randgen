@@ -196,7 +196,16 @@ classdef BaseCovExp < handle
             
             % Save Result
             if ~ isempty(covcfg.RESULT_FILE)
+                if covcfg.SAVE_RESULT_AS_JSON
+                    covexp_models = covexp_result.models;
+                    covexp_models = jsonencode(covexp_models);
+                    fid = fopen([covcfg.RESULT_FILE '_txt.json'],'wt');
+                    fprintf(fid, covexp_models);
+                    fclose(fid);
+                end
+                
                 save(covcfg.RESULT_FILE, 'covexp_result');
+                
             end
             
             obj.l.info(sprintf('Report saved in %s', obj.report_log_filename));
