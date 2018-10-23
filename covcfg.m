@@ -73,7 +73,7 @@ classdef covcfg
         
         SIMULATION_TIMEOUT = 150;   % seconds
         
-        SAVE_RESULT_AS_JSON = true;
+        SAVE_RESULT_AS_JSON = false;
         
         BASE_DIR = '';
         
