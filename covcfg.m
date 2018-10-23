@@ -63,8 +63,8 @@ classdef covcfg
         };
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
-%         DO_THESE_EXPERIMENTS = [1 2]; % Multiple experiments
-        DO_THESE_EXPERIMENTS = 4;   % Single experiment
+        DO_THESE_EXPERIMENTS = [1 2 3]; % Multiple experiments
+%         DO_THESE_EXPERIMENTS = 4;   % Single experiment
         
         % Generate lists of models before experiment
         GENERATE_MODELS_LIST = true;

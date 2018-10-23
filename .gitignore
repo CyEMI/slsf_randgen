@@ -45,3 +45,4 @@ envcfg.m
 *.slxc
 *.c
 emi_results/*
+workdata/*.json
