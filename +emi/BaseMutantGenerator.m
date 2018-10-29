@@ -11,8 +11,8 @@ classdef BaseMutantGenerator < handle
         live_blocks;        % Of original model
         compiled_types;
         
-        preprocess_only;    % Exit after pre-processing
-        dont_preprocess;    % Do everything after pre-processing phase
+        dont_preprocess;    % If true, skips preprocessing
+        exit_after_preprocess;    % Exit after pre-process. Denotes the "preprocess only" mode
         
         % stats
         num_deleted = 0;
@@ -50,14 +50,14 @@ classdef BaseMutantGenerator < handle
         %% Public Methods
         
         function obj = BaseMutantGenerator(my_id, original_sys, exp_data,...
-                base_dir_for_this_model, preprocess_only, dont_preprocess)
+                base_dir_for_this_model, exit_after_pp, dont_preprocess)
             %% Constructor
             obj.my_id = my_id;
             obj.original_sys = original_sys;
             obj.exp_data = exp_data;
             obj.base_dir_for_this_model = base_dir_for_this_model;
             
-            obj.preprocess_only = preprocess_only;
+            obj.exit_after_preprocess = exit_after_pp;
             obj.dont_preprocess = dont_preprocess;
             
             obj.get_sys();
@@ -68,46 +68,6 @@ classdef BaseMutantGenerator < handle
             
             obj.l.setCommandWindowLevel(emi.cfg.LOGGER_LEVEL);
             
-        end
-        
-        function get_sys(obj)
-            %%
-            if obj.preprocess_only
-                obj.sys = sprintf('%s_%s', obj.original_sys, emi.cfg.MUTANT_PREPROCESSED_FILE_SUFFIX);
-            else
-                obj.sys = sprintf('%s_%d_%d', obj.original_sys, obj.exp_data.exp_no, obj.my_id);
-            end
-        end
-        
-        function handle_preprocess_only_case(obj)
-            %%
-            if ~ obj.preprocess_only
-                return;
-            end
-            
-            try
-                delete([obj.base_dir_for_this_model filesep obj.sys emi.cfg.MUTANT_PREPROCESSED_FILE_EXT]);
-            catch
-            end
-        end
-        
-        function ret = compile_model_and_return(obj, phase, close_on_success)
-            %% phase is a string for logging purpose
-            % run mutant
-            ret = obj.compile_and_run();
-            if ~ ret
-                obj.l.error('Mutant %d did not compile/run: %s', obj.my_id, phase);
-                
-                if emi.cfg.KEEP_ERROR_MUTANT_OPEN
-                    % Model is dirty - save manually.
-                    open_system(obj.sys);
-                else
-                    obj.close_model();
-                end
-            elseif close_on_success
-                % Close Model
-                obj.close_model();
-            end
         end
         
         function go(obj)
@@ -138,36 +98,37 @@ classdef BaseMutantGenerator < handle
     end
     
     methods(Access = protected)
-        %% Protected Methods
+        %% Bookkeeping and process. 
+        % TODO Refactor by moving everying else from this class
         
-        function return_after_this = handle_preprocess(obj)
+        function init(obj)
             %%
-            % `return_after_this` indicates if we should return immediately
-            % from the calling method.
-            return_after_this = false;
+            obj.handle_preprocess_only_case();
+            obj.create_copy_of_original();
             
-            if obj.dont_preprocess
-                return;
-            end
-            
-            obj.preprocess_model();
-            
-            pp_only = emi.cfg.RETURN_AFTER_PREPROCESSING_MUTANT || obj.preprocess_only;
-            
-            if ~ obj.compile_model_and_return('PREPROCESSING', pp_only)
-                obj.l.error('Compile after preprocess failed');
-                obj.result.preprocess_error = true;
-                return_after_this = true;
-                return;
-            end
-            
-            if pp_only
-                obj.l.info('Returning after preprocessing, not creating actual mutants');
-                return_after_this = true;
-                return;
+        end
+        
+        function get_sys(obj)
+            %%
+            if obj.exit_after_preprocess % Preprocess mode
+                obj.sys = sprintf('%s_%s', obj.original_sys, emi.cfg.MUTANT_PREPROCESSED_FILE_SUFFIX);
+            else % Generate Mutant
+                obj.sys = sprintf('%s_%d_%d', obj.original_sys, obj.exp_data.exp_no, obj.my_id);
             end
         end
         
+        function handle_preprocess_only_case(obj)
+            %%
+            if ~ obj.exit_after_preprocess
+                return;
+            end
+            
+            try
+                delete([obj.base_dir_for_this_model filesep obj.sys emi.cfg.MUTANT_PREPROCESSED_FILE_EXT]);
+            catch
+            end
+        end
+                        
         function create_copy_of_original(obj)
             %%
             save_system(obj.original_sys, [obj.base_dir_for_this_model filesep obj.sys]);
@@ -181,12 +142,23 @@ classdef BaseMutantGenerator < handle
             
         end
         
-        
-        function init(obj)
-            %%
-            obj.handle_preprocess_only_case();
-            obj.create_copy_of_original();
-            
+        function ret = compile_model_and_return(obj, phase, close_on_success)
+            %% phase is a string for logging purpose
+            % run mutant
+            ret = obj.compile_and_run();
+            if ~ ret
+                obj.l.error('Mutant %d did not compile/run: %s', obj.my_id, phase);
+                
+                if emi.cfg.KEEP_ERROR_MUTANT_OPEN
+                    % Model is dirty - save manually.
+                    open_system(obj.sys);
+                else
+                    obj.close_model();
+                end
+            elseif close_on_success
+                % Close Model
+                obj.close_model();
+            end
         end
         
         function is_ok = compile_and_run(obj)
@@ -221,52 +193,39 @@ classdef BaseMutantGenerator < handle
                 bdclose(obj.sys);
             end
         end
+                
+        %% Preprocessing %%
         
-        function ret = get_model_builder(obj, parent)
+        function return_after_this = handle_preprocess(obj)
             %%
-            if obj.model_builders.contains(parent)
-                ret = obj.model_builders.get(parent);
-            else
-                ret = emi.slsf.ModelBuilder(parent);
-                ret.init();
-                obj.model_builders.put(parent, ret);
-            end
-        end
-        
-        function ret = get_pos_for_next_block(obj, parent)
-            %%
-            ret = obj.get_model_builder(parent).get_new_block_position();
-        end
-        
-        function strategy_dead_block_removal(obj)
-            %% Mutation strategy by removing dead blocks from a model
-            if size(obj.dead_blocks, 1) == 0
-                obj.l.warn('No dead blocks in the original model!');
+            % `return_after_this` indicates if we should return immediately
+            % from the calling method.
+            return_after_this = false;
+            
+            if obj.dont_preprocess
                 return;
             end
             
-            blocks_to_delete = obj.sample_dead_blocks_to_delete();
-            blocks_to_delete = cellfun(@(p) [obj.sys '/' p], blocks_to_delete, 'UniformOutput', false);
+            obj.preprocess_model();
             
-            % blocks_to_delete may have repeated contents
-            blocks_to_delete = utility.unique(blocks_to_delete);
+            pp_only = obj.exit_after_preprocess;
             
-            cellfun(@(p) obj.delete_a_block(p, []), blocks_to_delete);
+            if ~ obj.compile_model_and_return('PREPROCESSING', pp_only)
+                obj.l.error('Compile after preprocess failed');
+                obj.result.preprocess_error = true;
+                return_after_this = true;
+                return;
+            end
             
+            if pp_only
+                obj.l.info('Returning after preprocessing, not creating actual mutants');
+                return_after_this = true;
+                return;
+            end
         end
-        
-        function ret = skip_delete(~, blk)
-            %% Check whether `blk` should not be deleted.
-            skips = utility.map();
-            
-            skips.put('Delay', 1);
-            skips.put('UnitDelay', 1);
-            
-            ret = skips.contains(get_param(blk, 'BlockType'));
-        end
-        
-        
+                
         function preprocess_model(obj)
+            %%
             if emi.cfg.PRE_ANNOTATE_TYPE
                 obj.pre_annotate_types_all_blocks();
                 %                 obj.pre_annotate_types;
@@ -300,7 +259,7 @@ classdef BaseMutantGenerator < handle
         function pre_annotate_types(obj)
             %% Filter blocks by type and then apply a function on that block
             configs = {...
-                {'Delay', @preprocess_delay_blocks}...
+                {'Delay', @preprocess_delay_blocks}... % Delay blocks only
                 };
             for i=1:numel(configs)
                 cur = configs{i};
@@ -341,6 +300,53 @@ classdef BaseMutantGenerator < handle
             % Destination is just one port: the 2nd port at a delay block
             self_as_destination = emi.slsf.create_port_connectivity_data(blkname, 1, 1);
             ret = obj.preprocess_a_block(blkname,sources, self_as_destination);
+        end
+        
+        %% Mutation Strategies %%
+        
+        function strategy_dead_block_removal(obj)
+            %% Mutation strategy by removing dead blocks from a model
+            if size(obj.dead_blocks, 1) == 0
+                obj.l.warn('No dead blocks in the original model!');
+                return;
+            end
+            
+            blocks_to_delete = obj.sample_dead_blocks_to_delete();
+            blocks_to_delete = cellfun(@(p) [obj.sys '/' p], blocks_to_delete, 'UniformOutput', false);
+            
+            % blocks_to_delete may have repeated contents
+            blocks_to_delete = utility.unique(blocks_to_delete);
+            
+            cellfun(@(p) obj.delete_a_block(p, []), blocks_to_delete);
+            
+        end
+        
+        %% Model Editing %%
+        
+        function ret = get_model_builder(obj, parent)
+            %%
+            if obj.model_builders.contains(parent)
+                ret = obj.model_builders.get(parent);
+            else
+                ret = emi.slsf.ModelBuilder(parent);
+                ret.init();
+                obj.model_builders.put(parent, ret);
+            end
+        end
+        
+        function ret = get_pos_for_next_block(obj, parent)
+            %%
+            ret = obj.get_model_builder(parent).get_new_block_position();
+        end
+        
+        function ret = skip_delete(~, blk)
+            %% Check whether `blk` should not be deleted.
+            skips = utility.map();
+            
+            skips.put('Delay', 1);
+            skips.put('UnitDelay', 1);
+            
+            ret = skips.contains(get_param(blk, 'BlockType'));
         end
         
         function ret = delete_a_block(obj, block, sys_for_context)
@@ -386,7 +392,6 @@ classdef BaseMutantGenerator < handle
             
             emi.hilite_system(block, emi.cfg.DELETE_BLOCK_P, 'fade');
             
-            
             if is_block_not_action_subsystem
                 try
                     delete_block(block);
@@ -395,8 +400,6 @@ classdef BaseMutantGenerator < handle
                     error('Error deleting block!');
                 end
             end
-            
-            emi.pause_interactive(emi.cfg.DELETE_BLOCK_P, 'Block %s Deleted', block);
             
             if is_if_block
                 % Delete successors? Just first one in the path?
@@ -420,6 +423,8 @@ classdef BaseMutantGenerator < handle
                 obj.address_unconnected_ports(true, true, true, sources, destinations, block_parent);
             end
             
+            emi.pause_interactive(emi.cfg.DELETE_BLOCK_P, 'Block %s Delete completed', block);
+            
         end
         
         function [my_s, my_d] =  get_my_block_ports(~, blk, sources, dests)
@@ -431,36 +436,50 @@ classdef BaseMutantGenerator < handle
         function address_unconnected_ports(obj, reconnect, do_s, do_d, sources, dests, parent_sys)
             %%
             % TODO randomly choose a strategy
-            obj.add_type_compatible_blocks(do_s, do_d, sources, dests, parent_sys, reconnect);
+            if emi.cfg.NO_DTC_RECONNECT
+                fhandle = @reconnect_ports;
+            elseif emi.cfg.DTC_RECONNECT
+                fhandle = @add_dtc_block_in_middle;
+            else
+                error('Bad configuration!');
+            end
+            
+            obj.address_unconnected_ports_reconnect(do_s, do_d, sources, dests, parent_sys, reconnect, fhandle);
+            
+            % we used to do this previously
+%             obj.add_type_compatible_blocks(do_s, do_d, sources, dests, parent_sys);
         end
         
-        function add_type_compatible_blocks(obj, do_s, do_d, sources, dests, parent_sys, reconnect)
+        function address_unconnected_ports_reconnect(obj, do_s, do_d, sources, dests, parent_sys, reconnect, fhandle)
+            %% 
+            if reconnect && do_s && do_d
+                obj.l.debug('Will put Data-type converter');
+                try
+                    fhandle(obj,sources, dests, parent_sys);
+                catch e
+                    disp(e);
+                    error('Error reconnecting');
+                end
+                return;
+            elseif ~reconnect
+                % We deleted an If block and are now trying to put a
+                % terminator at the If block's predecessor. Skip doing this
+                % as we'd also have to choose a data-type for the
+                % terminator (sink-like) for obj.compiled_types
+                
+                obj.l.debug('Will NOT reconnect');
+                return;
+            end
+            
+            error('Did not do anything - this should not be the case');
+        end
+        
+        function add_type_compatible_blocks(obj, do_s, do_d, sources, dests, parent_sys)
             %% if `do_s` is true, add a Sink-like block, and connect all
             % block-ports from `sources` --> new Sink-like block.
             % Similarly, connect all block-ports from `dests` if `do_d` is
             % true: "new Source-like block" --> \forall block-ports \in
             % `dests`.
-            
-            if emi.cfg.DTC_RECONNECT && reconnect && do_s && do_d
-                obj.l.debug('Will put Data-type converter');
-                try
-                    obj.add_dtc_block_in_middle(sources, dests, parent_sys);
-                catch e
-                    disp(e);
-                    error('Error adding block in middle');
-                end
-                return;
-            else
-                obj.l.debug('Will NOT put Data-type converter');
-            end
-            
-            if emi.cfg.DTC_RECONNECT && ~reconnect
-                % We deleted an If block and are now trying to put a
-                % terminator at the If block's predecessor. Skip doing this
-                % as we'd also have to choose a data-type for the
-                % terminator (sink-like) for obj.compiled_types
-                return;
-            end
             
             % We chose not to put DTC and reconnect the predecessors and
             % successors of a deleted block. In the following code, use
@@ -531,7 +550,7 @@ classdef BaseMutantGenerator < handle
             %% Register a newly added `dtc` block's source and destination
             % types in the compiled-types database (i.e. obj.compiled_types)
             
-            if ~emi.cfg.DTC_RECONNECT || ~emi.cfg.DTC_SPECIFY_TYPE
+            if ~emi.cfg.DTC_SPECIFY_TYPE
                 return;
             end
             
@@ -551,88 +570,82 @@ classdef BaseMutantGenerator < handle
             %% Adds a Data-type Converter block between each source -> dest
             % connection
             
-            source_ptr = 0;
+            combs = emi.slsf.choose_source_dest_pairs_for_reconnection(sources, dests);
             
-            for d = 1:size(dests, 1)
-                cur_d = dests{d, :};
+            for i=1:combs.len
+                cur = combs.get(i);
                 
-                d_blk = get_param(cur_d{2}, 'Name');
-                d_prt = cur_d{3} + 1;
-                
-                if ~ iscell(d_blk)
-                    d_blk = {d_blk};
+                % Add new DTC block
+                try
+                    % what's the type of this destination block's jth input
+                    % port?
+                    if emi.cfg.DTC_SPECIFY_TYPE
+                        inport_types = obj.get_compiled_type(parent_sys, cur.d_blk, 'Inport');
+                        dtc_out_type = inport_types{cur.d_prt}; % Outport type of DTC block
+                        dtc_type_params = struct('OutDataTypeStr', emi.slsf.get_datatype(dtc_out_type));
+                    else
+                        dtc_out_type = [];
+                        dtc_type_params = struct;
+                    end
+
+                    [new_blk_name, ~] = obj.add_new_block_in_model(parent_sys, 'simulink/Signal Attributes/Data Type Conversion',...
+                        dtc_type_params);
+
+                    obj.l.debug('Added new DTC block %s', new_blk_name);
+
+                catch e
+                    disp(e);
+                    error('data type adding error');
                 end
                 
-                for j = 1: numel(d_blk)
-                    
-                    % Add new DTC block
-                    try
-                        % what's the type of this destination block's jth input
-                        % port?
-                        if emi.cfg.DTC_SPECIFY_TYPE
-                            inport_types = obj.get_compiled_type(parent_sys, d_blk{j}, 'Inport');
-                            dtc_out_type = inport_types{d_prt(j)}; % Outport type of DTC block
-                            dtc_type_params = struct('OutDataTypeStr', emi.slsf.get_datatype(dtc_out_type));
-                        else
-                            dtc_out_type = [];
-                            dtc_type_params = struct;
-                        end
-                        
-                        [new_blk_name, ~] = obj.add_new_block_in_model(parent_sys, 'simulink/Signal Attributes/Data Type Conversion',...
-                            dtc_type_params);
-                        
-                        obj.l.debug('Added new DTC block %s', new_blk_name);
-                        
-                    catch e
-                        disp(e);
-                        error('data type adding error');
-                    end
-                    
-                    % Connect DTC -> destination
-                    try
-                        add_line(parent_sys, [new_blk_name '/1'], [d_blk{j} '/' int2str(d_prt(j))],...
-                            'autorouting','on');
-                        obj.l.debug('Connected %s/1 ---> %s/%d', new_blk_name, d_blk{j}, d_prt(j));
-                    catch e
-                        disp(e);
-                        error('dtc->dest line adding error');
-                    end
-                    
-                    % Connect source -> DTC
-                    source_ptr = source_ptr +1;
-                    src_i = source_ptr;
-                    
-                    if src_i > size(sources, 1)
-                        src_i = 1; % TODO select random
-                    end
-                    
-                    cur_src = sources(src_i, :);
-                    cur_src = table2cell(cur_src);
-                    
-                    src_bname = get_param(cur_src{2}, 'Name');
-                    src_prt = cur_src{3} + 1;
-                    
-                    % add new DTC block in compiled data types
-                    
-                    obj.add_dtc_block_compiled_types(parent_sys, src_bname, src_prt, new_blk_name, dtc_out_type);
-                    
-                    try
-                        add_line(parent_sys, [src_bname '/'...
-                            int2str(src_prt)], [new_blk_name '/1' ],...
-                            'autorouting','on');
-                        obj.l.debug('Connected %s/%d ---> %s/1', src_bname, src_prt, new_blk_name);
-                    catch e
-                        disp(e);
-                        error('connecting src->dtc');
-                    end
+                % add new DTC block in compiled data types registry
+                obj.add_dtc_block_compiled_types(parent_sys, cur.s_blk, cur.s_prt, new_blk_name, dtc_out_type);
+
+                % Connect DTC -> destination
+                try
+                    add_line(parent_sys, [new_blk_name '/1'], [cur.d_blk '/' int2str(cur.d_prt)],...
+                        'autorouting','on');
+                    obj.l.debug('Connected %s/1 ---> %s/%d', new_blk_name, cur.d_blk, cur.d_prt);
+                catch e
+                    disp(e);
+                    error('dtc->dest line adding error');
+                end
+
+                % Connect source -> DTC
+
+
+                try
+                    add_line(parent_sys, [cur.s_blk '/'...
+                        int2str(cur.s_prt)], [new_blk_name '/1' ],...
+                        'autorouting','on');
+                    obj.l.debug('Connected %s/%d ---> %s/1', cur.s_blk, cur.s_prt, new_blk_name);
+                catch e
+                    disp(e);
+                    error('connecting src->dtc');
                 end
             end
             
         end
-        
-        function reconnect_ports(~)
-            %%
+
+        function reconnect_ports(obj, sources, dests, parent_sys)
+            %% Reconncet source->dests without placing any DTC in middle
             
+            combs = emi.slsf.choose_source_dest_pairs_for_reconnection(sources, dests);
+            
+            for i=1:combs.len
+                cur = combs.get(i);
+                
+                try
+                    add_line(parent_sys, [cur.s_blk '/' int2str(cur.s_prt)],...
+                        [cur.d_blk '/' int2str(cur.d_prt)],...
+                        'autorouting','on');
+                    obj.l.debug('Connected %s/%d ---> %s/%d',...
+                        cur.s_blk, cur.s_prt, cur.d_blk, cur.d_prt);
+                catch e
+                    disp(e);
+                    error('src->dest line adding error');
+                end
+            end
         end
         
         function hilite_all_dead(obj)

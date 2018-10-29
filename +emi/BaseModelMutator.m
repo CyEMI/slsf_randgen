@@ -1,7 +1,9 @@
 classdef (Abstract) BaseModelMutator < handle
     %BASEMODELMUTATOR Mutates a single model to create k mutants
     %   Individual mutants are created by calling instances of
-    %   BaseMutantGenerator implementations
+    %   BaseMutantGenerator implementations. 
+    % By default, does not do preprocessing. Assuming this is done by a
+    % subclass
     
     properties
         result;
@@ -100,6 +102,9 @@ classdef (Abstract) BaseModelMutator < handle
             obj.result = emi.ReportForModel(obj.exp_no, obj.m_id);
             obj.choose_num_mutants();
             
+            % Open preprocessed version
+            obj.load_preprocessed_version();
+            
             % Create Directories
             obj.REPORT_DIR_FOR_THIS_MODEL = [obj.exp_data.REPORTS_BASE filesep int2str(obj.exp_no)];
             mkdir(obj.REPORT_DIR_FOR_THIS_MODEL);
@@ -139,7 +144,24 @@ classdef (Abstract) BaseModelMutator < handle
             obj.result.exception_id = e.identifier;
         end
         
+        function load_preprocessed_version(obj)
+        %%
+            if ~ obj.dont_preprocess
+                return
+            end
+            
+            preprocessed_file_name = sprintf('%s_%s', obj.sys, emi.cfg.MUTANT_PREPROCESSED_FILE_SUFFIX);
+            
+            if ~ utility.file_exists(obj.model_data.loc_input, [preprocessed_file_name emi.cfg.MUTANT_PREPROCESSED_FILE_EXT])
+                obj.l.warning('Preprocessed version %s not found!', preprocessed_file_name);
+                return;
+            end
+            
+            obj.sys = preprocessed_file_name;
+        end
+        
         function opens = open_model(obj, varargin)
+            %%
             % varargin{1}: boolean: whether to use open_system by force.
             
             if nargin > 1
@@ -166,21 +188,23 @@ classdef (Abstract) BaseModelMutator < handle
             rmpath(obj.model_data.loc_input);
         end
         
-        function ret = process_single_model(obj, preprocess_only)
+        function ret = process_single_model(obj, return_after_preprocess)
+            %%
             obj.get_dead_and_live_blocks();
             
             obj.enable_signal_logging();
             
-            ret = obj.create_mutants(preprocess_only);
+            ret = obj.create_mutants(return_after_preprocess);
         end
         
-        function ret = create_mutants(obj, preprocess_only)
+        function ret = create_mutants(obj, return_after_preprocess)
+            %%
             ret = true;
             
             for i=1:obj.num_mutants
                 obj.open_model();
                 a_mutant = emi.SimpleMutantGenerator(i, obj.sys,...
-                    obj.exp_data, obj.REPORT_DIR_FOR_THIS_MODEL, preprocess_only, obj.dont_preprocess);
+                    obj.exp_data, obj.REPORT_DIR_FOR_THIS_MODEL, return_after_preprocess, obj.dont_preprocess);
                 
                 a_mutant.blocks = obj.block_data;
                 a_mutant.live_blocks = obj.live;
@@ -201,7 +225,7 @@ classdef (Abstract) BaseModelMutator < handle
         end
         
         function get_dead_and_live_blocks(obj)
-            
+            %%
             function x = get_nonempty(x)
                 x = x(rowfun(@(~,p,~) ~isempty(p{1}) , x(:,:),...
                 'OutputFormat', 'uniform'), :);
@@ -237,6 +261,7 @@ classdef (Abstract) BaseModelMutator < handle
         end
         
         function save_my_result(obj)
+            %%
             if obj.disable_saving_result
                 return;
             end
@@ -247,10 +272,11 @@ classdef (Abstract) BaseModelMutator < handle
         end
         
         function enable_signal_logging(~)
-            
+            %%
         end
         
         function close_model(obj)
+            %%
             emi.pause_interactive();
             bdclose(obj.sys);
         end

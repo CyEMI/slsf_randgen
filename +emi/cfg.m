@@ -3,14 +3,11 @@ classdef cfg
     %   Detailed explanation goes here
     
     properties(Constant = true)
+        %% Commonly used 
         
-        NUM_MAINLOOP_ITER = 1;
+        NUM_MAINLOOP_ITER = 10;
         
         PARFOR = false;
-        
-        INPUT_MODEL_LIST = covcfg.RESULT_FILE
-        
-        SIMULATION_TIMEOUT = covcfg.SIMULATION_TIMEOUT;
         
         % Load previously saved random number seed. This would NOT
         % reproduce previous experiment results, but useful for actually
@@ -21,47 +18,45 @@ classdef cfg
         
         INTERACTIVE_MODE = false;
         
-        MUTANTS_PER_MODEL = 1;
-        
-        REPORTS_DIR = 'emi_results';
-        
-        % Remove this percentage of dead blocks
-        DEAD_BLOCK_REMOVE_PERCENT = 0.5;
-        
         % If any error occurs, replicate the experiment in next run
         REPLICATE_EXP_IF_ANY_ERROR = true;
         
-        % Force opens
-        
         % don't close a mutant if it did not compile/run
-        KEEP_ERROR_MUTANT_OPEN = false;
-        KEEP_ERROR_MUTANT_PARENT_OPEN = false;
+        KEEP_ERROR_MUTANT_OPEN = true;
+        KEEP_ERROR_MUTANT_PARENT_OPEN = true;
         
         % Break from the main loop if any model mutation errors
-        STOP_IF_ERROR = false;
-        
-        % Force pauses for debugging
-        DELETE_BLOCK_P = false;
-        
-        % No need to change the followings
-        
-        % Save random number seed and others
-        WORK_DATA_DIR = 'workdata';
-        WS_FILE_NAME_ = 'savedws.mat';
-        
-        % logger level
-        LOGGER_LEVEL = logging.logging.INFO;
+        STOP_IF_ERROR = true;
         
         % Debug/Interactive mode for a particular subsystem
         
 %         DEBUG_SUBSYSTEM = struct('cfblk234', 1);
         DEBUG_SUBSYSTEM = struct([]); % So that isempty would work
         
-        RETURN_AFTER_PREPROCESSING_MUTANT = true;
+        %% Preprocessing %%
         
-        % If you've already cached the preprocessing results, no need to do
-        % that again
-        DONT_PREPROCESS = false; 
+        % Workflow 1 (caching): Preprocess models and cache them.
+        
+        % Use following while caching by running covexp.covcollect.
+        
+        % Note: this is automatically done by the ModelPreprocessor class,
+        % you don't need to change any configuration here.
+        
+%         DONT_PREPROCESS = false;        
+        
+        % Use following after caching i.e. generating mutants via the
+        % emi.go script
+        
+        DONT_PREPROCESS = true;
+        
+        % Pre-annotate blocks with types during preprocessing.
+        % Only relevant when preprocessing a model.
+        PRE_ANNOTATE_TYPE = true;
+        
+        MUTANT_PREPROCESSED_FILE_SUFFIX = 'pp';
+        MUTANT_PREPROCESSED_FILE_EXT = '.slx';
+        
+        %% Random numbers and reporting file names
         
         % Name of the variable for storing random number generator state.
         % We need to save two states because first we randomly select the
@@ -69,6 +64,15 @@ classdef cfg
         % `MODELS_RNG_VARNAME_IN_WS`. This is required to replicate a
         % failed experiment. Next, before mutating each of the models, we
         % again save the RNG state in `RNG_VARNAME_IN_WS`
+        
+        % No need to change the followings
+        
+        REPORTS_DIR = 'emi_results';
+        
+        % Save random number seed and others
+        WORK_DATA_DIR = 'workdata';
+        WS_FILE_NAME_ = 'savedws.mat';
+        
         
         % Before generating list of models
         MODELS_RNG_VARNAME_IN_WS = 'rng_state_models';
@@ -81,20 +85,37 @@ classdef cfg
         REPORT_FOR_A_MODEL_FILENAME = 'modelreport';
         REPORT_FOR_A_MODEL_VARNAME = 'modelreport';
         
-        % Put Data-type converter when reconnecting
-        DTC_RECONNECT = true;
+        %% Mutation: Block delete and reconnection strategies
+        
+        % Reconnect, NOT putting Data-type converter (recommended)
+        NO_DTC_RECONNECT = true;
+        
+        % Reconnect, Putting Data-type converter
+        DTC_RECONNECT = false;
         
         % Specify input and output data-type of a DTC block.
-        % TODO may need to do it for other blocks
-        DTC_SPECIFY_TYPE = true;
-        DTC_SPECIFY_TYPE_COMPILE_CHECK = true;
+        % TODO may need to do it for other blocks (??)
+        % Used in MutantGenerator::add_dtc_block_in_middle
+        DTC_SPECIFY_TYPE = true;        
         
-        % Pre-annotate blocks with types
-        PRE_ANNOTATE_TYPE = true;
+        %% Generic Mutation
         
-        MUTANT_PREPROCESSED_FILE_SUFFIX = 'pp';
-        MUTANT_PREPROCESSED_FILE_EXT = '.slx';
+        MUTANTS_PER_MODEL = 1;
         
+        % Remove this percentage of dead blocks
+        DEAD_BLOCK_REMOVE_PERCENT = 0.5;
+        
+        %% Others
+        
+        INPUT_MODEL_LIST = covcfg.RESULT_FILE
+        
+        SIMULATION_TIMEOUT = covcfg.SIMULATION_TIMEOUT;
+        
+        % Force pauses for debugging
+        DELETE_BLOCK_P = false;
+        
+        % logger level
+        LOGGER_LEVEL = logging.logging.INFO;
     end
     
     methods (Static = true)
