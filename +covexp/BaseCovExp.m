@@ -105,7 +105,10 @@ classdef BaseCovExp < handle
             load_system('simulink');
             
             if covcfg.EXP_MODE.is_subgroup
+                assert(obj.subgroup_end <= all_models);
+%                 obj.subgroup_end = min(size(all_models, 1), obj.subgroup_end);
                 all_models = all_models(obj.subgroup_begin:obj.subgroup_end);
+                all_models_path = all_models_path(obj.subgroup_begin:obj.subgroup_end);
                 log_append = sprintf('[%d - %d]', obj.subgroup_begin, obj.subgroup_end);
                 model_id_offset = obj.subgroup_begin - 1;
             else
@@ -137,7 +140,7 @@ classdef BaseCovExp < handle
                     
                     try
                         res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); %#ok<AGROW>
-                    catch e
+                    catch 
                         res(i) = covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); %#ok<AGROW>
                     end
                     % Save

@@ -5,7 +5,7 @@ classdef cfg
     properties(Constant = true)
         %% Commonly used 
         
-        NUM_MAINLOOP_ITER = 10;
+        NUM_MAINLOOP_ITER = 1;
         
         PARFOR = false;
         
@@ -21,17 +21,23 @@ classdef cfg
         % If any error occurs, replicate the experiment in next run
         REPLICATE_EXP_IF_ANY_ERROR = true;
         
+        % Debug/Interactive mode for a particular subsystem
+        
+%         DEBUG_SUBSYSTEM = struct('cfblk164', 1);
+        DEBUG_SUBSYSTEM = struct([]); % So that isempty would work
+        
+        %% Stopping when error
+        
+        % Note: when preprocessing models using the covcollect script,
+        % don't keep any mutants/parents open. Change
+        % followings accordingly.
+        
         % don't close a mutant if it did not compile/run
-        KEEP_ERROR_MUTANT_OPEN = true;
-        KEEP_ERROR_MUTANT_PARENT_OPEN = true;
+        KEEP_ERROR_MUTANT_OPEN = false;
+        KEEP_ERROR_MUTANT_PARENT_OPEN = false;
         
         % Break from the main loop if any model mutation errors
         STOP_IF_ERROR = true;
-        
-        % Debug/Interactive mode for a particular subsystem
-        
-%         DEBUG_SUBSYSTEM = struct('cfblk234', 1);
-        DEBUG_SUBSYSTEM = struct([]); % So that isempty would work
         
         %% Preprocessing %%
         
