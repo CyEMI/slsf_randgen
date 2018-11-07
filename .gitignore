@@ -47,3 +47,4 @@ envcfg.m
 emi_results/*
 workdata/*.json
 */.idea/*
+slearner/output/*.mdl
