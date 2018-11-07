@@ -46,3 +46,4 @@ envcfg.m
 *.c
 emi_results/*
 workdata/*.json
+*/.idea/*
