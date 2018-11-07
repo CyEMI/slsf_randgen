@@ -8,6 +8,23 @@ import unittest
 SYS_EXT = '.mdl'
 OUTPUT_PREFIX = '_PPD'
 
+DUMMY_MODEL_ROOT = 'SLearnerDummyRoot'
+
+
+class CollectedToken:
+
+    @property
+    def output(self):
+        return ''.join(self.outputs)
+
+    def __init__(self, kw, init_line=''):
+        self.kw = kw  # The keyword
+        self.outputs = [init_line]
+        self.brace_count = 1
+
+    def add_line(self, line):
+        self.outputs.append('{0}'.format(line))
+
 
 class ModelPreprocessor():
     """docstring for ModelPreprocessor"""
@@ -20,25 +37,36 @@ class ModelPreprocessor():
         self._sys = model_name
         self._outdir = outdir
 
-        self._outsys = None         # Output file
+        self._outsys = None  # Output file
 
-        self._outputs = []          # Output lines
+        # self._outputs = []  # Output lines
 
-        self._unique_kws = unique_kws if unique_kws is not None else set()    # Unique keywords
+        self._unique_kws = unique_kws if unique_kws is not None else set()  # Unique keywords
+
+        # What to items to collect from this document?
+
+        self._collectibles = [{
+            DUMMY_MODEL_ROOT : {'Model': {
+                'Name': None,  # None means capture the whole element
+                'System': None,
+            }}
+        }, ]  # Stack
+
+        self._collections = [CollectedToken(DUMMY_MODEL_ROOT)]  # Stack containing collected tokens.
 
         # States
 
-        self._is_inside_System = False
-        self._brace_count = 0
+        # self._is_inside_System = False
+        # self._brace_count = 0
 
     def go(self, write_in_disc):
-        assert(os.path.exists(self._sys))
-        assert(os.path.exists(self._outdir))
+        assert (os.path.exists(self._sys))
+        assert (os.path.exists(self._outdir))
 
         self._get_out_files()
         self._parse()
 
-        output = self._build_output()
+        output = self._collections[-1].output
 
         if write_in_disc:
             self._write_output(output)
@@ -50,39 +78,80 @@ class ModelPreprocessor():
         return re.split(r'[\s]+', line)
 
     def _parse(self):
-        
-        self._outputs.append(self._get_prefix())
+
+        # self._outputs.append(self._get_prefix())
 
         with open(self._sys, 'r') as infile:
             for l in infile:
                 line = l.strip()
                 tokens = self._get_tokens(line)
 
-                if not self._is_inside_System:
-                    if self._check_valid_keyword_start(line, "System", tokens):
-                        self._add_line(l)
-                        self._brace_count = 1
-                        self._is_inside_System = True
-                    continue
+                top = self._collections[-1]
+                lookup = self._collectibles[-1] # Top of collectibles
 
-                # Inside System
-                self._process_System(line, l, tokens)
-                
-                if not self._is_inside_System:
-                    self._add_line("}")
-                    return
+                if lookup is not None and (lookup[top.kw] is None or tokens[0] in lookup[top.kw]):
+                    self._include_line(line, l, tokens, top)  # This may change top by pushing new
+                else:
+                    self._skip_line(line, l, tokens, top)
 
-        self._outputs.append(self._get_suffix())
+    def _skip_line(self, line, original_line, tokens, top):
+        """ This keyword is not interesting.
+        Just do brace count to know when to return from scope."""
+
+        if line == '}':
+            top.brace_count -= 1
+
+            if top.brace_count == 0:
+                top.add_line(original_line)
+                self._decrement_scope(top)
+            else:  # Still non-interesting
+                self._collectibles.pop()
+
+        elif '{' in tokens:
+            top.brace_count += 1
+            self._collectibles.append(None)  # Dummy
+
+    def _decrement_scope(self, top):
+        """Pop Elements from various stacks due to decrementing scope"""
+        self._collectibles.pop()
+        self._collections.pop()
+        self._collections[-1].add_line(top.output)
+
+    def _include_line(self, line, original_line, tokens, top):
+        # Return: whether to add token in unique keywords
+
+        if line == "}":
+            top.add_line(original_line)
+            top.brace_count -= 1
+
+            if top.brace_count == 0:
+                self._decrement_scope(top)
+
+            return
+
+        has_open_brace = "{" in tokens
+
+        if not has_open_brace:
+            # Single liners -- no need to start new scope.
+            top.add_line(original_line)
+
+        elif self._collectibles[-1][top.kw] is None:
+            # Parent wants every child. No need to start scope, instead use brace counting
+            top.add_line(original_line)
+            top.brace_count += 1
+        else:
+            # Parent wants selected children. Start new scope
+            self._collectibles.append(self._collectibles[-1][top.kw])
+            self._collections.append(CollectedToken(tokens[0], original_line))
+
+        self._unique_kws.add(tokens[0])
+
 
     def _check_valid_keyword_start(self, line, kw, tokens):
         if not line.startswith(kw):
             return False
 
-        return tokens[0] == kw 
-
-    def _build_output(self):
-        result = ''.join(self._outputs)
-        return result
+        return tokens[0] == kw
 
     def _write_output(self, output):
         with open(self._outsys, 'w') as outfile:
@@ -92,24 +161,6 @@ class ModelPreprocessor():
         self._sysdir, sys = os.path.split(self._sys)
 
         self._outsys = os.path.join(self._outdir, sys)
-
-    def _add_line(self, line):
-        self._outputs.append('{0}'.format(line))
-
-    def _process_System(self, line, original_line, tokens):
-        self._add_line(original_line)
-
-        if line == "}":
-            self._brace_count -= 1
-
-            if self._brace_count == 0:
-                self._is_inside_System = False
-                return
-
-        if "{" in tokens:
-            self._brace_count += 1
-
-        self._unique_kws.add(tokens[0])
 
     def _get_prefix(self):
         return """Model {\n
@@ -124,7 +175,7 @@ class BulkModelProcessor:
     def __init__(self, input_dir, output_dir):
         self._input_dir = input_dir
         self._output_dir = output_dir
-        self._unique_kw = set()                     # Unique Keywords
+        self._unique_kw = set()  # Unique Keywords
 
     def _process_dir(self, *args):
         for file in os.listdir(self._input_dir):
@@ -155,9 +206,19 @@ class BulkModelProcessor:
 
 class TestModelPreprocessor(unittest.TestCase):
 
+    my_dir = os.path.dirname(os.path.realpath(__file__))
+
     def test_sampleModel(self):
-        sys_loc = '/home/cyfuzz/workspace/emi/slearner/sampleModel20.mdl'
-        out_loc = '/home/cyfuzz/workspace/emi/slearner/output'
+        sys_loc = os.path.join(self.my_dir, 'sampleModel20.mdl')
+        out_loc = os.path.join(self.my_dir, 'output')
+
+        mp = ModelPreprocessor(sys_loc, out_loc)
+        result = mp.go(True)
+        self.assertIsNone(result)
+
+    def test_smoke1(self):
+        sys_loc = os.path.join(self.my_dir, 'sampleModel1.mdl')
+        out_loc = os.path.join(self.my_dir, 'output')
 
         mp = ModelPreprocessor(sys_loc, out_loc)
         result = mp.go(True)
@@ -176,7 +237,7 @@ class TestBulkModelPreprocessor(unittest.TestCase):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    
+
     parser.add_argument("--sys", help='Full path of the Simulink Model')
     parser.add_argument('--outdir', help='output location')
 
