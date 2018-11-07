@@ -60,7 +60,8 @@ class ModelPreprocessor():
         # self._brace_count = 0
 
     def go(self, write_in_disc):
-        assert (os.path.exists(self._sys))
+        print('Input: {} Output: {}'.format(self._sys, self._outdir))
+        assert os.path.exists(self._sys)
         assert (os.path.exists(self._outdir))
 
         self._get_out_files()
@@ -147,12 +148,6 @@ class ModelPreprocessor():
         self._unique_kws.add(tokens[0])
 
 
-    def _check_valid_keyword_start(self, line, kw, tokens):
-        if not line.startswith(kw):
-            return False
-
-        return tokens[0] == kw
-
     def _write_output(self, output):
         with open(self._outsys, 'w') as outfile:
             outfile.write(output)
@@ -162,14 +157,6 @@ class ModelPreprocessor():
 
         self._outsys = os.path.join(self._outdir, sys)
 
-    def _get_prefix(self):
-        return """Model {\n
-        """
-
-    def _get_suffix(self):
-        return """}\n
-        """
-
 
 class BulkModelProcessor:
     def __init__(self, input_dir, output_dir):
@@ -178,11 +165,23 @@ class BulkModelProcessor:
         self._unique_kw = set()  # Unique Keywords
 
     def _process_dir(self, *args):
+        num_success = 0
+        num_error = 0
+
         for file in os.listdir(self._input_dir):
             if os.path.isdir(file) or not file.endswith(SYS_EXT):
                 continue
-            mp = ModelPreprocessor(file, self._output_dir, self._unique_kw)
-            mp.go(*args)
+
+            try:
+                mp = ModelPreprocessor(os.path.join(self._input_dir, file), self._output_dir, self._unique_kw)
+                mp.go(*args)
+
+                num_success += 1
+            except e:
+                num_error += 1
+                print('Error: {}'.format(e))
+
+        print('Success: {}; Error: {}'.format(num_success, num_error))
 
     def _write_unique_kws(self):
         kw_file_name = 'unique_keywords.txt'
@@ -227,9 +226,18 @@ class TestModelPreprocessor(unittest.TestCase):
 
 class TestBulkModelPreprocessor(unittest.TestCase):
 
+    my_dir = os.path.dirname(os.path.realpath(__file__))
+
     def test_smoke(self):
-        sys_loc = '/home/cyfuzz/workspace/emi/slearner'
-        out_loc = '/home/cyfuzz/workspace/emi/slearner/output'
+        sys_loc = self.my_dir
+        out_loc = os.path.join(self.my_dir, 'output')
+
+        mp = BulkModelProcessor(sys_loc, out_loc)
+        mp.go(True)
+
+    def test_corpus(self):
+        sys_loc = '/home/cyfuzz/workspace/explore/success'
+        out_loc = '/home/cyfuzz/workspace/explore/processed'
 
         mp = BulkModelProcessor(sys_loc, out_loc)
         mp.go(True)
