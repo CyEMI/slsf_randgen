@@ -10,7 +10,7 @@ OUTPUT_PREFIX = '_PPD'
 
 DUMMY_MODEL_ROOT = 'SLearnerDummyRoot'
 
-UNIQUE_KW_WRAPPER = ' tokens: "{0}"'
+UNIQUE_KW_WRAPPER = '      tokens: "{0}"'
 
 
 class CollectedToken:
