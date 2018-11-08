@@ -13,6 +13,11 @@ DUMMY_MODEL_ROOT = 'SLearnerDummyRoot'
 UNIQUE_KW_WRAPPER = '      tokens: "{0}"'
 
 
+def pre_keywords():
+    """Add these keywords"""
+    return {'{', '}', }
+
+
 class CollectedToken:
 
     @property
@@ -55,7 +60,6 @@ class ModelPreprocessor():
         }, ]  # Stack
 
         self._collections = [CollectedToken(DUMMY_MODEL_ROOT)]  # Stack containing collected tokens.
-
 
     def go(self, write_in_disc):
         print('Input: {} Output: {}'.format(self._sys, self._outdir))
@@ -186,7 +190,8 @@ class BulkModelProcessor:
         kw_file_path = os.path.join(self._output_dir, kw_file_name)
 
         with open(kw_file_path, 'w') as outfile:
-            outfile.write('\n'.join([UNIQUE_KW_WRAPPER.format(i) for i in self._unique_kw]))
+            outfile.write('\n'.join([UNIQUE_KW_WRAPPER.format(i) for i in (self._unique_kw | pre_keywords())
+                                     if not i.startswith('"')]))
 
     def go(self, *args):
         if os.path.isfile(self._input_dir):
@@ -195,7 +200,7 @@ class BulkModelProcessor:
         else:
             self._process_dir(*args)
 
-        if '}' in self._unique_kw:
+        if '}' in self._unique_kw:  # might be unnecessary
             self._unique_kw.remove('}')
 
         self._write_unique_kws()
