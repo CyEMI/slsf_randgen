@@ -16,7 +16,7 @@ classdef covcfg
         % have bug in the code initially. Please experiment with 1-2 models
         % first so that you do not discard many of the cached results for
         % ALL of your models!
-        MAX_NUM_MODEL = 500;
+        MAX_NUM_MODEL = 5000;
         
         % Subgrouping is not used for Expmode.All
         SUBGROUP_BEGIN = 101;
@@ -63,17 +63,17 @@ classdef covcfg
         };
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
-        DO_THESE_EXPERIMENTS = [1 2 3]; % Multiple experiments
-%         DO_THESE_EXPERIMENTS = 4;   % Single experiment
+%         DO_THESE_EXPERIMENTS = [1 2 3]; % Multiple experiments
+        DO_THESE_EXPERIMENTS = 4;   % Single experiment
         
         % Generate lists of models before experiment
-        GENERATE_MODELS_LIST = false;
+        GENERATE_MODELS_LIST = true;
         
         GENERATE_MODELS_FILENAME = ['workdata' filesep 'generated_model_list'];
         
         SIMULATION_TIMEOUT = 150;   % seconds
         
-        SAVE_RESULT_AS_JSON = false;
+        SAVE_RESULT_AS_JSON = true;
         
         BASE_DIR = '';
         
@@ -137,6 +137,14 @@ classdef covcfg
         
         DATETIME_STR_TO_DATE = 'yyyy-MM-dd-HH-mm-ss';
         DATETIME_DATE_TO_STR = 'yyyy-mm-dd-HH-MM-SS';
+        
+        % Experiment 4 (Checking models which simulate)
+        % Models which pass simulation would be copied to a directory
+        SAVE_SUCCESS_MODELS = true 
+        % Models which error in simulation would be copied to a directory
+        SAVE_ERROR_MODELS = false
+        % While copying assume this extension for the source file
+        MODEL_SAVE_EXT = '.mdl'
    
     end
     
@@ -154,6 +162,22 @@ classdef covcfg
             
             if isempty(ret)
                 error('Please set up environment variable COVEXPEXPLORE where we look for models.');
+            end
+        end
+        
+        function ret = SAVE_SUCCESS_DIR()
+            ret = getenv('COVEXPSUCCESS');
+            
+            if isempty(ret)
+                error('Please set up environment variable COVEXPSUCCESS where we save models which ran successfully.');
+            end
+        end
+        
+        function ret = SAVE_ERROR_DIR()
+            ret = getenv('COVEXPERROR');
+            
+            if isempty(ret)
+                error('Please set up environment variable COVEXPERROR where we save models which DID NOT ran successfully.');
             end
         end
     end
