@@ -1,4 +1,4 @@
-classdef covcfg
+classdef covcfg < handle
     %COVCFG Configure `covcollect` - collecting coverage of models 
     %   Detailed explanation goes here
     
@@ -40,7 +40,7 @@ classdef covcfg
         % Perform experiments even if cached data is found. Useful when we
         % want to recompute. If you just want to aggregate previously
         % stored caches, set to false. 
-        FORCE_UPDATE_CACHED_RESULT = true;
+        FORCE_UPDATE_CACHED_RESULT = false;
         
         % When force update is on, instead of throwing away previously
         % cached results try to reuse it FOR THE EXPERIMENTS WHICH WILL NOT
@@ -63,19 +63,20 @@ classdef covcfg
         };
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
-%         DO_THESE_EXPERIMENTS = [1 2 3]; % Multiple experiments
-        DO_THESE_EXPERIMENTS = 4;   % Single experiment
+        DO_THESE_EXPERIMENTS = [1 2 3]; % Multiple experiments
+%         DO_THESE_EXPERIMENTS = 4;   % Single experiment
         
-        % Generate lists of models before experiment
+        % When exploring a directory 
+        % Generate lists of models before experiment. If false, will reuse
+        % the list generated during last experiment.
         GENERATE_MODELS_LIST = true;
         
         GENERATE_MODELS_FILENAME = ['workdata' filesep 'generated_model_list'];
         
         SIMULATION_TIMEOUT = 150;   % seconds
         
-        SAVE_RESULT_AS_JSON = true;
+        SAVE_RESULT_AS_JSON = false;
         
-        BASE_DIR = '';
         
         % Which corpus group to analyze (e.g. tutorial)
 %         CORPUS_GROUP = 'tutorial';
@@ -138,13 +139,16 @@ classdef covcfg
         DATETIME_STR_TO_DATE = 'yyyy-MM-dd-HH-mm-ss';
         DATETIME_DATE_TO_STR = 'yyyy-mm-dd-HH-MM-SS';
         
-        % Experiment 4 (Checking models which simulate)
+        % Experiment 4 (Checking models which simulate) %%%%%%%%%%%%%%%
+        
         % Models which pass simulation would be copied to a directory
-        SAVE_SUCCESS_MODELS = true 
+        SAVE_SUCCESS_MODELS = false 
         % Models which error in simulation would be copied to a directory
         SAVE_ERROR_MODELS = false
         % While copying assume this extension for the source file
         MODEL_SAVE_EXT = '.mdl'
+        
+        % Experiment 4 (Checking models which simulate) %%%%%%%%%%%%%%%
    
     end
     

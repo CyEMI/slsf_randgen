@@ -5,7 +5,7 @@ classdef cfg
     properties(Constant = true)
         %% Commonly used 
         
-        NUM_MAINLOOP_ITER = 1;
+        NUM_MAINLOOP_ITER = 50;
         
         PARFOR = false;
         
@@ -37,7 +37,7 @@ classdef cfg
         KEEP_ERROR_MUTANT_PARENT_OPEN = false;
         
         % Break from the main loop if any model mutation errors
-        STOP_IF_ERROR = true;
+        STOP_IF_ERROR = false;
         
         %% Preprocessing %%
         
