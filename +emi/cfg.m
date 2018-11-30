@@ -5,7 +5,7 @@ classdef cfg
     properties(Constant = true)
         %% Commonly used 
         
-        NUM_MAINLOOP_ITER = 50;
+        NUM_MAINLOOP_ITER = 3;
         
         PARFOR = false;
         
@@ -106,7 +106,7 @@ classdef cfg
         
         %% Generic Mutation
         
-        MUTANTS_PER_MODEL = 1;
+        MUTANTS_PER_MODEL = 2;
         
         % Remove this percentage of dead blocks
         DEAD_BLOCK_REMOVE_PERCENT = 0.5;

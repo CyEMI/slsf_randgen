@@ -4,10 +4,16 @@ classdef covcfg < handle
     
     properties(Constant = true)
         
-        EXP_MODE = covexp.Expmode.ALL;
-        
         % Instead of corpus models, analyze a directory to discover models
         EXPLORE_A_DIRECTORY = true;
+        
+        % Generate lists of models before experiment. If false, will reuse
+        % the list generated during last experiment.
+        GENERATE_MODELS_LIST = true;
+        
+        %% Experiment Mode (see covexp.Expmode)
+        
+        EXP_MODE = covexp.Expmode.ALL;
         
         % Upper limit on how many models to process
         % For SUBGROUP_AUTO, process these many models 
@@ -22,9 +28,8 @@ classdef covcfg < handle
         SUBGROUP_BEGIN = 101;
         SUBGROUP_END = 210;
         
-        USE_MODELS_PATH = true;
         
-        %%%%%%%%%% Caching Result %%%%%%%%%%%%%
+        %% %%%%%%%% Caching Result %%%%%%%%%%%%%
         
         % Global turn on/off caching results. Even if you turn off, we will
         % save the results as cache, just won't use it next time. This can
@@ -40,7 +45,7 @@ classdef covcfg < handle
         % Perform experiments even if cached data is found. Useful when we
         % want to recompute. If you just want to aggregate previously
         % stored caches, set to false. 
-        FORCE_UPDATE_CACHED_RESULT = false;
+        FORCE_UPDATE_CACHED_RESULT = true;
         
         % When force update is on, instead of throwing away previously
         % cached results try to reuse it FOR THE EXPERIMENTS WHICH WILL NOT
@@ -52,26 +57,23 @@ classdef covcfg < handle
         % cached properly.
         DELETE_CACHE_IF_ERROR = false;
         
-        %%%%%%%%% Experiments to Perform %%%%%%%%%%%
+        %% %%%%%%% Experiments to Perform %%%%%%%%%%%
         
-        % List of all available experiments
+        % List of all available experiments. 
+        % See at the bottom of this file for details
         EXPERIMENTS = {...
-            @covexp.get_coverage,...            % 1
-            @covexp.check_model_compiles,...     % 2
+            @covexp.experiments.get_coverage,...            % 1
+            @covexp.experiments.check_model_compiles,...     % 2
             @emi.preprocess_models,...           % 3
-            @covexp.get_model_simulates...      % 4
+            @covexp.experiments.get_model_simulates,...      % 4
+            @covexp.experiments.fix_input_loc    % 5
         };
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
-        DO_THESE_EXPERIMENTS = [1 2 3]; % Multiple experiments
-%         DO_THESE_EXPERIMENTS = 4;   % Single experiment
+%         DO_THESE_EXPERIMENTS = [1 2 3]; % Multiple experiments
+        DO_THESE_EXPERIMENTS = 5;   % Single experiment
         
-        % When exploring a directory 
-        % Generate lists of models before experiment. If false, will reuse
-        % the list generated during last experiment.
-        GENERATE_MODELS_LIST = true;
-        
-        GENERATE_MODELS_FILENAME = ['workdata' filesep 'generated_model_list'];
+        %% Others
         
         SIMULATION_TIMEOUT = 150;   % seconds
         
@@ -86,10 +88,68 @@ classdef covcfg < handle
         CLOSE_MODELS = true;
         
         % Will use parfor
-        PARFOR = false;
+        PARFOR = false;        
+        
+        %% Experiment 4 (Checking models which simulate) %%%%%%%%%%%%%%%
+        
+        % Models which pass simulation would be copied to a directory
+        SAVE_SUCCESS_MODELS = false 
+        % Models which error in simulation would be copied to a directory
+        SAVE_ERROR_MODELS = false
+        % While copying assume this extension for the source file
+        MODEL_SAVE_EXT = '.mdl'
+        
+        %% Experiment 5 (Fixing input_loc data) %%%%%%%%%%%%%%%
+        % `input_loc` data is the location of a file, which is an absolute
+        % path. Replace it with `EXPLORE_DIR` to fix path problems. Just
+        % enable experiment 5 and set FORCE_UPDATE to true.
         
         
-        % Model IDs to skip, start with x
+        %% Legacy
+        
+        % Always set this to true. Previously, we used to set it to false
+        % when corpus data did not use path
+        USE_MODELS_PATH = true;
+        
+        %% Cache Location
+        
+        % cache is stored in the same directory where the model is
+        USE_MODEL_PATH_AS_CACHE_LOCATION = true;
+        
+        % Save all caches in a different directory (not recommended, what
+        % if two models have the same name?
+        CACHE_DIR = 'covexp_results_cache';
+        
+        %% Less commonly used, very unlikely that someone would change
+        
+        % Write experiment result in this file
+        RESULT_FILE = ['workdata' filesep 'cov_exp_result'];
+        
+        % save corpus meta in this file
+        CORPUS_COV_META = ['workdata' filesep 'corpuscoverage'];
+        
+        % Save coverage experiment results in this directory
+        RESULT_DIR_COVEXP = 'covexp_results';
+        
+        % For each experiment, save COMBINED result in following file
+        
+        RESULT_FILENAME = 'covexp_result';
+        
+        TOUCHED_MODELS_DIR = 'touched';
+        
+        % When exploring a directory (EXPLORE_A_DIRECTORY == true)
+        GENERATE_MODELS_FILENAME = ['workdata' filesep 'generated_model_list'];
+        
+        % Expmode.SUBGROUP_AUTO
+        SUBGROUP_AUTO_DATA = ['workdata' filesep 'cov_exp_subgroup'];
+        
+        % MATLAB uses different formats for month and minute in from and to
+        % coversion to date and string!
+        
+        DATETIME_STR_TO_DATE = 'yyyy-MM-dd-HH-mm-ss';
+        DATETIME_DATE_TO_STR = 'yyyy-mm-dd-HH-MM-SS';
+        
+        %% Model IDs to skip, start with x
         SKIP_LIST = struct();
 %         SKIP_LIST = struct(...
 %             'x71', '',... 
@@ -112,44 +172,6 @@ classdef covcfg < handle
 %             'x1391', ''...
 %             );
         
-        % Write experiment result in this file
-        RESULT_FILE = ['workdata' filesep 'cov_exp_result'];
-        
-        % save corpus meta in this file
-        CORPUS_COV_META = ['workdata' filesep 'corpuscoverage'];
-        
-        % Save coverage experiment results in this directory
-        RESULT_DIR_COVEXP = 'covexp_results';
-        
-        USE_MODEL_PATH_AS_CACHE_LOCATION = true;
-        CACHE_DIR = 'covexp_results_cache';
-        
-        % For each experiment, save COMBINED result in following file
-        
-        RESULT_FILENAME = 'covexp_result';
-        
-        TOUCHED_MODELS_DIR = 'touched';
-        
-        % Expmode.SUBGROUP_AUTO
-        SUBGROUP_AUTO_DATA = ['workdata' filesep 'cov_exp_subgroup'];
-        
-        % MATLAB uses different formats for month and minute in from and to
-        % coversion to date and string!
-        
-        DATETIME_STR_TO_DATE = 'yyyy-MM-dd-HH-mm-ss';
-        DATETIME_DATE_TO_STR = 'yyyy-mm-dd-HH-MM-SS';
-        
-        % Experiment 4 (Checking models which simulate) %%%%%%%%%%%%%%%
-        
-        % Models which pass simulation would be copied to a directory
-        SAVE_SUCCESS_MODELS = false 
-        % Models which error in simulation would be copied to a directory
-        SAVE_ERROR_MODELS = false
-        % While copying assume this extension for the source file
-        MODEL_SAVE_EXT = '.mdl'
-        
-        % Experiment 4 (Checking models which simulate) %%%%%%%%%%%%%%%
-   
     end
     
     methods(Static)

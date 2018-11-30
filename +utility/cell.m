@@ -16,10 +16,16 @@ classdef cell < handle
     
     methods
         
-        function obj = cell(capacity)
+        function obj = cell(varargin)
+            capacity = 1;
             
-            if nargin < 1
-                capacity = 1;
+            if nargin == 1
+                capacity = varargin{1};
+            elseif nargin == 3 % Deep Copy
+                obj.len = varargin{1};
+                obj.data = varargin{2};
+                obj.capacity = varargin{3};
+                return;
             end
             
 
@@ -30,16 +36,15 @@ classdef cell < handle
             else
                 obj.capacity = capacity;
                 
-%                 if capacity == -1
-%                     obj.data = {};
-%                 else
                 obj.data = cell(1, obj.capacity);
-%                 end
 
                 obj.len = 0;
             end
         end
         
+        function ret = deep_copy(obj)
+            ret = utility.cell(obj.len, obj.data, obj.capacity);
+        end
         
         function obj = add(obj, elem)
             
@@ -68,7 +73,6 @@ classdef cell < handle
         end
         
         function obj = extend(obj, other_cell)
-            % TODO: This implementation is horribly inefficient
             for i=1:other_cell.len
                 obj.add(other_cell.get(i));
             end

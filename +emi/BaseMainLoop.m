@@ -17,7 +17,7 @@ classdef BaseMainLoop < handle
         
     end
     
-    properties(Access = private)
+    properties(Access = protected)
     end
     
     properties(Constant = true)
