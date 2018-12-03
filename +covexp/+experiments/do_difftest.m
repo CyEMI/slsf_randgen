@@ -10,8 +10,8 @@ if covcfg.INIT_DATA_STRUCT_ONLY
 end
 
 if covcfg.EXP6_USE_PRE_PROCESSED
-    if ret.peprocess_skipped
-        l.info('Skipping difftest of %s since preprocessed skipped', sys);
+    if ret.peprocess_skipped || ret.preprocess_error
+        l.info('Skipping difftest of %s since preprocessed skipped/errored', sys);
         return;
     end
     
