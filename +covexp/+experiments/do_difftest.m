@@ -2,11 +2,6 @@ function ret = do_difftest(sys,~, ret)
 %DO_DIFFTEST Summary of this function goes here
 %   Detailed explanation goes here
 
-try
-    ret = rmfield(ret, 'difftest_exception');
-catch 
-end
-
 ret = covexp.experiments.ds_init.do_difftest(ret);
 l = logging.getLogger('do_difftest');
 

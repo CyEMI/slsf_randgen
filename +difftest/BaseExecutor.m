@@ -84,8 +84,15 @@ classdef BaseExecutor < handle
                 obj.sys = sprintf('%s_%s', obj.exec_report.sys, difftest.cfg.PRE_EXEC_SUFFIX);
 
                 if ~ obj.resuse_pre_exec
-                    obj.exec_report.preexec_file = emi.slsf.copy_model(...
-                        obj.exec_report.sys, obj.exec_report.loc, obj.sys);
+                    ext = emi.slsf.get_extension(obj.exec_report.sys);
+                    
+                    if difftest.cfg.PRE_EXEC_SKIP_CREATE_IF_EXISTS &&...
+                            utility.file_exists(obj.exec_report.loc, [obj.sys '.' ext])
+                        obj.l.info('Pre-exec file already exists. Skip creating.');
+                    else
+                        obj.exec_report.preexec_file = emi.slsf.copy_model(...
+                            obj.exec_report.sys, obj.exec_report.loc, obj.sys, ext);
+                    end
                 end
 
                 obj.open_sys();

@@ -100,7 +100,7 @@ classdef (SharedTestFixtures={ ...
             dt.go();
             
             testCase.assertEqual(dt.r.executions.len, num_execution);
-            testCase.assertTrue(dt.r.is_ok());
+            testCase.assertTrue(dt.r.is_ok);
         end
         
         function ret = get_locs(~, models)

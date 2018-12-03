@@ -29,6 +29,7 @@ classdef BaseTester < handle
             %%
             obj.init_exec_reports();
             obj.execute_all();
+            obj.r.aggregate();
             obj.cleanup();
         end
       

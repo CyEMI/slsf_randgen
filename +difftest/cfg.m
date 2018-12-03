@@ -10,6 +10,8 @@ classdef cfg
         PRE_EXEC_SUFFIX = 'difftest';
         DELETE_PRE_EXEC_MODELS = false;
         
+        % Don't create the pre-exec file if one already exists
+        PRE_EXEC_SKIP_CREATE_IF_EXISTS = true;
         
     end
     
