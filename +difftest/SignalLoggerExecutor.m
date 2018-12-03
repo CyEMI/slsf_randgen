@@ -5,15 +5,23 @@ classdef SignalLoggerExecutor < difftest.BaseExecutor
     properties
         
     end
-    
+
     methods
         function obj = SignalLoggerExecutor(varargin)
             obj = obj@difftest.BaseExecutor(varargin{:});
         end
+    end
+    
+    methods (Access=protected)
         
         function pre_execution(obj)
             emi.slsf.signal_logging_setup(obj.sys);
-            obj.save_sys();
+            save_system(obj.sys);
+            
+            simu_args = struct;
+            simu_args = obj.decorate_sim_args(simu_args);
+            
+            obj.sim_command(simu_args);
         end
         
         function retrieve_sim_result(obj)
@@ -25,5 +33,7 @@ classdef SignalLoggerExecutor < difftest.BaseExecutor
             ret.SignalLogging = 'on';
         end
     end
+    
+
 end
 

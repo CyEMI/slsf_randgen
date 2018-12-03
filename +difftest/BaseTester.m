@@ -5,23 +5,31 @@ classdef BaseTester < handle
     properties
         %%
         models;
+        locs;               % Location of the models
         configs;
-        exec_reports;
+        
+        r;                  % report: difftest.TesterReport
+        
+        l = logging.getLogger('BaseTester');
     end
     
     methods
-        function obj = BaseTester(models, configs)
+        function obj = BaseTester(models, model_locs, configs)
             %%
+            obj.r = difftest.TesterReport;
+            
             obj.models = models;
+            obj.locs = model_locs;
             obj.configs = configs;
             
-            obj.exec_reports = utility.cell();
+            obj.r.executions = utility.cell();
         end
         
         function go(obj)
             %%
             obj.init_exec_reports();
             obj.execute_all();
+            obj.cleanup();
         end
       
         function init_exec_reports(obj)
@@ -33,8 +41,11 @@ classdef BaseTester < handle
                 for j = 1:all_configs.len
                     cur = all_configs.get(j);
                     temp = cur.create_copy([]);
+                    
                     temp.sys = obj.models{i};
-                    obj.exec_reports.add(temp);
+                    temp.loc = obj.locs{i};
+                    
+                    obj.r.executions.add(temp);
                 end
                 
             end
@@ -65,14 +76,42 @@ classdef BaseTester < handle
             %%
             seen = struct;
             
-            for i = obj.exec_reports.len
-                cur = obj.exec_reports.get(i);
+            for i = 1: obj.r.executions.len
+                cur = obj.r.executions.get(i);
                 
                 reuse_pre_exec_copy = isfield(seen, cur.sys);
-                seen.(cur.sys) = true;
                 
                 executor = difftest.cfg.EXECUTOR(cur, reuse_pre_exec_copy);
                 executor.go();
+                executor.cleanup();
+                
+                if cur.is_ok(difftest.ExecStatus.PreExec)
+                    seen.(cur.sys) = true;
+                end
+                
+                if ~ cur.is_ok()
+                    obj.l.error('Error config # %d. Last successful step: %s \nSkipping %d remaining configs.', i, cur.last_ok, (obj.r.executions.len - i));
+                    return;
+                end
+                
+            end
+        end
+        
+        function cleanup(obj)
+            %%
+            if difftest.cfg.DELETE_PRE_EXEC_MODELS
+                obj.l.info('Deleting pre-exec files...');
+                for i=1:obj.r.executions.len
+                    cur = obj.r.executions.get(i);
+                    if ~ isempty( cur.preexec_file)
+                        try
+                            delete(cur.preexec_file);
+                        catch me
+                            obj.l.warn('Pre exec file deletion error');
+                            disp(me);
+                        end
+                    end
+                end
             end
         end
         

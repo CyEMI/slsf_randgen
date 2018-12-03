@@ -150,12 +150,7 @@ classdef (Abstract) BaseModelMutator < handle
                 return
             end
             
-            preprocessed_file_name = sprintf('%s_%s', obj.sys, emi.cfg.MUTANT_PREPROCESSED_FILE_SUFFIX);
-            
-            if ~ utility.file_exists(obj.model_data.loc_input, [preprocessed_file_name emi.cfg.MUTANT_PREPROCESSED_FILE_EXT])
-                obj.l.warning('Preprocessed version %s not found!', preprocessed_file_name);
-                return;
-            end
+            preprocessed_file_name = emi.slsf.get_pp_file(obj.sys, obj.model_data.loc_input);
             
             obj.sys = preprocessed_file_name;
         end

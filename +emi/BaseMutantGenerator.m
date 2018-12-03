@@ -171,10 +171,6 @@ classdef BaseMutantGenerator < handle
                 simob = utility.TimedSim(obj.sys, covcfg.SIMULATION_TIMEOUT, obj.l);
                 obj.result.timedout = simob.start();
                 
-                if obj.result.timedout
-                    obj.l.info('Timeout occured!');
-                    return; % TODO are we saving this timeout status?
-                end
             catch e
                 obj.result.exception = true;
                 obj.result.exception_ob = e;

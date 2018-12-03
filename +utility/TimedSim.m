@@ -1,4 +1,4 @@
-classdef TimedSim
+classdef TimedSim < handle
     %TIMEDSIM Simulate for a specific time, kill after it.
     %   Detailed explanation goes here
     
@@ -7,13 +7,21 @@ classdef TimedSim
         duration;
         sim_status;
         l;                  % logger
+        simargs;
+        simOut = [];     % Simulation Results
     end
     
     methods
-        function obj = TimedSim(sys, duration, loggerOb)
+        function obj = TimedSim(sys, duration, loggerOb, varargin)
             obj.sys = sys;
             obj.duration = duration;
             obj.l = loggerOb;
+            
+            obj.simargs = struct;
+            
+            if nargin >= 4
+                obj.simargs = varargin{1};
+            end
         end
         
         function term(obj)
@@ -23,6 +31,8 @@ classdef TimedSim
         
         function timed_out = start(obj, varargin)
             % First argument, if present, denotes whether to only compile
+            % WARNING timed_out is kept for legacy code. Now we always
+            % throw exception when time-out
             compile_only = false;
             
             if nargin > 1
@@ -38,12 +48,12 @@ classdef TimedSim
                     % Sending the compile command results in error similar
                     % to the bug we reported for slicing. So not reporting
                     % it
-                    obj.l.info('Compiling %s...', obj.sys);
+                    obj.l.info('COMPILING ONLY %s...', obj.sys);
                     eval([obj.sys '([], [], [], ''compile'')']);
 %                     set_param(obj.sys,'SimulationCommand','Update');
                 else
                     obj.l.info('Simulating %s...', obj.sys);
-                    sim(obj.sys);
+                    obj.simOut = sim(obj.sys, obj.simargs);
                 end
                 
                 stop(myTimer);
@@ -56,7 +66,7 @@ classdef TimedSim
             
             if ~isempty(obj.sim_status) && ~strcmp(obj.sim_status, 'stopped')
                 obj.l.info(['Simulation timed-out for ' obj.sys]);
-                timed_out = true;
+                throw(MException('RandGen:SL:SimTimeout', 'TimeOut'));
             end
         end
     end

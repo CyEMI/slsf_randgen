@@ -15,6 +15,8 @@ classdef ExecutionReport < handle
         shortname = 'n/a';  % Combine shortname from configs
         
         simdata;            % Simulation result
+        
+        preexec_file = [];
     end
     
     properties(Access=protected)
@@ -39,7 +41,14 @@ classdef ExecutionReport < handle
             
         end
         
-        function ret = is_ok(obj)
+        function ret = is_ok(obj, exec_status)
+            % If exec_status is not passed, checks absense of execption
+            % i.e. whether the last operation passed successfully.
+            if nargin >=2
+                ret = uint32(obj.last_ok) >= uint32(exec_status);
+                return;
+            end
+            
             ret = isempty(obj.exception);
         end
         
@@ -59,6 +68,20 @@ classdef ExecutionReport < handle
             
             ret = utility.merge_structs(simargs);
         end
+        
+        function validate_input(obj)
+            assert(~isempty(obj.loc));
+            assert(~isempty(obj.sys));
+            assert(obj.configs.len > 0);
+        end
+        
+        
+        function ret = get_report(obj)
+            ret = utility.get_struct_from_object(obj);
+            ret.last_ok_int = uint(obj.last_ok);
+            ret.success = obj.is_ok();
+        end
+        
     end
     
     methods (Access = protected)

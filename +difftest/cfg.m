@@ -3,7 +3,14 @@ classdef cfg
     %   Detailed explanation goes here
     
     properties(Constant)
-        EXECUTOR = difftest.SignalLoggerExecutor;
+        EXECUTOR = @difftest.SignalLoggerExecutor;
+        
+        SIMULATION_TIMEOUT = covcfg.SIMULATION_TIMEOUT;
+        
+        PRE_EXEC_SUFFIX = 'difftest';
+        DELETE_PRE_EXEC_MODELS = false;
+        
+        
     end
     
     

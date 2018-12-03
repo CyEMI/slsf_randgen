@@ -32,6 +32,7 @@ utility.tabulate('exception', models, 'Does Model error?', l);
 utility.tabulate('peprocess_skipped', models, 'Preprocess: skipped?', l);
 utility.tabulate('preprocess_error', models, 'Preprocess: error?', l);
 
+covexp.experiments.reports.do_difftest(models, l);
 
 % Number of zero blocks
 

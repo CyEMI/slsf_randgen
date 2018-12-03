@@ -35,9 +35,10 @@ classdef ExploreCovExp < covexp.CorpusCovExp
         function generate_model_list(obj)
             obj.l.info('Generating model list...');
             models_and_dirs = utility.dir_process(obj.EXPLORE_DIR_LOC, '',...
-                true, {...
-                {@utility.file_extension_filter, {'slx', 'mdl'}},...
-                {@utility.filename_suffix_filter,{emi.cfg.MUTANT_PREPROCESSED_FILE_SUFFIX}}...
+                true, {
+                    {@utility.file_extension_filter, {'slx', 'mdl'}}
+                    {@utility.filename_suffix_filter,{emi.cfg.MUTANT_PREPROCESSED_FILE_SUFFIX}}
+                    {@utility.filename_suffix_filter,{difftest.cfg.PRE_EXEC_SUFFIX}}
                 });
             obj.l.info('Generated list of %d models', size(models_and_dirs, 1));
             

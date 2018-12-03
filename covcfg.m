@@ -11,6 +11,10 @@ classdef covcfg < handle
         % the list generated during last experiment.
         GENERATE_MODELS_LIST = true;
         
+        % Instead of running the experiments just init the data structures.
+        % Could be helpful to fix missing fields
+        INIT_DATA_STRUCT_ONLY = false;
+        
         %% Experiment Mode (see covexp.Expmode)
         
         EXP_MODE = covexp.Expmode.ALL;
@@ -22,7 +26,7 @@ classdef covcfg < handle
         % have bug in the code initially. Please experiment with 1-2 models
         % first so that you do not discard many of the cached results for
         % ALL of your models!
-        MAX_NUM_MODEL = 5000;
+        MAX_NUM_MODEL = 100;
         
         % Subgrouping is not used for Expmode.All
         SUBGROUP_BEGIN = 101;
@@ -61,17 +65,18 @@ classdef covcfg < handle
         
         % List of all available experiments. 
         % See at the bottom of this file for details
-        EXPERIMENTS = {...
-            @covexp.experiments.get_coverage,...            % 1
-            @covexp.experiments.check_model_compiles,...     % 2
-            @emi.preprocess_models,...           % 3
-            @covexp.experiments.get_model_simulates,...      % 4
+        EXPERIMENTS = {
+            @covexp.experiments.get_coverage            % 1
+            @covexp.experiments.check_model_compiles     % 2
+            @emi.preprocess_models           % 3
+            @covexp.experiments.get_model_simulates      % 4
             @covexp.experiments.fix_input_loc    % 5
+            @covexp.experiments.do_difftest         % 6
         };
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
 %         DO_THESE_EXPERIMENTS = [1 2 3]; % Multiple experiments
-        DO_THESE_EXPERIMENTS = 5;   % Single experiment
+        DO_THESE_EXPERIMENTS = 6;   % Single experiment
         
         %% Others
         
@@ -104,6 +109,18 @@ classdef covcfg < handle
         % path. Replace it with `EXPLORE_DIR` to fix path problems. Just
         % enable experiment 5 and set FORCE_UPDATE to true.
         
+        %% Exp 6 (Differential Testing)
+        
+        EXP6_CONFIGS = {
+                {
+%                     difftest.ExecConfig('OptOn', struct('SimCompilerOptimization', 'on')) 
+                    difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
+                }
+            };
+        
+        % If an EMI-PRE Processed file (with suffix _pp) exists, do
+        % differential test ONLY on the _pp version.
+        EXP6_USE_PRE_PROCESSED = true;
         
         %% Legacy
         
@@ -128,7 +145,9 @@ classdef covcfg < handle
         % save corpus meta in this file
         CORPUS_COV_META = ['workdata' filesep 'corpuscoverage'];
         
-        % Save coverage experiment results in this directory
+        % Save coverage experiment results in this directory. Whenever the
+        % covcollect script is run, we create a new directory inside this
+        % directory and save results.
         RESULT_DIR_COVEXP = 'covexp_results';
         
         % For each experiment, save COMBINED result in following file
