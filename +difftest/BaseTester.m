@@ -11,26 +11,58 @@ classdef BaseTester < handle
         r;                  % report: difftest.TesterReport
         
         l = logging.getLogger('BaseTester');
+        
+        execution_decs;     % Execution decorators
     end
     
     methods
-        function obj = BaseTester(models, model_locs, configs)
+        function obj = BaseTester(models, model_locs, configs, exec_decs)
             %%
-            obj.r = difftest.TesterReport;
+            obj.r = difftest.TesterReport();
             
             obj.models = models;
             obj.locs = model_locs;
             obj.configs = configs;
             
             obj.r.executions = utility.cell();
+            
+            
+            if nargin == 3
+                exec_decs = difftest.cfg.EXECUTOR;
+            end
+            
+            obj.execution_decs = exec_decs;
         end
         
-        function go(obj)
+        function go(obj, compare, comparator)
             %%
+            
+            if nargin == 1
+                compare = false;
+            end
+            
+            if nargin <= 2
+                comparator = difftest.cfg.COMPARATOR;
+            end
+            
             obj.init_exec_reports();
             obj.execute_all();
-            obj.r.aggregate();
-            obj.cleanup();
+            obj.r.aggregate_before_comp();
+            
+            obj.run_comparison(compare, comparator);
+            
+            obj.cleanup();       
+        end
+        
+        
+        function run_comparison(obj, compare, comparator)
+            %%
+            if ~ compare
+                return;
+            end
+            
+            cf = comparator(obj.r);
+            cf.go();
         end
       
         function init_exec_reports(obj)
@@ -82,7 +114,7 @@ classdef BaseTester < handle
                 
                 reuse_pre_exec_copy = isfield(seen, cur.sys);
                 
-                executor = difftest.cfg.EXECUTOR(cur, reuse_pre_exec_copy);
+                executor = difftest.BaseExecutor(cur, reuse_pre_exec_copy, obj.execution_decs);
                 executor.go();
                 executor.cleanup();
                 
@@ -99,7 +131,7 @@ classdef BaseTester < handle
         end
         
         function cleanup(obj)
-            %%
+            %% Delete pre-exec model
             if difftest.cfg.DELETE_PRE_EXEC_MODELS
                 obj.l.info('Deleting pre-exec files...');
                 for i=1:obj.r.executions.len

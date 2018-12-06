@@ -17,6 +17,11 @@ classdef cell < handle
     methods
         
         function obj = cell(varargin)
+            % Single scalar argument denotes capacity
+            % Single cell arugments create a new object using the cell
+            % elements for initialization
+            % 3 Arguments (len, data, capacity) is used to make a deep copy
+            % by the `deep_copy` method.
             capacity = 1;
             
             if nargin == 1
@@ -30,6 +35,7 @@ classdef cell < handle
             
 
             if iscell(capacity)
+                % capacity is actually the initialization data
                 obj.data = capacity;
                 obj.len = numel(capacity);
                 obj.capacity = obj.len;
@@ -59,12 +65,24 @@ classdef cell < handle
         
         
         function ret = get(obj, indx)
-            ret = obj.data{indx};
+            if isscalar(indx)
+                ret = obj.data{indx};
+            else
+                ret = obj.get_cell();
+                ret = ret(indx);
+            end
         end
         
         function ret = get_cell(obj)
             % Returns row vector
             ret = obj.data(1:obj.len);
+        end
+        
+        function ret = get_mat(obj)
+            % Returns column vector
+            ret = reshape(...
+                    cell2mat(obj.data(1:obj.len)),...
+                obj.len, 1);
         end
         
         function ret = get_cell_T(obj)

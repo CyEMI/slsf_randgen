@@ -40,8 +40,9 @@ classdef (SharedTestFixtures={ ...
     end
     
     methods(Test)
+        %% Test Cases
         function testConfigBuilding(testCase)
-            
+            %%
             confs = {
                 {
                     difftest.ExecConfig('Nrml', struct('SimulationMode', 'normal')) 
@@ -57,19 +58,20 @@ classdef (SharedTestFixtures={ ...
             dt = difftest.BaseTester(testCase.systems, testCase.get_locs(testCase.systems), confs);
             dt.init_exec_reports();
             
-            testCase.verifyEqual(dt.exec_reports.len, 12, 'Cartesian product size incorrect');
+            testCase.verifyEqual(dt.r.executions.len, 12, 'Cartesian product size incorrect');
             
             expected = load('cartesian');
             
-            sysnames = cellfun(@(p)p.sys, dt.exec_reports.get_cell_T(), 'UniformOutput', false);
+            sysnames = cellfun(@(p)p.sys, dt.r.executions.get_cell_T(), 'UniformOutput', false);
             testCase.verifyEqual(sysnames, expected.sysnames, 'Model names incorrect');
             
-            simargs = cellfun(@(p)p.get_sim_args(), dt.exec_reports.get_cell());
+            simargs = cellfun(@(p)p.get_sim_args(), dt.r.executions.get_cell());
             testCase.verifyEqual(simargs, expected.simargs, 'Simulation config values incorrect');
             
         end
         
-        function testSingleModelOptimizationOnOff(testCase)
+        function testDiffTestOnlySingleModelOptOnOff(testCase)
+            %%
             models = {'sampleModel2432'};
             confs = {
                 {
@@ -82,6 +84,7 @@ classdef (SharedTestFixtures={ ...
         end
         
         function testTwoModelsOptimizationOnOff(testCase)
+            %%
             models = {'sampleModel2432', 'sampleModel2432_pp_1_1'};
             confs = {
                 {
@@ -92,9 +95,48 @@ classdef (SharedTestFixtures={ ...
         
             dt = testCase.exec(models, confs, 4); %#ok<NASGU>
         end
+        
+        function testFinalValCompSingleModelOptOnOff(testCase)
+            %%
+%             models = {'sampleModel2432'};
+%             confs = {
+%                 {
+%                     difftest.ExecConfig('OptOn', struct('SimCompilerOptimization', 'on')) 
+%                     difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
+%                 }
+%             };
+%             dt = testCase.exec(models, confs, 2); 
+%             r = dt.r;
+            loaded_data = load('cached_dt');
+            r = loaded_data.r_onemodel_optonoff;
+            
+            cf = testCase.comparison(@difftest.FinalValueComparator, {r}); 
+            
+            second_exec = cf.r.oks{2};
+            testCase.assertEqual(second_exec.num_signals, second_exec.num_found_signals, ...
+                'All signals of first and second simulation should be found');
+        end
+        
+        function testFinalValCompTwoModels(testCase)
+            %% Not passing
+%             models = {'sampleModel2432', 'sampleModel2432_pp_1_1'};
+%             confs = {
+%                 {
+%                     difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
+%                 }
+%             };
+%         
+%             dt = testCase.exec(models, confs, 2);
+            
+            cached_r = load('twoModels');
+            
+            cf = testCase.comparison(@difftest.FinalValueComparator, {cached_r.r}); 
+            
+        end
     end
     
     methods
+        %% Helper Methods
         function dt = exec(testCase, models, confs, num_execution)
             dt = difftest.BaseTester(models, testCase.get_locs(models), confs);
             dt.go();
@@ -106,6 +148,13 @@ classdef (SharedTestFixtures={ ...
         function ret = get_locs(~, models)
             cellfun(@(p)emi.open_or_load_model(p), models);
             ret = cellfun(@(p)utility.strip_last_split(get_param(p, 'FileName'), filesep), models, 'UniformOutput', false);
+        end
+        
+        function cf = comparison(testCase, comparator, args)
+            cf = comparator(args{:});
+            cf.go();
+            
+            testCase.assertTrue(cf.r.are_oks_ok());
         end
     end
 end

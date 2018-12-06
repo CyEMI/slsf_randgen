@@ -1,4 +1,4 @@
-classdef BaseExecutor < handle
+classdef BaseExecutor < utility.DecoratorClient
     %BASEEXECUTOR Executes a single model using a  config and logs signals
     %   WARNING make sure to call cleanup()
     
@@ -10,29 +10,27 @@ classdef BaseExecutor < handle
         
         resuse_pre_exec = true;    % Won't run pre-execution
         
-        sim_args = [];
-    end
-    
-    properties(Access=protected)
+        sim_args = []; % Used for final execution (not pre-execution)
+        
+        sim_args_cache; % used by decorators
+
         simOut = [];
     end
     
-    methods(Abstract, Access=protected)
-        pre_execution(obj)
-        
-        % Retrieve simulation result and store it in ExecutionReport
-        retrieve_sim_result(obj)
-        
-    end
+    
     
     methods
-        function obj = BaseExecutor(exec_report, reuse_pre_exec)
+        function obj = BaseExecutor(exec_report, reuse_pre_exec, decs)
+            obj = obj@utility.DecoratorClient(decs);
+            
             obj.exec_report = exec_report;
             obj.resuse_pre_exec = reuse_pre_exec;
             obj.l = logging.getLogger('BaseExecutor');
         end
         
         function init(obj)
+            obj.create_decorators();
+            
             obj.sim_args = obj.decorate_sim_args(obj.exec_report.get_sim_args());
             obj.l.info('STARTING %s ::w/CONFIG:: %s', obj.exec_report.sys, obj.exec_report.shortname);
             
@@ -61,7 +59,7 @@ classdef BaseExecutor < handle
                 return;
             end
             
-            obj.retrieve_sim_result();
+            obj.call_fun(@retrieve_sim_result);
             
             if obj.exec_report.is_ok()
                 obj.exec_report.last_ok = difftest.ExecStatus.Done;
@@ -75,9 +73,6 @@ classdef BaseExecutor < handle
             bdclose(obj.sys);
         end
         
-    end
-    
-    methods (Access = protected)
         
         function create_and_open_sys(obj)
             try
@@ -99,6 +94,7 @@ classdef BaseExecutor < handle
                 
                 obj.exec_report.last_ok = difftest.ExecStatus.Load;
             catch e
+                utility.print_error(e);
                 obj.exec_report.exception = e;
             end
         end
@@ -115,9 +111,10 @@ classdef BaseExecutor < handle
             end
             
             try
-                obj.pre_execution();
+                obj.call_fun(@pre_execution);
                 obj.exec_report.last_ok = difftest.ExecStatus.PreExec;
             catch e
+                utility.print_error(e);
                 obj.exec_report.exception = e;
             end
         end
@@ -128,6 +125,7 @@ classdef BaseExecutor < handle
                 obj.execution();
                 obj.exec_report.last_ok = difftest.ExecStatus.Exec;
             catch e
+                utility.print_error(e);
                 obj.exec_report.exception = e;
             end
         end
@@ -145,9 +143,12 @@ classdef BaseExecutor < handle
         end
 
         
-        function ret= decorate_sim_args(obj, sim_args) %#ok<INUSL>
-            ret = sim_args;
-            ret.SignalLogging = 'off';
+        function ret= decorate_sim_args(obj, cache_init)
+            obj.sim_args_cache = cache_init;
+            
+            obj.call_fun(@decorate_sim_args);
+            
+            ret = obj.sim_args_cache;
         end
     end
 end

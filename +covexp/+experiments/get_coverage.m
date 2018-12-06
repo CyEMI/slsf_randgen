@@ -2,8 +2,6 @@ function ret = get_coverage(sys, h, ret)
     l = logging.getLogger('singlemodel');
     ret = covexp.get_cov_reporttype(ret);
 
-    num_zero_cov = 0; % blocks with zero coverage
-    
     ret.stoptime_changed = handle_stoptime(sys, l);
     ret.loc = get_model_loc(sys);
     % Does it run within timeout limit?
@@ -39,44 +37,9 @@ function ret = get_coverage(sys, h, ret)
     try
         time_start = tic;
         
-        testObj  = cvtest(h);
-        data = cvsim(testObj);
-
-        blocks = covexp.get_all_blocks(h);
-
-        all_blocks = struct;
-
-        for i=1:numel(blocks)
-            cur_blk = blocks(i);
-
-            cur_blk_name = getfullname(cur_blk);
-
-            cov = executioninfo(data, cur_blk);
-            percent_cov = [];
-
-            if ~ isempty(cov)
-                percent_cov = 100 * cov(1) / cov(2);
-
-                if percent_cov == 0
-                    num_zero_cov = num_zero_cov + 1;
-                end
-            end
-
-
-            all_blocks(i).fullname = cur_blk_name;
-            all_blocks(i).percentcov = percent_cov;
-            
-            try
-                all_blocks(i).blocktype = get_param(cur_blk, 'blocktype');
-            catch
-                all_blocks(i).blocktype = [];
-            end
-        end
+        [ret.blocks, ret.numzerocov] = covexp.get_model_coverage(h);
         
         ret.duration = toc(time_start);
-
-        ret.blocks = all_blocks;
-        ret.numzerocov = num_zero_cov;
         
     catch e
         ret.exception = true;
