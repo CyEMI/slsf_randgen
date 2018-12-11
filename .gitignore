@@ -48,3 +48,4 @@ emi_results/*
 workdata/*.json
 */.idea/*
 slearner/output/*
+slcov_output

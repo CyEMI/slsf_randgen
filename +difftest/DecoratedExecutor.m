@@ -1,15 +1,15 @@
 classdef DecoratedExecutor < utility.Decorator
-    %DECORATEDEXECUTOR Summary of this class goes here
-    
-    methods(Abstract)
-        pre_execution(obj)
-        
-        % Retrieve simulation result and store it in ExecutionReport
-        retrieve_sim_result(obj)
-        
-    end
+    %DECORATEDEXECUTOR Base class for implementing decorators for executors
+    % See difftest.SignalLoggerExecutor  for an example subclass
     
     methods
+        
+        function pre_execution(obj) %#ok<MANU>
+        end
+        
+        function retrieve_sim_result(obj)
+            obj.hobj.exec_report.simdata = obj.hobj.simOut;
+        end
          
         function decorate_sim_args(obj)  %#ok<MANU>
         end

@@ -23,12 +23,12 @@ classdef (SharedTestFixtures={ ...
     end
     
     methods(TestClassSetup) % Only once for all methods
-        function open_systems(testCase)
-            for i=1:numel(testCase.systems)
-                load_system(testCase.systems{i});
-                fprintf('Loaded %s\n', testCase.systems{i});
-            end
-        end
+%         function open_systems(testCase)
+%             for i=1:numel(testCase.systems)
+%                 load_system(testCase.systems{i});
+%                 fprintf('Loaded %s\n', testCase.systems{i});
+%             end
+%         end
     end
  
     methods(TestClassTeardown)
@@ -80,7 +80,7 @@ classdef (SharedTestFixtures={ ...
                 }
             };
         
-            dt = testCase.exec(models, confs, 2); %#ok<NASGU>
+            testCase.exec(true, 'CachedDiffTestOnlySingleModelOptOnOff', models, confs, 2); 
         end
         
         function testTwoModelsOptimizationOnOff(testCase)
@@ -93,56 +93,94 @@ classdef (SharedTestFixtures={ ...
                 }
             };
         
-            dt = testCase.exec(models, confs, 4); %#ok<NASGU>
+            testCase.exec(true, 'CachedTwoModelsOptimizationOnOff', models, confs, 4);
         end
         
         function testFinalValCompSingleModelOptOnOff(testCase)
             %%
-%             models = {'sampleModel2432'};
-%             confs = {
-%                 {
-%                     difftest.ExecConfig('OptOn', struct('SimCompilerOptimization', 'on')) 
-%                     difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
-%                 }
-%             };
-%             dt = testCase.exec(models, confs, 2); 
-%             r = dt.r;
-            loaded_data = load('cached_dt');
-            r = loaded_data.r_onemodel_optonoff;
+            models = {'sampleModel2432'};
+            confs = {
+                {
+                    difftest.ExecConfig('OptOn', struct('SimCompilerOptimization', 'on')) 
+                    difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
+                }
+            };
+        
+            r = testCase.exec(true, 'CachedFinalValCompSingleModelOptOnOff', models, confs, 2); 
             
-            cf = testCase.comparison(@difftest.FinalValueComparator, {r}); 
+            cf = testCase.comparison(@difftest.FinalValueComparator, {r}, true); 
             
             second_exec = cf.r.oks{2};
             testCase.assertEqual(second_exec.num_signals, second_exec.num_found_signals, ...
                 'All signals of first and second simulation should be found');
         end
         
-        function testFinalValCompTwoModels(testCase)
-            %% Not passing
-%             models = {'sampleModel2432', 'sampleModel2432_pp_1_1'};
-%             confs = {
-%                 {
-%                     difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
-%                 }
-%             };
-%         
-%             dt = testCase.exec(models, confs, 2);
+        function testFinalValCompErrTwoModels(testCase)
+            %% The models have comp mismatch
+            % the _pp_1_1 file is a wrong EMI-variant: created by simply
+            % deleting a dead (Action Subsystem) block. As we saw, if done
+            % in a live path this would create models not equivalent.
+            models = {'sampleModel2432', 'sampleModel2432_pp_1_1'};
+            confs = {
+                {
+                    difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
+                }
+            };
+        
+            r = testCase.exec(true, 'CachedFinalValCompErrTwoModels', models, confs, 2);
             
-            cached_r = load('twoModels');
+            testCase.comparison(@difftest.FinalValueComparator, {r}, false); 
             
-            cf = testCase.comparison(@difftest.FinalValueComparator, {cached_r.r}); 
+        end
+        
+        function testSameBlockCovAfterPP(testCase)
+            %% Passing
+            testCase.assumeFail();
+            % This test is probably meeaningless since "Execution Coverage"
+            % of a model can change after pre-processing. Imaginge live
+            % blocks becoming dead (e.g. due to new data-type
+            % converters some previous converter might now be dead, and
+            % would report no coverage.
+%             models = {'reduced_orig', 'reduced_pp'}; % reduced versions
+            models = {'sampleModel2432', 'sampleModel2432_pp'}; 
+            confs = {
+                {
+                    difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
+                }
+            };
+        
+            dt = difftest.BaseTester(models, testCase.get_locs(models),...
+                confs,@difftest.deadcheck.SimpleExecutor,... % coverage col
+                {@difftest.deadcheck.CoverageDecorator}); 
+
+            r = testCase.run_cached_tester(false, 'CachedSameBlockCovAfterPP', dt);
+            
+            testCase.comparison(@difftest.deadcheck.CoverageComparator, {r}, false)
             
         end
     end
     
     methods
         %% Helper Methods
-        function dt = exec(testCase, models, confs, num_execution)
-            dt = difftest.BaseTester(models, testCase.get_locs(models), confs);
-            dt.go();
+        
+        function r = run_cached_tester(~, load_cache, cache_name, dt)
             
-            testCase.assertEqual(dt.r.executions.len, num_execution);
-            testCase.assertTrue(dt.r.is_ok);
+            function ret = inner()
+                dt.go();
+                ret = dt.r;
+            end
+            
+            r = utility.load_cache_or_run(load_cache, cache_name,...
+                utility.dirname(mfilename('fullpath')) , @inner);
+        end
+        
+        function r = exec(testCase, load_cache, cache_name, models, confs, num_execution)
+            dt = difftest.BaseTester(models, testCase.get_locs(models), confs);
+            
+            r = testCase.run_cached_tester(load_cache, cache_name, dt);
+            
+            testCase.assertEqual(r.executions.len, num_execution);
+            testCase.assertTrue(r.is_ok);
         end
         
         function ret = get_locs(~, models)
@@ -150,11 +188,11 @@ classdef (SharedTestFixtures={ ...
             ret = cellfun(@(p)utility.strip_last_split(get_param(p, 'FileName'), filesep), models, 'UniformOutput', false);
         end
         
-        function cf = comparison(testCase, comparator, args)
+        function cf = comparison(testCase, comparator, args, expected)
             cf = comparator(args{:});
             cf.go();
             
-            testCase.assertTrue(cf.r.are_oks_ok());
+            testCase.assertEqual(cf.r.are_oks_ok(), expected);
         end
     end
 end

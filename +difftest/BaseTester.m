@@ -12,11 +12,12 @@ classdef BaseTester < handle
         
         l = logging.getLogger('BaseTester');
         
+        executor_class;
         execution_decs;     % Execution decorators
     end
     
     methods
-        function obj = BaseTester(models, model_locs, configs, exec_decs)
+        function obj = BaseTester(models, model_locs, configs, exec_class, exec_decs)
             %%
             obj.r = difftest.TesterReport();
             
@@ -26,11 +27,15 @@ classdef BaseTester < handle
             
             obj.r.executions = utility.cell();
             
-            
             if nargin == 3
+                exec_class = @difftest.BaseExecutor;
+            end
+            
+            if nargin <= 4
                 exec_decs = difftest.cfg.EXECUTOR;
             end
             
+            obj.executor_class = exec_class;
             obj.execution_decs = exec_decs;
         end
         
@@ -114,7 +119,7 @@ classdef BaseTester < handle
                 
                 reuse_pre_exec_copy = isfield(seen, cur.sys);
                 
-                executor = difftest.BaseExecutor(cur, reuse_pre_exec_copy, obj.execution_decs);
+                executor = obj.executor_class(cur, reuse_pre_exec_copy, obj.execution_decs);
                 executor.go();
                 executor.cleanup();
                 

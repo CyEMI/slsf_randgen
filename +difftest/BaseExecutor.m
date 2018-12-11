@@ -95,7 +95,7 @@ classdef BaseExecutor < utility.DecoratorClient
                 obj.exec_report.last_ok = difftest.ExecStatus.Load;
             catch e
                 utility.print_error(e);
-                obj.exec_report.exception = e;
+                obj.exec_report.exception.add(e);
             end
         end
         
@@ -115,7 +115,7 @@ classdef BaseExecutor < utility.DecoratorClient
                 obj.exec_report.last_ok = difftest.ExecStatus.PreExec;
             catch e
                 utility.print_error(e);
-                obj.exec_report.exception = e;
+                obj.exec_report.exception.add(e);
             end
         end
         
@@ -126,7 +126,7 @@ classdef BaseExecutor < utility.DecoratorClient
                 obj.exec_report.last_ok = difftest.ExecStatus.Exec;
             catch e
                 utility.print_error(e);
-                obj.exec_report.exception = e;
+                obj.exec_report.exception.add(e);
             end
         end
         

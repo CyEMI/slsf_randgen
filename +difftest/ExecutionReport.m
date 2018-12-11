@@ -16,13 +16,15 @@ classdef ExecutionReport < handle
         
         %% Execution Related (prior to comparison)
         
-        exception = [];     % Exception object
+        exception;          % Exceptions (utility.cell)
         
         preexec_file = [];
         
         %% Comparison Related
         
         simdata;            % Simulation result (raw form)
+        
+        covdata;            % Coverage data, if collected
         
         refined;            % Simulation result (refined)
         
@@ -40,20 +42,19 @@ classdef ExecutionReport < handle
         num_missing_in_base = 0;    
     end
     
-    properties(Access=protected)
-        
-    end
     
     methods
         function obj = ExecutionReport()
             %%
+            obj.exception = utility.cell();
             obj.configs = utility.cell();
             obj.last_ok = difftest.ExecStatus.Idle;
             
         end
         
         function ret = create_copy(obj, config)
-            %%
+            %% Only used during cartesian product calculation.
+            % Does not copy all attributes
             ret = difftest.ExecutionReport();
             
             % Copy attributes
@@ -74,7 +75,7 @@ classdef ExecutionReport < handle
                 return;
             end
             
-            ret = isempty(obj.exception);
+            ret = obj.exception.len == 0;
         end
         
         function ret = get_sim_args(obj)
@@ -103,7 +104,6 @@ classdef ExecutionReport < handle
             assert(obj.configs.len > 0);
         end
         
-        
         function ret = get_report(obj) %#ok<STOUT,MANU>
             %%
             error('Dead Code');
@@ -112,10 +112,19 @@ classdef ExecutionReport < handle
             ret.success = obj.is_ok();
         end
         
-    end
-    
-    methods (Access = protected)
+        function throw_comp_error(obj)
+            if ~ obj.is_ok()
+                throw(MException('RandGen:SL:CompareErrorGeneric', ...
+                    'One or more errors during comparison'));
+            end
+        end
+        
+        function ret = get_exception_messages(obj)
+            ret = cellfun(@(p)p.message, obj.exception.get_cell_T(),...
+                'UniformOutput', false);
+        end
         
     end
+    
 end
 

@@ -1,11 +1,24 @@
-function [all_blocks, num_zero_cov] = get_model_coverage(h)
+function [all_blocks, num_zero_cov] = get_model_coverage(h, reduce_blocks)
 %GET_MODEL_COVERAGE Summary of this function goes here
 %   Detailed explanation goes here
+
+if nargin == 1
+    reduce_blocks = false;
+end
 
 num_zero_cov = 0; % blocks with zero coverage
 
 testObj  = cvtest(h);
-data = cvsim(testObj);
+
+if reduce_blocks
+    warning('Setting CovForceBlockReductionOff=off')
+    data = cvsim(testObj, 'CovForceBlockReductionOff', 'off');
+else
+    % Note: this just disables the force-off. Behavior will now depend on
+    % the model's 'BlockReduction' parameter. What if is is set to 'off'?
+    % Default is 'on'
+    data = cvsim(testObj);
+end
 
 blocks = covexp.get_all_blocks(h);
 

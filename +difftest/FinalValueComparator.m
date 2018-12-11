@@ -16,7 +16,7 @@ classdef FinalValueComparator < difftest.BaseComparator
             obj.compare_wrapper(obj.r.oks{1}, obj.r.oks(2:end));
         end
         
-        function compare_single(obj, ground_exec, next_exec)
+        function compare_single(obj, ground_exec, next_exec, next_exec_idx)
             %%
 
             f = ground_exec.refined;
@@ -48,39 +48,48 @@ classdef FinalValueComparator < difftest.BaseComparator
 
                 num_time_1 = numel(data_1.Time);
                 num_time_2 = numel(data_2.Time);
-
+                
                 if num_data_1 ~= num_data_2 || num_time_1 ~= num_time_2
                     obj.l.error('Time or data len mismatch');
-                    throw (MException('RandGen:SL:CompareErrorLen',...
+                    e =  MException('RandGen:SL:CompareErrorLen',...
                         sprintf('Len mismatch: data1: %d; data2: %d; time1: %d; time2:%d',...
-                        num_data_1, num_data_2, num_time_1, num_time_2)) );
-
-                end
-
-                d_1 = data_1.Data(numel(data_1.Data));
-                d_2 = data_2.Data(numel(data_2.Data));
-
-                t_1 = data_1.Time(numel(data_1.Time));
-                t_2 = data_2.Time(numel(data_2.Time));
-
-                if (isnan(d_1) && isnan(d_2)) || (d_1 == d_2)
-%                         fprintf('Data No Mismatch\n');
+                        num_data_1, num_data_2, num_time_1, num_time_2)) ;
+                    
+                    obj.handle_comp_err(obj.r.comp_diffs, bl_name,...
+                        next_exec, [], [], e, next_exec_idx);
                 else
-                    obj.l.error('Data Mismatch!\n');
-                    throw (MException('RandGen:SL:CompareErrorData',...
-                            sprintf('Data mismatch: data1: %f; data2: %f; len1: %d; len2:%d',...
-                            d_1, d_2, num_data_1, num_data_2 )) );
-                end
+                    d_1 = data_1.Data(numel(data_1.Data));
+                    d_2 = data_2.Data(numel(data_2.Data));
+
+                    t_1 = data_1.Time(numel(data_1.Time));
+                    t_2 = data_2.Time(numel(data_2.Time));
+
+                    if (isnan(d_1) && isnan(d_2)) || (d_1 == d_2)
+    %                         fprintf('Data No Mismatch\n');
+                    else
+                        obj.l.error('Data Mismatch!');
+                        e = MException('RandGen:SL:CompareErrorData',...
+                                sprintf('Data mismatch: data1: %f; data2: %f; len1: %d; len2:%d',...
+                                d_1, d_2, num_data_1, num_data_2 )) ;
+                            
+                        obj.handle_comp_err(obj.r.comp_diffs, bl_name,...
+                        next_exec, d_1, d_2, e, next_exec_idx);
+                    end
 
 
-                if t_1 == t_2
-%                         fprintf('Time No Mismatch\n');
-                else
-                    obj.l.error('Time Mismatch!\n');
-                    throw (MException('RandGen:SL:CompareErrorTime',...
-                            sprintf('Time mismatch: time1: %f; time2: %f; len1: %d; len2:%d',...
-                            t_1, t_2, num_time_1, num_time_2 )) );
+                    if t_1 == t_2
+    %                         fprintf('Time No Mismatch\n');
+                    else
+                        obj.l.error('Time Mismatch!');
+                        e = MException('RandGen:SL:CompareErrorTime',...
+                                sprintf('Time mismatch: time1: %f; time2: %f; len1: %d; len2:%d',...
+                                t_1, t_2, num_time_1, num_time_2 )) ;
+                            
+                        obj.handle_comp_err(obj.r.comp_diffs, bl_name,...
+                        next_exec, t_1, t_2, e, next_exec_idx);
+                    end
                 end
+                
             end
         end
         

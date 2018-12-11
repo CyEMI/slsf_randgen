@@ -66,15 +66,21 @@ classdef BaseComparator < handle
                 obj.l.info('Comparing Exec# %d; %s', (i+1), next_exec.id);
                 
                 try
-                    obj.compare_single(ground_exec, next_exec);
-                    next_exec.last_ok = difftest.ExecStatus.CompDone;
+                    obj.compare_single(ground_exec, next_exec, i);
+                    
+                    if next_exec.is_ok()
+                        next_exec.last_ok = difftest.ExecStatus.CompDone;
+                    else
+                        disp(next_exec.get_exception_messages());
+                    end
                 catch e
                     obj.l.error('Exception while running comparison!');
-                    disp(e);
-                    next_exec.exception = e;
+                    utility.print_error(e);
+                    next_exec.exception.add(e);
                 end
                 
             end
+            
         end
         
         function refine_all_executions(obj)
@@ -115,6 +121,22 @@ classdef BaseComparator < handle
                 % append port number
                 exec_report.refined([bp '_' int2str(s_dataset.PortIndex)]) = new_data;
             end
+        end
+        
+        function handle_comp_err(obj, diff_ob, blk, next_exec, ground_data, exec_data, exc, j)
+            % diff_ob can be obj.r.cov_diffs
+            next_exec.exception.add(exc);
+            
+            if ~ diff_ob.isKey(blk)
+                t = cell(numel(obj.r.oks), 1);
+                t{1} =  ground_data ;
+                diff_ob(blk) = t;
+            end
+            
+            t = diff_ob(blk);
+            t{j} = exec_data;
+            
+            diff_ob(blk) = t; %#ok<NASGU>
         end
         
     end
