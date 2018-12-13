@@ -7,6 +7,11 @@ classdef covcfg < handle
         % Instead of corpus models, analyze a directory to discover models
         EXPLORE_A_DIRECTORY = true;
         
+        % Explore path should be set using the environment variable
+        % `COVEXPEXPLORE`. A non-none value for the following will override
+        % the environment variable.
+        EXPLORE_DIR_OVERRIDE = [];
+        
         % Generate lists of models before experiment. If false, will reuse
         % the list generated during last experiment.
         GENERATE_MODELS_LIST = true;
@@ -195,34 +200,35 @@ classdef covcfg < handle
     
     methods(Static)
         function ret = CORPUS_HOME()
-            ret = getenv('SLSFCORPUS');
-            
-            if isempty(ret)
-                error('Please set up environment variable SLSFCORPUS');
-            end
+            ret = covcfg.get_env_config('SLSFCORPUS');
         end
         
         function ret = EXPLORE_DIR()
-            ret = getenv('COVEXPEXPLORE');
-            
-            if isempty(ret)
-                error('Please set up environment variable COVEXPEXPLORE where we look for models.');
-            end
+            ret = covcfg.get_env_config('COVEXPEXPLORE',...
+                covcfg.EXPLORE_DIR_OVERRIDE);
         end
         
         function ret = SAVE_SUCCESS_DIR()
-            ret = getenv('COVEXPSUCCESS');
-            
-            if isempty(ret)
-                error('Please set up environment variable COVEXPSUCCESS where we save models which ran successfully.');
-            end
+            ret = covcfg.get_env_config('COVEXPSUCCESS');
         end
         
         function ret = SAVE_ERROR_DIR()
-            ret = getenv('COVEXPERROR');
+            ret = covcfg.get_env_config('COVEXPERROR');
+        end
+        
+        function ret = get_env_config(env_var_name, override_value)
+            %% Helper for env variable
+            if nargin == 2
+                if ~ isempty(override_value)
+                    ret = override_value;
+                    return;
+                end
+            end
+            
+            ret = getenv(env_var_name);
             
             if isempty(ret)
-                error('Please set up environment variable COVEXPERROR where we save models which DID NOT ran successfully.');
+                error('Please set up environment variable %', env_var_name);
             end
         end
     end
