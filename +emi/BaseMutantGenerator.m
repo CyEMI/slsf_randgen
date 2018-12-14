@@ -48,11 +48,11 @@ classdef BaseMutantGenerator < utility.DecoratorClient
             end
             
             % TODO do this when filtering list of blocks to be efficient
-            obj.l.info('Deleted: %d; Delete skipped: %d', obj.num_deleted, obj.num_skip_delete);
+            obj.l.info('Deleted: %d; Delete skipped: %d', obj.r.num_deleted, obj.r.num_skip_delete);
             
             obj.compile_model_and_return('MUTANT-GEN', true);
             
-            obj.l.info(['End mutant generation: ' obj.sys]);
+            obj.l.info(['End mutant generation: ' obj.r.mutant.sys]);
         end
         
         function init(obj)

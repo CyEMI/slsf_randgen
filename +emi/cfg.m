@@ -5,7 +5,7 @@ classdef cfg
     properties(Constant = true)
         %% Commonly used 
         
-        NUM_MAINLOOP_ITER = 1;
+        NUM_MAINLOOP_ITER = 5;
         
         PARFOR = false;
         

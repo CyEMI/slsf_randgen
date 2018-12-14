@@ -144,7 +144,7 @@ classdef BaseCovExp < handle
                         res(i) = covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); %#ok<AGROW>
                     end
                     % Save
-                    obj.save_result(res, []);
+%                     obj.save_result(res, []);
                 end
             end
             

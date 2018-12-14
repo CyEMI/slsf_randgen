@@ -40,7 +40,7 @@ classdef ReportForModel < handle
                 return;
             end
             
-            ret = all(cellfun(@(p)p.is_ok(),obj.mutants));
+            ret = all(cellfun(@(p)isempty(p.exception),obj.mutants));
         end
         
     end

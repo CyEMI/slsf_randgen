@@ -4,7 +4,7 @@ function preprocessed_file_name = get_pp_file(sys, loc_input)
 
 preprocessed_file_name = sprintf('%s_%s', sys, emi.cfg.MUTANT_PREPROCESSED_FILE_SUFFIX);
             
-if ~ utility.file_exists(loc_input, [preprocessed_file_name '.' emi.slsf.get_extension(sys)])
+if ~ utility.file_exists(loc_input, [preprocessed_file_name emi.cfg.MUTANT_PREPROCESSED_FILE_EXT])
     error('Preprocessed version %s not found!', preprocessed_file_name);
 end
 

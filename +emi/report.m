@@ -13,5 +13,5 @@ end
 function ret = process_data(data)
     ret = data;
     ret.is_ok = isempty(data.exception) && all(...
-        cellfun(@(p)p.is_ok(), data.mutants));
+        cellfun(@(p)isempty(p.exception), data.mutants));
 end
