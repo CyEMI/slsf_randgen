@@ -5,7 +5,7 @@ classdef cfg
     properties(Constant = true)
         %% Commonly used 
         
-        NUM_MAINLOOP_ITER = 3;
+        NUM_MAINLOOP_ITER = 1;
         
         PARFOR = false;
         
@@ -55,9 +55,6 @@ classdef cfg
         
         DONT_PREPROCESS = true;
         
-        % Pre-annotate blocks with types during preprocessing.
-        % Only relevant when preprocessing a model.
-        PRE_ANNOTATE_TYPE = true;
         
         MUTANT_PREPROCESSED_FILE_SUFFIX = 'pp';
         MUTANT_PREPROCESSED_FILE_EXT = '.slx';
@@ -93,12 +90,6 @@ classdef cfg
         
         %% Mutation: Block delete and reconnection strategies
         
-        % Reconnect, NOT putting Data-type converter (recommended)
-        NO_DTC_RECONNECT = true;
-        
-        % Reconnect, Putting Data-type converter
-        DTC_RECONNECT = false;
-        
         % Specify input and output data-type of a DTC block.
         % TODO may need to do it for other blocks (??)
         % Used in MutantGenerator::add_dtc_block_in_middle
@@ -106,12 +97,22 @@ classdef cfg
         
         %% Generic Mutation
         
-        MUTANTS_PER_MODEL = 2;
+        MUTANTS_PER_MODEL = 1;
         
         % Remove this percentage of dead blocks
         DEAD_BLOCK_REMOVE_PERCENT = 0.5;
         
         %% Others
+        
+        MUTATOR_DECORATORS = {
+            @emi.decs.TypeAnnotateEveryBlock
+            @emi.decs.DeleteDeadDirectReconnect
+            };
+        
+        CPS_TOOL = @cps.SlsfModel;
+        
+        % Don't delete these blocks during dead block removal
+        SKIP_DELETES = containers.Map({'Delay', 'UnitDelay'}, {1,1});
         
         INPUT_MODEL_LIST = covcfg.RESULT_FILE
         

@@ -7,9 +7,7 @@ classdef (Abstract) BaseModelMutator < handle
     
     properties
         result;
-    end
-    
-    properties(Access=protected)
+
         exp_data;
         REPORT_DIR_FOR_THIS_MODEL;
         
@@ -25,6 +23,8 @@ classdef (Abstract) BaseModelMutator < handle
         dont_preprocess;
         
         l = logging.getLogger('emi.BaseModelMutator');
+        
+        % Aggregate data for the mutant generator
         
         block_data; % Data for each block
         dead; 
@@ -59,19 +59,16 @@ classdef (Abstract) BaseModelMutator < handle
             if ~ obj.open_model()
                 return;
             end
-            
-            ret = false;
-            
+                        
             original_model_backup = obj.backup_original_model();
             
             try
                 ret = obj.process_single_model(false);
             catch e
-                % TODO check if this code is ever executed, since getReport
-                % should error
                 obj.add_exception_in_result(e);
-%                 obj.l.error(getReport(e, 'extended'));
-                obj.l.error('Error in processing single model: %s', e.identifier);
+                utility.print_error(e, obj.l);
+                obj.l.error('Error in processing single model!');
+                % Don't rethrow or quit here... may need to clean up!
             end
             
             if ~ ret && emi.cfg.KEEP_ERROR_MUTANT_PARENT_OPEN
@@ -81,7 +78,6 @@ classdef (Abstract) BaseModelMutator < handle
             end
             
             obj.delete_original_backup(original_model_backup);
-
         end
         
     end
@@ -185,10 +181,8 @@ classdef (Abstract) BaseModelMutator < handle
         
         function ret = process_single_model(obj, return_after_preprocess)
             %%
-            obj.get_dead_and_live_blocks();
-            
-            obj.enable_signal_logging();
-            
+            obj.aggregate_data_for_mutant_generator();
+                        
             ret = obj.create_mutants(return_after_preprocess);
         end
         
@@ -198,20 +192,24 @@ classdef (Abstract) BaseModelMutator < handle
             
             for i=1:obj.num_mutants
                 obj.open_model();
-                a_mutant = emi.SimpleMutantGenerator(i, obj.sys,...
-                    obj.exp_data, obj.REPORT_DIR_FOR_THIS_MODEL, return_after_preprocess, obj.dont_preprocess);
-                
-                a_mutant.blocks = obj.block_data;
-                a_mutant.live_blocks = obj.live;
-                a_mutant.dead_blocks = obj.dead;
-                a_mutant.compiled_types = obj.compiled_types;
+                a_mutant = emi.SimpleMutantGenerator(...
+                    emi.cfg.MUTATOR_DECORATORS,...
+                    i, obj.sys, obj.exp_data,...
+                    obj.REPORT_DIR_FOR_THIS_MODEL,...
+                    return_after_preprocess,...
+                    obj.dont_preprocess,...
+                    obj.block_data,...
+                    obj.compiled_types,...
+                    obj.dead,...
+                    obj.live...
+                    );
                 
                 a_mutant.go()
-                obj.result.mutants{i} = a_mutant.result;
+                obj.result.mutants{i} = a_mutant.r.get_report();
                 
                 obj.save_my_result();
                 
-                if ~ a_mutant.result.is_ok
+                if ~ a_mutant.r.is_ok
                     obj.l.error('Breaking from mutant gen loop due to error');
                     ret = false;
                     break;
@@ -219,7 +217,7 @@ classdef (Abstract) BaseModelMutator < handle
             end
         end
         
-        function get_dead_and_live_blocks(obj)
+        function aggregate_data_for_mutant_generator(obj)
             %%
             function x = get_nonempty(x)
                 x = x(rowfun(@(~,p,~) ~isempty(p{1}) , x(:,:),...
@@ -266,9 +264,6 @@ classdef (Abstract) BaseModelMutator < handle
                 emi.cfg.REPORT_FOR_A_MODEL_FILENAME], emi.cfg.REPORT_FOR_A_MODEL_VARNAME);
         end
         
-        function enable_signal_logging(~)
-            %%
-        end
         
         function close_model(obj)
             %%

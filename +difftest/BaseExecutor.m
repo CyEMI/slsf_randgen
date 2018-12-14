@@ -29,7 +29,7 @@ classdef BaseExecutor < utility.DecoratorClient
         end
         
         function init(obj)
-            obj.create_decorators();
+%             obj.create_decorators();
             
             obj.sim_args = obj.decorate_sim_args(obj.exec_report.get_sim_args());
             obj.l.info('STARTING %s ::w/CONFIG:: %s', obj.exec_report.sys, obj.exec_report.shortname);

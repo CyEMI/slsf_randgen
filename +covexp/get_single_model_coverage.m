@@ -43,7 +43,7 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
                 cur_experi = covcfg.EXPERIMENTS{covcfg.DO_THESE_EXPERIMENTS(i)};
                 covdata = cur_experi(sys, h, covdata);
             catch e
-                disp(e);
+                utility.print_error(e);
                 error('Experiment %d threw error', i);
             end
         end

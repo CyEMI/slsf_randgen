@@ -96,6 +96,9 @@ classdef cell < handle
             end
         end
         
+        function ret = empty(obj)
+            ret = obj.len == 0;
+        end
         
         function obj = print_all(obj, header)
             
