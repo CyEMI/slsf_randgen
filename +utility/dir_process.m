@@ -1,4 +1,4 @@
-function [ ret ] = dir_process( base_dir, filename_suffix, explore_subdirs, filename_filters )
+function [ ret ] = dir_process( base_dir, filename_suffix, explore_subdirs, filename_filters, isdir_check )
 %DIR_PROCESS Explores all files from `base_dir` which have suffix
 %`filename_suffix`. Then filters these filenames using `filename_filters`.
 %Will recursively process sub-directories if `explore_subdirs` is true.
@@ -9,6 +9,13 @@ function [ ret ] = dir_process( base_dir, filename_suffix, explore_subdirs, file
 % example.
 % Returns a cell array with two columns, first column is the filename and 
 % second column contains directory name.
+% If isdir_check = false (default), will skip directories. If true, skip
+% files and only include directories.
+
+if nargin == 4
+    % Files Only
+    isdir_check = false;
+end
 
 fields_to_return = {'name', 'folder'};
 base_dir_filter = @(dirname) ~strcmp(dirname, '.') && ~strcmp(dirname, '..');
@@ -20,7 +27,8 @@ files = files(:, [ fields_to_return {'isdir'} ]);
 
 % Handle files
 
-actual_file_result = rowfun(@(~, ~, isdir) ~isdir, files, 'OutputFormat', 'uniform');
+actual_file_result = rowfun(@(p, ~, isdir) base_dir_filter(p) && isdir == isdir_check, files,...
+    'OutputFormat', 'uniform');
 
 actual_files = files(actual_file_result, fields_to_return);
 

@@ -3,6 +3,17 @@ function ret = report(report_loc)
 
     l = logging.getLogger('emi_report');
 
+    if nargin == 0
+        report_loc = utility.get_latest_directory(emi.cfg.REPORTS_DIR);
+        
+        if isempty(report_loc)
+            l.warn('Nothing found in %s', emi.cfg.REPORTS_DIR);
+            return;
+        end
+        
+        l.info('Collected report from "latest" directory: %s', report_loc);
+    end
+
     ret = utility.batch_process(report_loc, 'modelreport',... % variable name and file name should be 'modelreport'
         {{@(p,~) strcmp(p, 'modelreport.mat'),{}}}, @process_data, '', true, true); % explore subdirs; uniform output
     

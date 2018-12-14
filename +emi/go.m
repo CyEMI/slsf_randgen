@@ -5,6 +5,5 @@ function  go(  )
 addpath(['3rdparty' filesep 'logging4matlab']);
 
 emi.SimpleMainLoop().go();
-
 end
 
