@@ -38,7 +38,7 @@ classdef DeadBlockDeleteStrategy < emi.decs.DecoratedMutator
                 return;
             end
             
-            if emi.cfg.SKIP_DELETES.isKey(block)
+            if emi.cfg.SKIP_DELETES.isKey(get_param(block, 'BlockType'))
                 obj.l.debug('Not deleting as pre-configured %s', block);
                 obj.r.num_skip_delete = obj.r.num_skip_delete + 1;
                 return;

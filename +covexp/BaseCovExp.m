@@ -134,17 +134,18 @@ classdef BaseCovExp < handle
                 res = struct();
             else
                 obj.l.info('Using Simple For Loop');
+                
+                res(loop_count) = struct;
+                
                 for i = 1:loop_count
                     obj.l.info(sprintf('%s Analyzing %d of %d models', log_append, i, loop_count ));
                     model_id = model_id_offset + i;
                     
                     try
-                        res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); %#ok<AGROW>
+                        res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); 
                     catch 
-                        res(i) = covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); %#ok<AGROW>
+                        res(i) = covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
                     end
-                    % Save
-%                     obj.save_result(res, []);
                 end
             end
             
