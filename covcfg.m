@@ -109,6 +109,12 @@ classdef covcfg < handle
         % While copying assume this extension for the source file
         MODEL_SAVE_EXT = '.mdl'
         
+        % Save error and success models here (environment variable
+        % override)
+        
+        SAVE_SUCCESS_DIR_OVERRIDE = [];
+        SAVE_ERROR_DIR_OVERRIDE = [];
+        
         %% Experiment 5 (Fixing input_loc data) %%%%%%%%%%%%%%%
         % `input_loc` data is the location of a file, which is an absolute
         % path. Replace it with `EXPLORE_DIR` to fix path problems. Just
@@ -209,11 +215,13 @@ classdef covcfg < handle
         end
         
         function ret = SAVE_SUCCESS_DIR()
-            ret = covcfg.get_env_config('COVEXPSUCCESS');
+            ret = covcfg.get_env_config('COVEXPSUCCESS',...
+                covcfg.SAVE_SUCCESS_DIR_OVERRIDE);
         end
         
         function ret = SAVE_ERROR_DIR()
-            ret = covcfg.get_env_config('COVEXPERROR');
+            ret = covcfg.get_env_config('COVEXPERROR',...
+                covcfg.SAVE_ERROR_DIR_OVERRIDE);
         end
         
         function ret = get_env_config(env_var_name, override_value)
