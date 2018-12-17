@@ -135,23 +135,36 @@ classdef BaseCovExp < handle
             else
                 obj.l.info('Using Simple For Loop');
                 
-                res(loop_count) = struct;
-                
                 for i = 1:loop_count
                     obj.l.info(sprintf('%s Analyzing %d of %d models', log_append, i, loop_count ));
                     model_id = model_id_offset + i;
                     
                     try
-                        res(i) = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); 
-                    catch 
-                        res(i) = covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
+                        my_res = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); 
+                        
+                        if i == 1
+                            res = utility.init_struct_array(my_res, loop_count);
+                        else
+                            res(i) = my_res;
+                        end
+                    catch e
+                        obj.l.error('Error running single experiment:');
+                        utility.print_error(e, obj.l);
+                        
+                        my_res = covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
+                        
+                        if i == 1
+                            res = utility.init_struct_array(my_res, loop_count);
+                        else
+                            res(i) = my_res;
+                        end
                     end
                 end
             end
             
             obj.result = res;
             
-            obj.l.info(sprintf('Done... analyzed %d models', loop_count));
+            obj.l.info('Done... analyzed %d models', loop_count);
         end
 
         
@@ -212,7 +225,7 @@ classdef BaseCovExp < handle
                 
             end
             
-            obj.l.info(sprintf('Report saved in %s', obj.report_log_filename));
+            obj.l.info('Report saved in %s', obj.report_log_filename);
             
             % Run report generation
             covexp.report();

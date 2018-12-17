@@ -18,7 +18,7 @@ function ret = report(report_loc)
         {{@(p,~) strcmp(p, 'modelreport.mat'),{}}}, @process_data, '', true, true); % explore subdirs; uniform output
     
 %     utility.tabulate('exception', ret, 'Exception?', l);
-    utility.tabulate('is_ok', ret, 'Exception OR mutant Compilation error?', l);
+    utility.tabulate('is_ok', ret, 'No Exception and mutant error?', l);
 end
 
 function ret = process_data(data)

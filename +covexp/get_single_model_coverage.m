@@ -24,11 +24,8 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
     end
     
     cur_datetime = datestr(now, covcfg.DATETIME_DATE_TO_STR);
-    touch_loc = [cur_exp_dir filesep covcfg.TOUCHED_MODELS_DIR...
-        filesep cur_datetime '___' num2str(model_id) '.txt'];
     
-    dummy = 'a'; %#ok<NASGU>
-    save(touch_loc, 'dummy');
+    touch_loc = start_touch(cur_exp_dir, model_id, cur_datetime);
     
     if ~covcfg.REUSE_CACHED_RESULT
         covdata = struct;
@@ -57,11 +54,36 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
         save(report_loc, '-struct', 'covdata');
     end
     
-    % Delete the touched file
-    delete(touch_loc);
+    end_touch(touch_loc);
     
     if ~isempty(model_path)
         rmpath(model_path);
     end
+end
+
+
+function touch_loc = start_touch(cur_exp_dir, model_id, cur_datetime)
+% Only touch dummy when PARFOR is used for efficiency
+
+    if ~ covcfg.PARFOR
+        touch_loc = [];
+        return;
+    end
+
+    touch_loc = [cur_exp_dir filesep covcfg.TOUCHED_MODELS_DIR...
+        filesep cur_datetime '___' num2str(model_id) '.txt'];
+    
+    dummy = 'a'; %#ok<NASGU>
+    save(touch_loc, 'dummy');
+end
+
+
+function end_touch(touch_loc)
+    if isempty(touch_loc)
+        return;
+    end
+    
+    % Delete the touched file
+    delete(touch_loc);
 end
 

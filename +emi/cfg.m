@@ -5,7 +5,7 @@ classdef cfg
     properties(Constant = true)
         %% Commonly used 
         
-        NUM_MAINLOOP_ITER = 5;
+        NUM_MAINLOOP_ITER = 1;
         
         PARFOR = false;
         
@@ -90,10 +90,10 @@ classdef cfg
         
         %% Mutation: Block delete and reconnection strategies
         
-        % Specify input and output data-type of a DTC block.
-        % TODO may need to do it for other blocks (??)
-        % Used in MutantGenerator::add_dtc_block_in_middle
-        DTC_SPECIFY_TYPE = true;        
+        % Specify input and output data-type of a newly added block in the
+        % compiled data-type registry
+        % Used in cps.SlsfModel::add_block_in_middle
+        SPECIFY_NEW_BLOCK_DATATYPE = true;        
         
         %% Generic Mutation
         

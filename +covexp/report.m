@@ -25,7 +25,9 @@ utility.tabulate('opens', models, 'Does Model Open?', l);
 
 utility.tabulate('compiles', models, 'Does Model Compile?', l);
 
-utility.tabulate('timedout', models, 'Does Model time-out?', l);
+% Timeout should now appear as exception. The previously reported boolean
+% field should now be meaningless to report.
+% utility.tabulate('timedout', models, 'Does Model time-out?', l);
 
 utility.tabulate('exception', models, 'Does Model error?', l);
 

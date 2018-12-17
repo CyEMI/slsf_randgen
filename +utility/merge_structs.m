@@ -1,6 +1,7 @@
 function ret = merge_structs(p)
 %MERGE_STRUCTS Summary of this function goes here
-%   Detailed explanation goes here
+%   p is utility.cell containing many structs which we want to merge to a
+%   single struct
 
 ret = struct;
 

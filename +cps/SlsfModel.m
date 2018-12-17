@@ -48,48 +48,62 @@ classdef SlsfModel < cps.Model
         end
         
         function add_DTC_in_middle(obj, sources, dests, parent_sys)
-            %% Adds a block between each source -> dest connection
-            % 'simulink/Signal Attributes/Data Type Conversion'
-            
             blk_type = 'simulink/Signal Attributes/Data Type Conversion';
             
+            function ret = helper(blk_config_params, blk_out_type)
+                ret = blk_config_params;
+                
+                if ~isempty(blk_out_type)
+                    ret.OutDataTypeStr = emi.slsf.get_datatype(...
+                        blk_out_type);
+                end
+            end
+            
+            obj.add_block_in_middle(sources, dests, parent_sys,...
+                blk_type, @helper);
+        end
+        
+        function add_block_in_middle(obj, sources, dests, parent_sys,...
+                blk_type, fun)
+            %% Adds a block between each source -> dest connection
+            % Will specify the newly added block's type in the compiled
+            % type registry.
+            % Will call `fun` to configure the block if provided as
+            % parameter.
+                        
             combs = emi.slsf.choose_source_dest_pairs_for_reconnection(sources, dests);
             
             for i=1:combs.len
                 cur = combs.get(i);
                 
-                % Add new block
-                % what's the type of this destination block's jth input
-                % port?
-                if emi.cfg.DTC_SPECIFY_TYPE
-                    inport_types = obj.get_compiled_type(parent_sys, cur.d_blk, 'Inport');
-                    dtc_out_type = inport_types{cur.d_prt}; % Outport type of DTC block
-                    dtc_type_params = struct('OutDataTypeStr', emi.slsf.get_datatype(dtc_out_type));
-                else
-                    dtc_out_type = [];
-                    dtc_type_params = struct;
-                end
-
-                [new_blk_name, ~] = obj.add_new_block_in_model(parent_sys, blk_type,...
-                    dtc_type_params);
-
-                obj.l.debug('Added new DTC block %s', new_blk_name);
-
-                % add new DTC block in compiled data types registry
-                obj.add_dtc_block_compiled_types(parent_sys, cur.s_blk, cur.s_prt, new_blk_name, dtc_out_type);
-
-                % Connect DTC -> destination
+                n_blk_params = struct;
                 
-                add_line(parent_sys, [new_blk_name '/1'], [cur.d_blk '/' int2str(cur.d_prt)],...
-                        'autorouting','on');
-                obj.l.debug('Connected %s/1 ---> %s/%d', new_blk_name, cur.d_blk, cur.d_prt);
+                % Specify the block's data type in compiled types registry
+                if emi.cfg.SPECIFY_NEW_BLOCK_DATATYPE
+                    inport_types = obj.get_compiled_type(parent_sys, cur.d_blk, 'Inport');
+                    n_blk_out_type = inport_types{cur.d_prt};
+                else
+                    n_blk_out_type = [];
+                end
+                
+                if nargin > 5
+                    n_blk_params = fun(n_blk_params, n_blk_out_type);
+                end
+                
+                [new_blk_name, ~] = obj.add_new_block_in_model(parent_sys, blk_type,...
+                    n_blk_params);
 
-                % Connect source -> DTC
+                % add new block in compiled data types registry
+                obj.add_block_compiled_types(parent_sys,...
+                    cur.s_blk, cur.s_prt, new_blk_name, n_blk_out_type);
 
-                add_line(parent_sys, [cur.s_blk '/'...
-                        int2str(cur.s_prt)], [new_blk_name '/1' ],...
-                        'autorouting','on');
-                obj.l.debug('Connected %s/%d ---> %s/1', cur.s_blk, cur.s_prt, new_blk_name);
+                % Connect n_blk -> destination
+                obj.add_line(parent_sys, [new_blk_name '/1'],...
+                    [cur.d_blk '/' int2str(cur.d_prt)]);
+                
+                % Connect source -> n_blk
+                obj.add_line(parent_sys, [cur.s_blk '/'...
+                        int2str(cur.s_prt)], [new_blk_name '/1' ]);
             end
             
         end
@@ -102,11 +116,11 @@ classdef SlsfModel < cps.Model
                 ret = dt{1}.(porttype);
             catch e
                 utility.print_error(e, obj.l);
-                error('Block not found in compiled datatypes');
+                error('Block not found in compiled datatypes!');
             end
         end
         
-        function [new_blk_name, h] = add_new_block_in_model(obj, parent_sys, new_blk_type, varargin)
+        function [new_blk_name, h] = add_new_block_in_model(obj, this_sys, new_blk_type, varargin)
             %%
             
             if nargin == 3
@@ -116,8 +130,11 @@ classdef SlsfModel < cps.Model
             end
             
             new_blk_name = obj.get_new_block_name();
-            h = add_block(new_blk_type, [parent_sys '/' new_blk_name],...
-                'Position', obj.get_pos_for_next_block(parent_sys));
+            
+            n_blk_full = [this_sys '/' new_blk_name];
+            
+            h = obj.add_block(new_blk_type, n_blk_full,...
+                obj.get_pos_for_next_block(this_sys));
             
             % Configure block params
             blk_param_names = fieldnames(blk_params);
@@ -126,6 +143,8 @@ classdef SlsfModel < cps.Model
                 p = blk_param_names{i};
                 set_param(h, p, blk_params.(p));
             end
+            
+            obj.l.debug('Added new %s block %s', new_blk_type, n_blk_full);
         end
         
         function ret = get_new_block_name(obj)
@@ -135,7 +154,7 @@ classdef SlsfModel < cps.Model
         end
         
         function ret = get_model_builder(obj, parent)
-            %%
+            %% Create new or get existing ModelBuilder
             if obj.model_builders.isKey(parent)
                 ret = obj.model_builders(parent);
             else
@@ -146,15 +165,15 @@ classdef SlsfModel < cps.Model
         end
         
         function ret = get_pos_for_next_block(obj, parent)
-            %%
+            %% Geometric position for this block in the model
             ret = obj.get_model_builder(parent).get_new_block_position();
         end
         
-        function add_dtc_block_compiled_types(obj, parent, blkname, blkprt, dtc, dtc_out_type)
-            %% Register a newly added `dtc` block's source and destination
+        function add_block_compiled_types(obj, parent, blkname, blkprt, n_blk, dtc_out_type)
+            %% Register a newly added `n_blk` block's source and destination
             % types in the compiled-types database (i.e. obj.compiled_types)
             
-            if ~emi.cfg.DTC_SPECIFY_TYPE
+            if ~emi.cfg.SPECIFY_NEW_BLOCK_DATATYPE
                 return;
             end
             
@@ -167,7 +186,14 @@ classdef SlsfModel < cps.Model
             s(1).Inport= {desired_type};
             s(1).Outport = {dtc_out_type};
             
-            obj.compiled_types = [obj.compiled_types; {utility.strip_first_split([parent '/' dtc], '/', '/'), s}];
+            % semicolon -- doing vertcat, why?
+            obj.compiled_types = [obj.compiled_types; {utility.strip_first_split([parent '/' n_blk], '/', '/'), s}];
+        end
+        
+        %% Wrappers to Simulink APIs
+        
+        function h = add_block(obj, new_blk_type, new_blk_name, pos) %#ok<INUSL>
+            h = add_block(new_blk_type, new_blk_name, 'Position', pos);
         end
         
         function delete_src_to_block(obj, block_parent, this_block, sources) %#ok<INUSL>
@@ -182,8 +208,11 @@ classdef SlsfModel < cps.Model
             delete_block(blk);
         end
         
-        function add_line(obj, parent_sys, src, dest) %#ok<INUSL>
-            add_line(parent_sys, src, dest, 'autorouting','on');
+        function add_line(obj, this_sys, src, dest)
+            add_line(this_sys, src, dest, 'autorouting','on');
+            
+            obj.l.debug('[X-->Y] In %s, connected %s ---> %s',...
+                this_sys, src, dest);
         end
         
         function close_model(obj)

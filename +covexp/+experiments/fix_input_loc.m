@@ -6,9 +6,5 @@ function ret = fix_input_loc(~, ~, ret)
 
 %% Do some other rectification
 
-if isfield(ret, 'preprocess_exp') && ~ iscell(ret.preprocess_exp)
-    ret.preprocess_exp = {ret.preprocess_exp};
-end
-
 end
 
