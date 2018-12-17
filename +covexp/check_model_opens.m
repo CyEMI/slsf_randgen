@@ -5,6 +5,7 @@ function [model_result, h] = check_model_opens(sys, model_id, model_path, model_
 %   disc). If saving the results, this script will update the model's
 %   physical location (loc_input) which is essential if copying cached
 %   results from some other machine.
+h = [];
 
 model_result.m_id = model_id;
 model_result.sys = sys;
