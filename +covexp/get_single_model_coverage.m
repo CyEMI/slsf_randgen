@@ -32,7 +32,7 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
     end
     
     % Init result data structure
-    covexp.init_results(covcfg.DO_THESE_EXPERIMENTS, covdata);
+    covdata = covexp.init_results(covcfg.DO_THESE_EXPERIMENTS, covdata);
     
     [covdata, h] = covexp.experiments.check_model_opens(sys, model_id, model_path, covdata);
         
