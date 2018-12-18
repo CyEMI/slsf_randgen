@@ -1,32 +1,24 @@
 function ret = get_coverage(sys, h, ret)
     l = logging.getLogger('singlemodel');
-    ret = covexp.get_cov_reporttype(ret);
+%     ret = covexp.get_cov_reporttype(ret);
 
     ret.stoptime_changed = handle_stoptime(sys, l);
     ret.loc = get_model_loc(sys);
+    
     % Does it run within timeout limit?
     
     try
         time_start = tic;
         
         simob = utility.TimedSim(sys, covcfg.SIMULATION_TIMEOUT, l);
-        ret.timedout = simob.start();
-
-        if ret.timedout
-            % Close
-            covexp.sys_close(sys);
-            return;
-        end
+        simob.start();
         
         ret.simdur = toc(time_start);
         
     catch e
         ret.exception = true;
-        ret.exception_msg = e.identifier;
         ret.exception_ob = e;
-     
-%         getReport(e)
-        
+             
         % Close
         covexp.sys_close(sys);
     end
@@ -43,7 +35,6 @@ function ret = get_coverage(sys, h, ret)
         
     catch e
         ret.exception = true;
-        ret.exception_msg = e.identifier;
         ret.exception_ob = e;
         
         getReport(e)
@@ -53,6 +44,7 @@ function ret = get_coverage(sys, h, ret)
 end
 
 function ret = get_model_loc(sys)
+% Only makes sense for corpus models
     sys_loc = strsplit(get_param(sys, 'FileName'), filesep);
     corpus_loc = strsplit(covcfg.CORPUS_HOME, filesep);
     
@@ -70,10 +62,6 @@ function new_st =  handle_stoptime(sys, l)
             set_param(sys, 'StopTime', new_st);
         end
     catch e
-        try
-            getError(e)
-        catch
-            e %#ok<NOPRT>
-        end
+        utility.print_error(e, l);
     end
 end

@@ -100,6 +100,10 @@ classdef cell < handle
             ret = obj.len == 0;
         end
         
+        function ret = numel(obj)
+            ret = obj.len;
+        end
+        
         function obj = print_all(obj, header)
             
             if ~ isempty(header)

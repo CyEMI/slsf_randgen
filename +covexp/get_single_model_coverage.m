@@ -31,7 +31,10 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
         covdata = struct;
     end
     
-    [covdata, h] = covexp.check_model_opens(sys, model_id, model_path, covdata);
+    % Init result data structure
+    covexp.init_results(covcfg.DO_THESE_EXPERIMENTS, covdata);
+    
+    [covdata, h] = covexp.experiments.check_model_opens(sys, model_id, model_path, covdata);
         
     if ~ covdata.skipped && covdata.opens
         

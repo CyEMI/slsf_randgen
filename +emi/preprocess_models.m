@@ -1,9 +1,6 @@
 function ret = preprocess_models(~, ~, ret)
 %PREPROCESS_MODELS Preprocess a model for creating mutants
 %   Detailed explanation goes here
-ret.preprocess_error = false; % If a model is skipped, it is not error
-ret.preprocess_exp = [];
-ret.peprocess_skipped = true;
 
 if ~ ret.compiles || ret.exception || ret.numzerocov == 0 
     return;

@@ -1,9 +1,6 @@
 function ret = check_model_compiles(sys, h, ret)
 %CHECK_MODEL_COMPILES Summary of this function goes here
 %   Detailed explanation goes here
-    ret.compiles = true;
-    ret.compile_exp = [];
-    ret.datatypes = [];
     
     l = logging.getLogger('singlemodel');
     
@@ -44,9 +41,9 @@ function ret = check_model_compiles(sys, h, ret)
             ret.datatypes = all_blocks;
             
         catch e
-            disp(e);
+            utility.print_error(e, l);
             simob.term();
-            error(e.identifier);
+            throw(e);
         end
         
         % Terminate

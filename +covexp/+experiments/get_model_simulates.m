@@ -1,6 +1,6 @@
-function ret = get_model_simulates(sys, h, ret)
+function ret = get_model_simulates(sys, ~, ret)
     l = logging.getLogger('singlemodel');
-    ret = covexp.get_cov_reporttype(ret);
+%     ret = covexp.get_cov_reporttype(ret);
     
     % Does it run within timeout limit?
     sys_src = [ret.loc_input filesep sys covcfg.MODEL_SAVE_EXT];
@@ -9,13 +9,7 @@ function ret = get_model_simulates(sys, h, ret)
         time_start = tic;
         
         simob = utility.TimedSim(sys, covcfg.SIMULATION_TIMEOUT, l);
-        ret.timedout = simob.start();
-
-        if ret.timedout
-            % Close
-            covexp.sys_close(sys);
-            return;
-        end
+        simob.start();
         
         ret.simdur = toc(time_start);
         
@@ -25,7 +19,6 @@ function ret = get_model_simulates(sys, h, ret)
         
     catch e
         ret.exception = true;
-        ret.exception_msg = e.identifier;
         ret.exception_ob = e;
         
         if covcfg.SAVE_ERROR_MODELS

@@ -2,12 +2,7 @@ function ret = do_difftest(sys,~, ret)
 %DO_DIFFTEST Summary of this function goes here
 %   Detailed explanation goes here
 
-ret = covexp.experiments.ds_init.do_difftest(ret);
 l = logging.getLogger('do_difftest');
-
-if covcfg.INIT_DATA_STRUCT_ONLY
-    return;
-end
 
 if covcfg.EXP6_USE_PRE_PROCESSED
     if ret.peprocess_skipped || ret.preprocess_error

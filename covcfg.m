@@ -18,6 +18,7 @@ classdef covcfg < handle
         
         % Instead of running the experiments just init the data structures.
         % Could be helpful to fix missing fields
+        % WARNING not implemented yet
         INIT_DATA_STRUCT_ONLY = false;
         
         %% Experiment Mode (see covexp.Expmode)
@@ -201,6 +202,18 @@ classdef covcfg < handle
 %             'x1246', '',...
 %             'x1391', ''...
 %             );
+
+        %% Internal
+
+        % Data structure initialization for the experiments
+        EXP_INITS = {
+            @covexp.experiments.ds_init.get_coverage            % 1
+            @covexp.experiments.ds_init.check_model_compiles     % 2
+            @emi.preprocess_models_init           % 3
+            @covexp.experiments.ds_init.get_coverage      % 4
+            @(p)p                                         % 5
+            @covexp.experiments.ds_init.do_difftest         % 6
+        };
         
     end
     
