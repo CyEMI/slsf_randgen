@@ -72,7 +72,7 @@ classdef DeadBlockDeleteStrategy < emi.decs.DecoratedMutator
                 try
                     obj.mutant.delete_block(block);
                 catch e
-                    utility.print_error(e, l);
+                    utility.print_error(e, obj.l);
                     error('Error deleting block!');
                 end
             end
@@ -107,13 +107,10 @@ classdef DeadBlockDeleteStrategy < emi.decs.DecoratedMutator
             %%
             
             if reconnect && do_s && do_d
-                obj.l.debug('Will put Data-type converter');
-                try
-                    obj.post_delete_strategy(sources, dests, parent_sys);
-                catch e
-                    utility.print_error(e, l);
-                    error('Error reconnecting');
-                end
+                
+                obj.l.debug('Will reconnect');
+                
+                obj.post_delete_strategy(sources, dests, parent_sys);
                 
                 return;
             elseif ~reconnect

@@ -21,10 +21,11 @@ classdef cfg
         % If any error occurs, replicate the experiment in next run
         REPLICATE_EXP_IF_ANY_ERROR = true;
         
-        % Debug/Interactive mode for a particular subsystem
+        % Debug/Interactive mode for a particular subsystem. Will pause
+        % when mutating any object inside this subsystem
         
-%         DEBUG_SUBSYSTEM = struct('cfblk164', 1);
-        DEBUG_SUBSYSTEM = struct([]); % So that isempty would work
+%         DEBUG_SUBSYSTEM = containers.Map({'cfblk257/cfblk14'}, {1});
+        DEBUG_SUBSYSTEM = containers.Map(); 
         
         %% Stopping when error
         
@@ -37,7 +38,7 @@ classdef cfg
         KEEP_ERROR_MUTANT_PARENT_OPEN = false;
         
         % Break from the main loop if any model mutation errors
-        STOP_IF_ERROR = false;
+        STOP_IF_ERROR = true;
         
         %% Preprocessing %%
         
@@ -57,6 +58,9 @@ classdef cfg
         
         
         MUTANT_PREPROCESSED_FILE_SUFFIX = 'pp';
+        
+        % Don't rely on this extension since this value is cached already
+        % during covcollect process
         MUTANT_PREPROCESSED_FILE_EXT = '.slx';
         
         %% Random numbers and reporting file names
@@ -90,8 +94,13 @@ classdef cfg
         
         %% Mutation: Block delete and reconnection strategies
         
+        MUTATOR_DECORATORS = {
+            @emi.decs.TypeAnnotateEveryBlock
+            @emi.decs.DeleteDeadAddSaturation
+            };
+        
         % Specify input and output data-type of a newly added block in the
-        % compiled data-type registry
+        % compiled data-type registry. Recommended: true
         % Used in cps.SlsfModel::add_block_in_middle
         SPECIFY_NEW_BLOCK_DATATYPE = true;        
         
@@ -103,12 +112,6 @@ classdef cfg
         DEAD_BLOCK_REMOVE_PERCENT = 0.5;
         
         %% Others
-        
-        MUTATOR_DECORATORS = {
-            @emi.decs.TypeAnnotateEveryBlock
-            @emi.decs.DeleteDeadDirectReconnect
-            };
-        
         CPS_TOOL = @cps.SlsfModel;
         
         % Don't delete these blocks during dead block removal

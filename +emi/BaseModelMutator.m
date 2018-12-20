@@ -62,6 +62,8 @@ classdef (Abstract) BaseModelMutator < handle
                         
             original_model_backup = obj.backup_original_model();
             
+            ret = false;
+            
             try
                 ret = obj.process_single_model(false);
             catch e
@@ -109,7 +111,7 @@ classdef (Abstract) BaseModelMutator < handle
         function original_backup = backup_original_model(obj)
             original_backup = [];
             
-            if ~ isempty(emi.cfg.DEBUG_SUBSYSTEM)
+            if ~ emi.cfg.DEBUG_SUBSYSTEM.isempty()
                 original_backup = [obj.sys '_original'];
                 obj.l.info('Keeping original model open for debugging mutants');
                 save_system(obj.sys, [tempdir filesep original_backup]);
@@ -205,6 +207,9 @@ classdef (Abstract) BaseModelMutator < handle
                     );
                 
                 a_mutant.go()
+                
+                obj.end_mutant_callback(a_mutant);
+                
                 obj.result.mutants{i} = a_mutant.r.get_report();
                 
                 obj.save_my_result();
@@ -215,6 +220,10 @@ classdef (Abstract) BaseModelMutator < handle
                     break;
                 end
             end
+        end
+        
+        function end_mutant_callback(obj, mutant) %#ok<INUSD>
+            %% Do something with the mutant -- for subclasses
         end
         
         function aggregate_data_for_mutant_generator(obj)
@@ -244,12 +253,11 @@ classdef (Abstract) BaseModelMutator < handle
             % compiled types
             % TODO to improve performance can merge with previous blocks
             % struct
-            ctypes = struct2table(obj.model_data.datatypes);
-            ctypes = get_nonempty(ctypes);
-            ctypes = remove_model_names(ctypes);
-            
-            obj.compiled_types = ctypes;
-            
+%             ctypes = struct2table(obj.model_data.datatypes);
+%             ctypes = get_nonempty(ctypes);
+%             ctypes = remove_model_names(ctypes);
+%             obj.compiled_types = ctypes;
+            obj.compiled_types = obj.model_data.datatypes;
             % compiled data types
         end
         

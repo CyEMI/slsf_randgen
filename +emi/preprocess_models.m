@@ -18,6 +18,6 @@ mutant_res = mutator.result.mutants{1};
 
 ret.preprocess_error = mutant_res.preprocess_error;
 ret.preprocess_exp = mutant_res.exception;
-
+ret.datatypes = mutator.compiled_types;
 end
 

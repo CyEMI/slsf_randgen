@@ -20,19 +20,19 @@ function ret = check_model_compiles(sys, h, ret)
         try
             blocks = covexp.get_all_blocks(h);
 
-            all_blocks = struct;
+            all_blocks = containers.Map();
 
             for i=1:numel(blocks)
                 cur_blk = blocks(i);
 
                 cur_blk_name = getfullname(cur_blk);
                 
-                all_blocks(i).fullname = cur_blk_name;
-                all_blocks(i).datatype = [];
-                
                 try
                     datatype = get_param(cur_blk_name, 'CompiledPortDataTypes');
-                    all_blocks(i).datatype = datatype;
+                    
+                    cur_blk_name = utility.strip_first_split(cur_blk_name, '/');
+                    
+                    all_blocks(cur_blk_name) = datatype;
                 catch 
                 end
 
