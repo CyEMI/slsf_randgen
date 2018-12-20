@@ -27,7 +27,7 @@ classdef Model < handle
     end
     
     methods
-        function obj = Model(sys, loc, blocks, compiled_types)
+        function obj = Model(sys, loc, blocks, compiled_types, pp_only)
             obj.l = logging.getLogger('CPSMODEL');
             
             obj.sys = sys;
@@ -38,6 +38,12 @@ classdef Model < handle
             
             obj.model_builders = containers.Map();
             obj.rec = utility.cell();
+            
+            if ~ pp_only
+                % Give a different prefix as names may conflict before pp
+                % and after pp
+                obj.newly_added_block_prefix = 'emi';
+            end
         end
         
         function ret = filepath(obj)
@@ -47,6 +53,12 @@ classdef Model < handle
         function ret = filter_block_by_type(obj, blktype)
             %%
             ret = obj.blocks{strcmpi(obj.blocks.blocktype, blktype),1};
+        end
+        
+        function ret = get_new_block_name(obj)
+            %%
+            ret = sprintf('%s_%d', obj.newly_added_block_prefix, obj.newly_added_block_counter);
+            obj.newly_added_block_counter = obj.newly_added_block_counter + 1;
         end
         
         function ret = get_compiled_type(obj, parent, block, porttype, prt)

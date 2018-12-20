@@ -144,11 +144,6 @@ classdef SlsfModel < cps.Model
             obj.l.debug('Added new %s block %s', new_blk_type, n_blk_full);
         end
         
-        function ret = get_new_block_name(obj)
-            %%
-            ret = sprintf('%s_%d', obj.newly_added_block_prefix, obj.newly_added_block_counter);
-            obj.newly_added_block_counter = obj.newly_added_block_counter + 1;
-        end
         
         function ret = get_model_builder(obj, parent)
             %% Create new or get existing ModelBuilder
