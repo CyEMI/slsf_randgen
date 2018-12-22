@@ -32,7 +32,7 @@ classdef covcfg < handle
         % have bug in the code initially. Please experiment with 1-2 models
         % first so that you do not discard many of the cached results for
         % ALL of your models!
-        MAX_NUM_MODEL = 5;
+        MAX_NUM_MODEL = 2;
         
         % Subgrouping is not used for Expmode.All
         SUBGROUP_BEGIN = 101;
@@ -72,17 +72,18 @@ classdef covcfg < handle
         % List of all available experiments. 
         % See at the bottom of this file for details
         EXPERIMENTS = {
-            @covexp.experiments.get_coverage            % 1
+            @covexp.experiments.get_coverage                        % 1
             @covexp.experiments.check_model_compiles     % 2
             @emi.preprocess_models           % 3
             @covexp.experiments.get_model_simulates      % 4
             @covexp.experiments.fix_input_loc    % 5
             @covexp.experiments.do_difftest         % 6
+            @difftest.experiments.comp_with_pp                      % 7
         };
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
 %         DO_THESE_EXPERIMENTS = [1 2 3]; % Multiple experiments
-        DO_THESE_EXPERIMENTS = 3;   % Single experiment
+        DO_THESE_EXPERIMENTS = 7;   % Single experiment
         
         %% Others
         
@@ -133,6 +134,8 @@ classdef covcfg < handle
         % If an EMI-PRE Processed file (with suffix _pp) exists, do
         % differential test ONLY on the _pp version.
         EXP6_USE_PRE_PROCESSED = true;
+        
+        EXP6_COMPARATOR = @difftest.FinalValueComparator;
         
         %% Legacy
         
@@ -212,7 +215,8 @@ classdef covcfg < handle
             @emi.preprocess_models_init           % 3
             @covexp.experiments.ds_init.get_coverage      % 4
             @(p)p                                         % 5
-            @covexp.experiments.ds_init.do_difftest         % 6
+            @covexp.experiments.ds_init.do_difftest                 % 6
+            @covexp.experiments.ds_init.do_difftest                 % 7
         };
         
     end

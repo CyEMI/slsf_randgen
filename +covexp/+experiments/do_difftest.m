@@ -10,7 +10,7 @@ if covcfg.EXP6_USE_PRE_PROCESSED
         return;
     end
     
-    sys = emi.slsf.get_pp_file(sys, ret.loc_input);
+    sys = emi.slsf.get_pp_file(sys, ret.loc_input, ret.sys_ext);
     
     h = load_system(sys); %#ok<NASGU>
 end

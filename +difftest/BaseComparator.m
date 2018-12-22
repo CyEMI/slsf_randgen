@@ -57,26 +57,29 @@ classdef BaseComparator < handle
             ground_exec.last_ok = difftest.ExecStatus.CompDone;
             
             for i = 1: numel(rest_execs)
-                next_exec = rest_execs{i};
+                n_e = rest_execs{i};
                 
-                next_exec.num_signals = 0;
-                next_exec.num_found_signals = 0;
-                next_exec.num_missing_in_base = 0;
+                n_e.num_signals = 0;
+                n_e.num_found_signals = 0;
+                n_e.num_missing_in_base = 0;
                 
-                obj.l.info('Comparing Exec# %d; %s', (i+1), next_exec.id);
+                obj.l.info('Comparing Exec# %d; %s', (i+1), n_e.id);
                 
                 try
-                    obj.compare_single(ground_exec, next_exec, i);
+                    obj.compare_single(ground_exec, n_e, i);
                     
-                    if next_exec.is_ok()
-                        next_exec.last_ok = difftest.ExecStatus.CompDone;
+                    if n_e.is_ok()
+                        n_e.last_ok = difftest.ExecStatus.CompDone;
+                        obj.l.info('All (%d/%d) matched! Skipped in Base: %d',...
+                            n_e.num_found_signals, n_e.num_signals,...
+                            n_e.num_missing_in_base);
                     else
-                        disp(next_exec.get_exception_messages());
+                        obj.l.warn(n_e.get_exception_messages());
                     end
                 catch e
                     obj.l.error('Exception while running comparison!');
                     utility.print_error(e);
-                    next_exec.exception.add(e);
+                    n_e.exception.add(e);
                 end
                 
             end
