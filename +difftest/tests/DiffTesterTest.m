@@ -5,9 +5,13 @@ classdef (SharedTestFixtures={ ...
         matlab.unittest.fixtures.WorkingFolderFixture...
         }) DiffTesterTest < matlab.unittest.TestCase
     %DIFFTESTERTEST Summary of this class goes here
-    %   Detailed explanation goes here
+    %   sampleModel2432_pp* was created by deleting dead blocks and
+    %   directly connecting its predecs and successors, which caused
+    %   mutation in live path.
     
     properties
+        use_cached = true;
+        
         systems = {'sampleModel2432', 'sampleModel2432_pp_1_1'}; % 'sampleModel2432_pp_1_1'
         
         configs = {
@@ -80,7 +84,7 @@ classdef (SharedTestFixtures={ ...
                 }
             };
         
-            testCase.exec(true, 'CachedDiffTestOnlySingleModelOptOnOff', models, confs, 2); 
+            testCase.exec('CachedDiffTestOnlySingleModelOptOnOff', models, confs, 2); 
         end
         
         function testTwoModelsOptimizationOnOff(testCase)
@@ -93,7 +97,7 @@ classdef (SharedTestFixtures={ ...
                 }
             };
         
-            testCase.exec(true, 'CachedTwoModelsOptimizationOnOff', models, confs, 4);
+            testCase.exec('CachedTwoModelsOptimizationOnOff', models, confs, 4);
         end
         
         function testFinalValCompSingleModelOptOnOff(testCase)
@@ -106,7 +110,7 @@ classdef (SharedTestFixtures={ ...
                 }
             };
         
-            r = testCase.exec(true, 'CachedFinalValCompSingleModelOptOnOff', models, confs, 2); 
+            r = testCase.exec('CachedFinalValCompSingleModelOptOnOff', models, confs, 2); 
             
             cf = testCase.comparison(@difftest.FinalValueComparator, {r}, true); 
             
@@ -127,14 +131,31 @@ classdef (SharedTestFixtures={ ...
                 }
             };
         
-            r = testCase.exec(true, 'CachedFinalValCompErrTwoModels', models, confs, 2);
+            r = testCase.exec('CachedFinalValCompErrTwoModels', models, confs, 2);
             
             testCase.comparison(@difftest.FinalValueComparator, {r}, false); 
             
         end
         
+        function testFinalValSuccessSaturation(testCase)
+            %% For now just compare with the PP version
+            % Mutants created by putting saturation block
+            models = {'sampleModel2438', 'sampleModel2438_pp'};
+            confs = {
+                {
+                    difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
+                }
+            };
+        
+%             testCase.use_cached = false;
+            r = testCase.exec('CachedFinalValSuccessSaturation', models, confs, 2);
+            
+            testCase.comparison(@difftest.FinalValueComparator, {r}, true); 
+            
+        end
+        
         function testSameBlockCovAfterPP(testCase)
-            %% Passing
+            %% Won't run
             testCase.assumeFail();
             % This test is probably meeaningless since "Execution Coverage"
             % of a model can change after pre-processing. Imaginge live
@@ -153,7 +174,7 @@ classdef (SharedTestFixtures={ ...
                 confs,@difftest.deadcheck.SimpleExecutor,... % coverage col
                 {@difftest.deadcheck.CoverageDecorator}); 
 
-            r = testCase.run_cached_tester(false, 'CachedSameBlockCovAfterPP', dt);
+            r = testCase.run_cached_tester('CachedSameBlockCovAfterPP', dt);
             
             testCase.comparison(@difftest.deadcheck.CoverageComparator, {r}, false)
             
@@ -163,21 +184,21 @@ classdef (SharedTestFixtures={ ...
     methods
         %% Helper Methods
         
-        function r = run_cached_tester(~, load_cache, cache_name, dt)
+        function r = run_cached_tester(testCase, cache_name, dt)
             
             function ret = inner()
                 dt.go();
                 ret = dt.r;
             end
             
-            r = utility.load_cache_or_run(load_cache, cache_name,...
+            r = utility.load_cache_or_run(testCase.use_cached, cache_name,...
                 utility.dirname(mfilename('fullpath')) , @inner);
         end
         
-        function r = exec(testCase, load_cache, cache_name, models, confs, num_execution)
+        function r = exec(testCase, cache_name, models, confs, num_execution)
             dt = difftest.BaseTester(models, testCase.get_locs(models), confs);
             
-            r = testCase.run_cached_tester(load_cache, cache_name, dt);
+            r = testCase.run_cached_tester(cache_name, dt);
             
             testCase.assertEqual(r.executions.len, num_execution);
             testCase.assertTrue(r.is_ok);
