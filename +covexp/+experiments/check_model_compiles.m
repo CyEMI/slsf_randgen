@@ -1,5 +1,5 @@
 function ret = check_model_compiles(sys, h, ret)
-%CHECK_MODEL_COMPILES Summary of this function goes here
+%CHECK_MODEL_COMPILES Compile model to cache data-types of blocks
 %   Detailed explanation goes here
     
     l = logging.getLogger('singlemodel');

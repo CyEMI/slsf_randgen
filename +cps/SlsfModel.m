@@ -8,7 +8,7 @@ classdef SlsfModel < cps.Model
     
     methods
         function copy_from(obj, src)
-            %%
+            %% Create self copying from `src`
             try
                 cps.top(false, @save_system,...
                     {src, [obj.loc filesep obj.sys]},...
@@ -138,7 +138,7 @@ classdef SlsfModel < cps.Model
             
             for i=1:numel(blk_param_names)
                 p = blk_param_names{i};
-                set_param(h, p, blk_params.(p));
+                obj.set_param(h, p, blk_params.(p));
             end
             
             obj.l.debug('Added new %s block %s', new_blk_type, n_blk_full);
@@ -185,6 +185,10 @@ classdef SlsfModel < cps.Model
             
             obj.l.debug('[X-->Y] In %s, connected %s ---> %s',...
                 this_sys, src, dest);
+        end
+        
+        function set_param(~, slob, k, v)
+            set_param(slob, k, v);
         end
         
         function close_model(obj)

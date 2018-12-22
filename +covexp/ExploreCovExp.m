@@ -6,12 +6,13 @@ classdef ExploreCovExp < covexp.CorpusCovExp
     properties
         EXPLORE_SUBDIRS = true;
         DATA_VAR_NAME = 'generated_model_list';
-        EXPLORE_DIR_LOC = covcfg.EXPLORE_DIR;
+        EXPLORE_DIR_LOC ;
     end
     
     methods
         function obj = ExploreCovExp(varargin)
             obj = obj@covexp.CorpusCovExp(varargin{:});
+            obj.EXPLORE_DIR_LOC = covcfg.EXPLORE_DIR;
             obj.USE_MODELS_PATH = true;
         end
         

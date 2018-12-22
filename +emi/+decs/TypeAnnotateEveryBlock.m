@@ -1,10 +1,12 @@
 classdef TypeAnnotateEveryBlock < emi.decs.DecoratedMutator
-    %TYPEANNOTATEEVERYBLOCK Summary of this class goes here
-    %   Detailed explanation goes here
+    %TYPEANNOTATEEVERYBLOCK Force all block's INPUT data-type
+    %   To prevent data-type back-propagation, place a Data-type Converter
+    %   block before each block's each input port, and fixate the output
+    %   data-type of the DTC block.
     
     methods
         function preprocess_phase(obj) 
-            %% Insert DTC before all blocks all input ports
+            %% Insert DTC before all blocks' all input ports
             target_blocks = obj.mutant.blocks{2:end,1}; % First one is the model itself?
             
             function ret = helper(blkname)

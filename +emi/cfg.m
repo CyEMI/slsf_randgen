@@ -38,7 +38,7 @@ classdef cfg
         KEEP_ERROR_MUTANT_PARENT_OPEN = false;
         
         % Break from the main loop if any model mutation errors
-        STOP_IF_ERROR = true;
+        STOP_IF_ERROR = false;
         
         %% Preprocessing %%
         
@@ -95,7 +95,8 @@ classdef cfg
         %% Mutation: Block delete and reconnection strategies
         
         MUTATOR_DECORATORS = {
-            @emi.decs.TypeAnnotateEveryBlock
+            @emi.decs.FixateDTCOutputDataType               % Pre-process
+            @emi.decs.TypeAnnotateEveryBlock                % Pre-process
             @emi.decs.DeleteDeadAddSaturation
             };
         

@@ -205,6 +205,7 @@ classdef BaseCovExp < handle
             
             if covcfg.PARFOR
                 obj.l.info('No report generated due to PARFOR. Results are cached');
+                covexp_result = [];
                 return;
             end
             
