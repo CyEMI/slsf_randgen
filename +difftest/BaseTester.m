@@ -68,6 +68,9 @@ classdef BaseTester < handle
             
             cf = comparator(obj.r);
             cf.go();
+            
+            % Aggregate
+            obj.r.aggregate_after_comp();
         end
       
         function init_exec_reports(obj)

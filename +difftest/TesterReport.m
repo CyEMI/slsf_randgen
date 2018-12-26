@@ -7,7 +7,9 @@ classdef TesterReport < handle
         % utility.cell elements contain report for each SUT configuration executions
         executions;   
         
-        oks;    % cell. Executions which did not errored.
+        % Executions which did not errored. Would be sent for comparison.
+        % This is populated when calling the aggregator
+        oks;    % cell.
         
         is_ok = false; % ALL executions RAN successfully (NOT checking comparisons)
         
@@ -31,10 +33,8 @@ classdef TesterReport < handle
 
         % Are followings used? Looks like they are not!
         
-        is_comp_ok = false; 
+        is_comp_ok = []; % Will be set to boolean when aggregator runs 
         
-        comp_error_indices;
-        comp_okay_indices;
     end
  
     
@@ -58,15 +58,14 @@ classdef TesterReport < handle
         
         function aggregate_before_comp(obj)
             %% Computes result before running the comparison framework
-            % Currently we stop differential testing when meeting the first
-            % exception. Change this function to return array if we allow
-            % running after the first exception 
+            % This functin is called by BaseTester before running
+            % comparison
             
             okays = utility.cell(obj.executions.len);
             
             for i=1:obj.executions.len
                 cur = obj.executions.get(i);
-                obj.exc_last_ok = cur.last_ok;
+                obj.exc_last_ok.add(cur.last_ok);
                 
                 if ~ cur.is_ok()
                     obj.exception.add( cur.exception);
@@ -80,6 +79,20 @@ classdef TesterReport < handle
             obj.oks = obj.executions.get(okays.get_mat());
             
             obj.is_ok = okays.len == obj.executions.len;
+        end
+        
+        function aggregate_after_comp(obj)
+            obj.is_comp_ok = all(cellfun(@(p)p.is_ok(),obj.oks));
+%             n_oks = numel(obj.oks);
+%             okays = utility.cell(n_oks);
+%             
+%             for i=1:n_oks
+%                 cur = obj.oks{i};
+%                 
+%                 if ~ cur.is_ok()
+%                 else
+%                 end
+%             end
         end
     end
  
