@@ -148,7 +148,8 @@ classdef (Abstract) BaseModelMutator < handle
                 return
             end
             
-            preprocessed_file_name = emi.slsf.get_pp_file(obj.sys, obj.model_data.loc_input);
+            preprocessed_file_name = emi.slsf.get_pp_file(obj.sys,...
+                obj.model_data.loc_input, obj.model_data.sys_ext);
             
             obj.sys = preprocessed_file_name;
         end
@@ -222,6 +223,30 @@ classdef (Abstract) BaseModelMutator < handle
             end
         end
         
+        function ret = run_difftest(obj)
+            %% 
+            % WARNING Assuming all mutants are successfully created
+            ret = [];
+            
+            n_mutants = numel(obj.result.mutants);
+            
+            systems = cell(1 + n_mutants, 1);
+            locs = cell(1 + n_mutants, 1);
+            
+            systems{1} = obj.sys;
+            locs{1} = obj.model_data.input_loc;
+            
+            for i=1:n_mutants
+                systems{i+1} = obj.result.mutants{i}.sys;
+                locs{i+1} = obj.result.mutants{i}.loc;
+            end
+            
+            % Create Differential tester
+            
+            
+        end
+        
+        
         function end_mutant_callback(obj, mutant) %#ok<INUSD>
             %% Do something with the mutant -- for subclasses
         end
@@ -251,14 +276,7 @@ classdef (Abstract) BaseModelMutator < handle
             obj.live = blocks(~deads, :);
             
             % compiled types
-            % TODO to improve performance can merge with previous blocks
-            % struct
-%             ctypes = struct2table(obj.model_data.datatypes);
-%             ctypes = get_nonempty(ctypes);
-%             ctypes = remove_model_names(ctypes);
-%             obj.compiled_types = ctypes;
             obj.compiled_types = obj.model_data.datatypes;
-            % compiled data types
         end
         
         function save_my_result(obj)

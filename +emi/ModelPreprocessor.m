@@ -21,13 +21,15 @@ classdef ModelPreprocessor < emi.BaseModelMutator
             
             obj.init();
             
-            if ~ obj.open_model()
-                return;
+            if obj.open_model()
+                ret = obj.process_single_model(true);
             end
             
-            ret = obj.process_single_model(true);
-
-            obj.close_model();
+            % Don't close the model, would be done by covexp
+            % We have also removed the model path, which may cause covexp
+            % to not work. Add the path back
+            
+            addpath(obj.model_data.loc_input);
         end
     end
     

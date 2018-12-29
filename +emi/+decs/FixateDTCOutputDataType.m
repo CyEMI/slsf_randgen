@@ -2,7 +2,12 @@ classdef FixateDTCOutputDataType < emi.decs.DecoratedMutator
     %FIXATEDTCOUTPUTDATATYPE Fix output data-type of existing DTC blocks
     % The original model's Data-Type Converter (DTC) blocks may get new 
     % output data-type in a mutant and hence change model semantics (e.g.
-    % uints becoming doubles). Prevent such type inference
+    % uints becoming doubles). Prevent such type inference.
+    
+    % This triggers comparison errors between original and mutant. E.g. in
+    % original DTC out type was uint and "actual" value 3.2 would become 3.
+    % However, in mutant the type could be double (3.2) and cause
+    % comparison errors.
     
     methods
         function preprocess_phase(obj)

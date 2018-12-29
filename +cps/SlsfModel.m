@@ -47,6 +47,7 @@ classdef SlsfModel < cps.Model
             obj.add_DTC_in_middle(sources, self_as_destination, parent);
         end
         
+        
         function add_DTC_in_middle(obj, sources, dests, parent_sys)
             blk_type = 'simulink/Signal Attributes/Data Type Conversion';
             
@@ -187,8 +188,36 @@ classdef SlsfModel < cps.Model
                 this_sys, src, dest);
         end
         
-        function set_param(~, slob, k, v)
-            set_param(slob, k, v);
+        function ret = get_block_type(obj, blk)
+            ret = get_param([obj.sys '/' blk], 'BlockType');
+        end
+        
+        function e = set_param(~, slob, k, v, use_try_catch)
+            %% 
+            % When we are not sure whether setting will throw, use
+            % use_try_catch = true
+            
+            e = [];
+            
+            if nargin == 4
+                use_try_catch = false;
+            end
+            
+            do_log = true; %#ok<NASGU>
+            
+            if use_try_catch
+                try
+                    set_param(slob, k, v);
+                catch e
+                    do_log = false; %#ok<NASGU> strcmp(e.identifier, 'SimulinkBlock:Foundation:UdtInvalidValue') == 1
+                end
+                return;
+            else
+                set_param(slob, k, v);
+            end
+            
+            % log
+            
         end
         
         function close_model(obj)

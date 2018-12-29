@@ -27,6 +27,19 @@ classdef cfg
 %         DEBUG_SUBSYSTEM = containers.Map({'cfblk257/cfblk14'}, {1});
         DEBUG_SUBSYSTEM = containers.Map(); 
         
+        %% Differential Testing
+        
+        % Run differential testing after mutation
+        RUN_DIFFTEST = false;
+        
+        % Creates cartesian product
+        SUT_CONFIGS = {
+            {
+%                     difftest.ExecConfig('OptOn', struct('SimCompilerOptimization', 'on')) 
+                difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
+            }
+        };
+        
         %% Stopping when error
         
         % Note: when preprocessing models using the covcollect script,
@@ -95,8 +108,8 @@ classdef cfg
         %% Mutation: Block delete and reconnection strategies
         
         MUTATOR_DECORATORS = {
-            @emi.decs.FixateDTCOutputDataType               % Pre-process
             @emi.decs.TypeAnnotateEveryBlock                % Pre-process
+            @emi.decs.TypeAnnotateByOutDTypeStr              % Pre-process
             @emi.decs.DeleteDeadAddSaturation
             };
         

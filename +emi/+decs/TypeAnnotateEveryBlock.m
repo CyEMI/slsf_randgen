@@ -7,7 +7,7 @@ classdef TypeAnnotateEveryBlock < emi.decs.DecoratedMutator
     methods
         function preprocess_phase(obj) 
             %% Insert DTC before all blocks' all input ports
-            target_blocks = obj.mutant.blocks{2:end,1}; % First one is the model itself?
+            target_blocks = obj.r.blocks_to_annotate; 
             
             function ret = helper(blkname)
                 blkname = [obj.mutant.sys '/' blkname];

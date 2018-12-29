@@ -42,6 +42,12 @@ classdef ReportForMutant < handle
         num_deleted = 0;
         num_skip_delete = 0;
         
+        %% Pre-processing bookkeeping
+        
+        % Some blocks output data types cannot be fixated through the
+        % OutDataTypeStr parameter. List here those. These blocks' output
+        % types will be fixated by placing Data Type Converter
+        blocks_to_annotate; % cell
     end
     
     methods
@@ -65,6 +71,11 @@ classdef ReportForMutant < handle
             obj.l = logging.getLogger('ReportForMutant');
             
             obj.exception = utility.cell();
+            
+            % Assuming all blocks will be type annotated by DTC. A
+            % decorator may override this.
+            % Skip first as it might be the model name
+            obj.blocks_to_annotate = blocks{2:end,1};
             
             % Create mutant data structure
             obj.mutant = cps.SlsfModel(...

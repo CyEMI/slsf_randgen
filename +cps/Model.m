@@ -64,9 +64,16 @@ classdef Model < handle
         function ret = get_compiled_type(obj, parent, block, porttype, prt)
             %% `porttype` can be 'Inport' or 'Outport'
             % `prt` is optional. When omitted returns cell containing all ports.
+            % Either use the parent, block style or set empty to parent. In
+            % that case block is assumed to be the full path except the
+            % model name.
             
-            block_key = utility.strip_first_split([parent '/' block], '/');
-
+            if isempty(parent)
+                block_key = block;
+            else
+                block_key = utility.strip_first_split([parent '/' block], '/');
+            end
+            
             if ~ obj.compiled_types.isKey(block_key)
                 error('Block %s not found in compiled datatypes!', block_key);
             end

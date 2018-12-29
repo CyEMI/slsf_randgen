@@ -78,6 +78,13 @@ classdef cell < handle
             ret = obj.data(1:obj.len);
         end
         
+        function ret = get_cell2D(obj, nr, nc)
+            % Returns row vector
+            ret = obj.get_cell();
+            ret = reshape(ret, nc, nr); % Column major order
+            ret = ret';
+        end
+        
         function ret = get_mat(obj)
             % Returns column vector
             ret = reshape(...
@@ -91,6 +98,15 @@ classdef cell < handle
         end
         
         function obj = extend(obj, other_cell)
+            if iscell(other_cell)
+                
+                for i=1:length(other_cell)
+                    obj.add(other_cell{i});
+                end
+                
+                return;
+            end
+            
             for i=1:other_cell.len
                 obj.add(other_cell.get(i));
             end
