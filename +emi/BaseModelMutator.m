@@ -71,12 +71,23 @@ classdef (Abstract) BaseModelMutator < handle
             catch e
                 obj.add_exception_in_result(e);
                 utility.print_error(e, obj.l);
-                obj.l.error('Error in processing single model!');
-                % Don't rethrow or quit here... may need to clean up!
+                obj.l.error('Error mutating single model!');
+                % Don't rethrow or quit here... need to clean up and
+                % reproduce next time (done by caller)
             end
             
-            if ret
-                obj.run_difftest();
+            % Differential Testing
+            
+            try
+                if ret
+                    obj.run_difftest();
+                end
+            catch e
+                obj.add_exception_in_result(e);
+                utility.print_error(e, obj.l);
+                obj.l.error('Error diff-testing single model!');
+                % Don't rethrow or quit here... need to clean up and
+                % reproduce next time (done by caller)
             end
             
             % Value of ret makes sense only for activities prior to
@@ -263,10 +274,11 @@ classdef (Abstract) BaseModelMutator < handle
                 dt.go(true, emi.cfg.COMPARATOR);
 
                 obj.result.difftest_r = dt.r.get_report();
+                
+                obj.handle_difftest_errors(models);
             catch e
+                disp(e); % For debugging
             end
-            
-            obj.handle_difftest_errors(models);
             
             cellfun(@rmpath,locs,'UniformOutput', false);
             
