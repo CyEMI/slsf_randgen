@@ -9,6 +9,10 @@ classdef SignalLoggerExecutor < difftest.DecoratedExecutor
     methods
         
         function pre_execution(obj)
+            % Need pre-execution becuase we are checking whether the model
+            % would compile after ony changing the SignalLogging attribute.
+            % During differential testing, there can be many other
+            % attributes, e.g. simulation modes
             emi.slsf.signal_logging_setup(obj.hobj.sys);
             save_system(obj.hobj.sys);
             

@@ -30,7 +30,7 @@ classdef cfg
         %% Differential Testing
         
         % Run differential testing after mutation
-        RUN_DIFFTEST = false;
+        RUN_DIFFTEST = true;
         
         % Creates cartesian product
         SUT_CONFIGS = {
@@ -39,6 +39,9 @@ classdef cfg
                 difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
             }
         };
+    
+        % Comparison method
+        COMPARATOR = @difftest.FinalValueComparator;
         
         %% Stopping when error
         
@@ -109,7 +112,7 @@ classdef cfg
         
         MUTATOR_DECORATORS = {
             @emi.decs.TypeAnnotateEveryBlock                % Pre-process
-            @emi.decs.TypeAnnotateByOutDTypeStr              % Pre-process
+            @emi.decs.TypeAnnotateByOutDTypeStr             % Pre-process
             @emi.decs.DeleteDeadAddSaturation
             };
         

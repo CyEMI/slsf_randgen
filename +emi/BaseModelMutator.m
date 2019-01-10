@@ -4,6 +4,8 @@ classdef (Abstract) BaseModelMutator < handle
     %   BaseMutantGenerator implementations. 
     % By default, does not do preprocessing. Assuming this is done by a
     % subclass
+    % Reporting:
+    % During mutant genration: saving after every mutant
     
     properties
         result;
@@ -72,6 +74,13 @@ classdef (Abstract) BaseModelMutator < handle
                 obj.l.error('Error in processing single model!');
                 % Don't rethrow or quit here... may need to clean up!
             end
+            
+            if ret
+                obj.run_difftest();
+            end
+            
+            % Value of ret makes sense only for activities prior to
+            % difftest, i.e. up to mutant creation.
             
             if ~ ret && emi.cfg.KEEP_ERROR_MUTANT_PARENT_OPEN
                obj.open_model(true); 
@@ -166,12 +175,9 @@ classdef (Abstract) BaseModelMutator < handle
             
             opens = true;
             addpath(obj.model_data.loc_input);
+            
             try
-                if use_open_system
-                    open_system(obj.sys);
-                else
-                    emi.open_or_load_model(obj.sys);
-                end
+                emi.open_or_load_model(obj.sys, use_open_system);
             catch e
                 opens = false;
                 obj.l.error('Model did not open');
@@ -213,6 +219,7 @@ classdef (Abstract) BaseModelMutator < handle
                 
                 obj.result.mutants{i} = a_mutant.r.get_report();
                 
+                % Saving after every mutant
                 obj.save_my_result();
                 
                 if ~ a_mutant.r.is_ok
@@ -223,27 +230,62 @@ classdef (Abstract) BaseModelMutator < handle
             end
         end
         
-        function ret = run_difftest(obj)
-            %% 
-            % WARNING Assuming all mutants are successfully created
-            ret = [];
+        function run_difftest(obj)
+            %%
             
-            n_mutants = numel(obj.result.mutants);
-            
-            systems = cell(1 + n_mutants, 1);
-            locs = cell(1 + n_mutants, 1);
-            
-            systems{1} = obj.sys;
-            locs{1} = obj.model_data.input_loc;
-            
-            for i=1:n_mutants
-                systems{i+1} = obj.result.mutants{i}.sys;
-                locs{i+1} = obj.result.mutants{i}.loc;
+            if ~ emi.cfg.RUN_DIFFTEST
+                return;
             end
+            
+            obj.result.difftest_ran = true;
+            
+            obj.l.info('--- Preparing to run DIFFERENTIAL TESTING --');
+            
+            % Append baseline model before all valid mutants
+            
+            T = [{struct('sys', obj.sys, 'loc', obj.model_data.loc_input)},...
+                obj.result.valid_mutants()];
             
             % Create Differential tester
             
+            locs = cellfun(@(p)p.loc, T, 'UniformOutput', false);
+            models = cellfun(@(p)p.sys, T, 'UniformOutput', false);
             
+            cellfun(@addpath,locs,'UniformOutput', false);
+            
+            e = [];
+            
+            try
+                dt = difftest.BaseTester(models,...
+                    locs,...
+                    emi.cfg.SUT_CONFIGS);
+
+                dt.go(true, emi.cfg.COMPARATOR);
+
+                obj.result.difftest_r = dt.r.get_report();
+            catch e
+            end
+            
+            obj.handle_difftest_errors(models);
+            
+            cellfun(@rmpath,locs,'UniformOutput', false);
+            
+            obj.save_my_result();
+            
+            if ~isempty(e)
+                rethrow(e);
+            end
+            
+            obj.l.info('--- DIFFTEST DONE! ---');
+        end
+        
+        function handle_difftest_errors(obj, models)
+            %% DiffTest error occured. Re-open models for investigation
+            if obj.result.difftest_ok() || ~ emi.cfg.KEEP_ERROR_MUTANT_PARENT_OPEN
+                return;
+            end
+            
+            cellfun(@(p)emi.open_or_load_model(p, true), models);
         end
         
         

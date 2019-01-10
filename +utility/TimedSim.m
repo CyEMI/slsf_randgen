@@ -17,10 +17,11 @@ classdef TimedSim < handle
             obj.duration = duration;
             obj.l = loggerOb;
             
-            obj.simargs = struct;
+            obj.simargs = covcfg.SIMULATION_ARGS;
             
             if nargin >= 4
-                obj.simargs = varargin{1};
+                obj.simargs = utility.merge_structs(...
+                    {obj.simargs, varargin{1}});
             end
         end
         

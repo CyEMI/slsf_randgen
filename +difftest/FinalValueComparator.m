@@ -3,7 +3,7 @@ classdef FinalValueComparator < difftest.BaseComparator
     %   Detailed explanation goes here
     
     properties
-        
+        compare_len = false;
     end
     
     methods
@@ -49,11 +49,12 @@ classdef FinalValueComparator < difftest.BaseComparator
                 num_time_1 = numel(data_1.Time);
                 num_time_2 = numel(data_2.Time);
                 
-                if num_data_1 ~= num_data_2 || num_time_1 ~= num_time_2
-                    obj.l.error('Time or data len mismatch');
+                if obj.compare_len && ...
+                        (num_data_1 ~= num_data_2 || num_time_1 ~= num_time_2)
+                    obj.l.error('Time/data len mismatch');
                     e =  MException('RandGen:SL:CompareErrorLen',...
-                        sprintf('Len mismatch: data1: %d; data2: %d; time1: %d; time2:%d',...
-                        num_data_1, num_data_2, num_time_1, num_time_2)) ;
+                        sprintf('Len mismatch %s: data1: %d; data2: %d; time1: %d; time2:%d',...
+                        bl_name, num_data_1, num_data_2, num_time_1, num_time_2)) ;
                     
                     obj.handle_comp_err(obj.r.comp_diffs, bl_name,...
                         next_exec, [], [], e, next_exec_idx);
@@ -69,8 +70,8 @@ classdef FinalValueComparator < difftest.BaseComparator
                     else
                         obj.l.error('Data Mismatch!');
                         e = MException('RandGen:SL:CompareErrorData',...
-                                sprintf('Data mismatch: data1: %f; data2: %f; len1: %d; len2:%d',...
-                                d_1, d_2, num_data_1, num_data_2 )) ;
+                                sprintf('Data mismatch %s: data1: %f; data2: %f; len1: %d; len2:%d',...
+                                bl_name, d_1, d_2, num_data_1, num_data_2 )) ;
                             
                         obj.handle_comp_err(obj.r.comp_diffs, bl_name,...
                         next_exec, d_1, d_2, e, next_exec_idx);
@@ -82,8 +83,8 @@ classdef FinalValueComparator < difftest.BaseComparator
                     else
                         obj.l.error('Time Mismatch!');
                         e = MException('RandGen:SL:CompareErrorTime',...
-                                sprintf('Time mismatch: time1: %f; time2: %f; len1: %d; len2:%d',...
-                                t_1, t_2, num_time_1, num_time_2 )) ;
+                                sprintf('Time mismatch %s: time1: %f; time2: %f; len1: %d; len2:%d',...
+                                bl_name, t_1, t_2, num_time_1, num_time_2 )) ;
                             
                         obj.handle_comp_err(obj.r.comp_diffs, bl_name,...
                         next_exec, t_1, t_2, e, next_exec_idx);

@@ -11,6 +11,7 @@ classdef DeleteDeadAddSaturation < emi.decs.DeadBlockDeleteStrategy
             function blk_config_params = helper(blk_config_params, ~)
                 blk_config_params.UpperLimit = '0';
                 blk_config_params.LowerLimit = '0';
+                blk_config_params.ZeroCross = 'off';
             end
             
             ret = obj.mutant.add_block_in_middle(sources, dests, parent,...

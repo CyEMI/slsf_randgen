@@ -16,10 +16,11 @@ classdef covcfg < handle
         % the list generated during last experiment.
         GENERATE_MODELS_LIST = true;
         
-        % Instead of running the experiments just init the data structures.
-        % Could be helpful to fix missing fields
-        % WARNING not implemented yet
-        INIT_DATA_STRUCT_ONLY = false;
+        % Use Parallel Computing Toolbox
+        % Set false when aggregating results or debugging. If set to true,
+        % will  process inidivual models paralelly. Results willb be cached
+        % for each file, but no aggregated report will be generated.
+        PARFOR = false;
         
         %% Experiment Mode (see covexp.Expmode)
         
@@ -74,16 +75,16 @@ classdef covcfg < handle
         EXPERIMENTS = {
             @covexp.experiments.get_coverage                        % 1
             @covexp.experiments.check_model_compiles                % 2
-            @emi.preprocess_models           % 3
-            @covexp.experiments.get_model_simulates      % 4
-            @covexp.experiments.fix_input_loc    % 5
-            @covexp.experiments.do_difftest         % 6
+            @emi.preprocess_models                                  % 3
+            @covexp.experiments.get_model_simulates                 % 4
+            @covexp.experiments.fix_input_loc                       % 5
+            @covexp.experiments.do_difftest                         % 6
             @difftest.experiments.comp_with_pp                      % 7
         };
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
-        DO_THESE_EXPERIMENTS = [3 7]; % Multiple experiments
-%         DO_THESE_EXPERIMENTS = 3;   % Single experiment
+%         DO_THESE_EXPERIMENTS = [3 7]; % Multiple experiments
+        DO_THESE_EXPERIMENTS = 5;   % Single experiment
         
         %% Others
         
@@ -99,8 +100,6 @@ classdef covcfg < handle
         OPEN_MODELS = false;
         CLOSE_MODELS = true;
         
-        % Will use parfor
-        PARFOR = false;        
         
         %% Experiment 4 (Checking models which simulate) %%%%%%%%%%%%%%%
         
@@ -153,6 +152,12 @@ classdef covcfg < handle
         CACHE_DIR = 'covexp_results_cache';
         
         %% Less commonly used, very unlikely that someone would change
+        
+        % Note: this affects all simulation run by utility.TimedSim, unless
+        % overriden by its constructor parameter
+        
+        SIMULATION_ARGS = struct('UnconnectedOutputMsg', 'none',...
+            'UnconnectedInputMsg', 'none');
         
         % Write experiment result in this file
         RESULT_FILE = ['workdata' filesep 'cov_exp_result'];

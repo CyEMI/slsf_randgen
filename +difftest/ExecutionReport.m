@@ -104,12 +104,9 @@ classdef ExecutionReport < handle
             assert(obj.configs.len > 0);
         end
         
-        function ret = get_report(obj) %#ok<STOUT,MANU>
+        function ret = get_report(obj)
             %%
-            error('Dead Code');
-            ret = utility.get_struct_from_object(obj); %#ok<UNRCH>
-            ret.last_ok_int = uint(obj.last_ok);
-            ret.success = obj.is_ok();
+            ret = utility.get_struct_from_object(obj);
         end
         
         function throw_comp_error(obj)

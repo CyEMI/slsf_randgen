@@ -120,6 +120,15 @@ classdef cell < handle
             ret = obj.len;
         end
         
+        function ret = map(obj, fun, uni_out)
+            % Apply cellfun
+            if nargin == 2
+                uni_out = true;
+            end
+            
+            ret = cellfun(fun, obj.get_cell(), 'UniformOutput', uni_out);
+        end
+        
         function obj = print_all(obj, header)
             
             if ~ isempty(header)

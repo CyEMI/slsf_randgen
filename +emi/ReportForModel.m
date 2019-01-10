@@ -7,10 +7,23 @@ classdef ReportForModel < handle
         exp_no;
         m_id;
         opens = [];
-        exception = [];
+        exception = []; 
         exception_id = [] ;
-        mutants = [] ;
+        
+        % Report for all generated mutants (before differential testing)
+        % cell, initialized by client (e.g. BaseModelMutator)
+        % Contains structs, not actual emi.ReportForMutant objects
+        mutants = [] ; 
         exception_ob = [] ;
+        
+        % After differential testing
+        
+        % Was differential testing called?
+        difftest_ran = false;
+        
+        % Instance of difftest.TesterReport. Already aggregated by
+        % difftest.BaseTester (its go method)
+        difftest_r;
     end
     
     methods
@@ -29,11 +42,11 @@ classdef ReportForModel < handle
             
             if ~isempty(obj.exception) && obj.exception
                 ret = false;
-                return;
             end
         end
         
         function ret = are_mutants_ok(obj)
+            % Checks if ALL mutant generations are ok (not diff. testing)
             ret = true;
             
             if isempty(obj.mutants)
@@ -41,6 +54,18 @@ classdef ReportForModel < handle
             end
             
             ret = all(cellfun(@(p)isempty(p.exception),obj.mutants));
+        end
+        
+        function ret = difftest_ok(obj)
+            % If difftest - before comparison and after comparison ok
+            ret = ~ obj.difftest_ran || (...
+                obj.difftest_r.is_ok && obj.difftest_r.is_comp_ok...
+                );
+        end
+        
+        function ret = valid_mutants(obj)
+            ret = obj.mutants(cellfun(@(m)isempty(m.exception),...
+                obj.mutants));
         end
         
     end

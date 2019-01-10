@@ -23,7 +23,7 @@ try
     
     dt.go(true, covcfg.EXP6_COMPARATOR);
     
-    ret.difftest = dt.r;
+    ret.difftest = dt.r.get_report();
 catch e
     difftest_exception = e;
 end

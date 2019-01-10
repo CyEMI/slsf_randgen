@@ -4,14 +4,19 @@ classdef TesterReport < handle
     
     properties
         %% Prior to comparison
-        % utility.cell elements contain report for each SUT configuration executions
+        % utility.cell elements contain report for each SUT 
+        % configuration executions. After get_report call becomes cell
         executions;   
         
         % Executions which did not errored. Would be sent for comparison.
-        % This is populated when calling the aggregator
+        % This is populated when calling the aggregator. Will not be
+        % available in the final report to reduce memory usage, and only
+        % indices will be available in oks_idx field.
         oks;    % cell.
+        oks_idx; % matrix
         
-        is_ok = false; % ALL executions RAN successfully (NOT checking comparisons)
+        % ALL executions RAN successfully (NOT checking comparisons)
+        is_ok = false; 
         
         exception;      % utility.cell
         
@@ -51,6 +56,15 @@ classdef TesterReport < handle
             obj.comp_diffs = containers.Map;
         end
         
+        function ret = get_report(obj)
+            ret = utility.get_struct_from_object(obj, containers.Map(...
+                {'oks', 'executions'}, {1, 1}));
+            
+            if ~ isempty(obj.oks)
+                ret.executions = obj.executions.map(@(p)p.get_report(), false);
+            end
+        end
+        
         function ret = are_oks_ok(obj)
             %%
             ret = all(cellfun(@(p)p.is_ok() , obj.oks));
@@ -76,6 +90,7 @@ classdef TesterReport < handle
                 end
             end
             
+            obj.oks_idx = okays.get_mat();
             obj.oks = obj.executions.get(okays.get_mat());
             
             obj.is_ok = okays.len == obj.executions.len;

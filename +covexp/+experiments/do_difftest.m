@@ -21,7 +21,7 @@ try
     
     dt = difftest.BaseTester({sys}, {ret.loc_input}, covcfg.EXP6_CONFIGS);
     dt.go();
-    ret.difftest = dt.r;
+    ret.difftest = dt.r.get_report();
 catch e
     difftest_exception = e;
 end

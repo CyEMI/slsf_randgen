@@ -11,9 +11,7 @@ classdef (SharedTestFixtures={ ...
     
     properties
         use_cached = true;
-        
-        systems = {'sampleModel2432', 'sampleModel2432_pp_1_1'}; % 'sampleModel2432_pp_1_1'
-        
+                
         configs = {
             {
                 difftest.ExecConfig('Nrml', struct('SimulationMode', 'normal')) 
@@ -27,26 +25,43 @@ classdef (SharedTestFixtures={ ...
     end
     
     methods(TestClassSetup) % Only once for all methods
-%         function open_systems(testCase)
-%             for i=1:numel(testCase.systems)
-%                 load_system(testCase.systems{i});
-%                 fprintf('Loaded %s\n', testCase.systems{i});
-%             end
-%         end
+
     end
  
     methods(TestClassTeardown)
-        function close_systems(testCase)
-            for i=1:numel(testCase.systems)
-                bdclose(testCase.systems{i});
-            end
-        end
+
     end
     
     methods(Test)
         %% Test Cases
+        
+        function testComparisonCheck(testCase)
+            %% For quick testing and investigation. Comment out below line
+            % Put models in the tmp directory
+%             testCase.assumeFail();
+            
+            mdl_path = fullfile(utility.dirname(mfilename('fullpath')), 'tmp');
+
+            testCase.addpath({mdl_path});
+            
+            models = {'sampleModel2403_pp_difftest', 'sampleModel2403_pp_1_1_difftest'};
+            confs = {
+                {
+                    difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
+                }
+            };
+        
+%             testCase.use_cached = false;
+            r = testCase.exec('tmpCachedComparisonCheck', models, confs, 2);
+            
+            testCase.comparison(@difftest.FinalValueComparator, {r}, false); 
+            
+        end
+        
         function testConfigBuilding(testCase)
             %%
+            
+            systems = {'sampleModel2432', 'sampleModel2432_pp_1_1'};
             confs = {
                 {
                     difftest.ExecConfig('Nrml', struct('SimulationMode', 'normal')) 
@@ -59,7 +74,7 @@ classdef (SharedTestFixtures={ ...
                 }
             };
             
-            dt = difftest.BaseTester(testCase.systems, testCase.get_locs(testCase.systems), confs);
+            dt = difftest.BaseTester(systems, testCase.get_locs(systems), confs);
             dt.init_exec_reports();
             
             testCase.verifyEqual(dt.r.executions.len, 12, 'Cartesian product size incorrect');
@@ -204,8 +219,8 @@ classdef (SharedTestFixtures={ ...
             testCase.assertTrue(r.is_ok);
         end
         
-        function ret = get_locs(~, models)
-            cellfun(@(p)emi.open_or_load_model(p), models);
+        function ret = get_locs(testCase, models)
+            testCase.open_sys(models);
             ret = cellfun(@(p)utility.strip_last_split(get_param(p, 'FileName'), filesep), models, 'UniformOutput', false);
         end
         
@@ -214,6 +229,16 @@ classdef (SharedTestFixtures={ ...
             cf.go();
             
             testCase.assertEqual(cf.r.are_oks_ok(), expected);
+        end
+        
+        function addpath(testCase, mdl_path)
+            testCase.addTeardown(@rmpath, mdl_path{:});
+            addpath(mdl_path{:});
+        end
+        
+        function open_sys(testCase, models)
+            testCase.addTeardown(@emi.close_models, models);
+            cellfun(@emi.open_or_load_model, models);
         end
     end
 end

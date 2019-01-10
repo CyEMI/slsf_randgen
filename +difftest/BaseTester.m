@@ -1,6 +1,7 @@
 classdef BaseTester < handle
-    %BASETESTER Summary of this class goes here
-    %   Detailed explanation goes here
+    %BASETESTER Main class to initiate differential testing
+    %   Note: models should already be loaded. This class neither loads or
+    %   closes the models.
     
     properties
         %%

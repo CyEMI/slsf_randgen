@@ -29,6 +29,9 @@ classdef BaseMainLoop < handle
         function go(obj)
             obj.l.info('--- Starting Main Loop! ---')
             
+            sw = utility.SuppressWarnings();
+            sw.set_val('off');
+            
             emi.cfg.validate_configurations();
             
             obj.init();
@@ -52,6 +55,8 @@ classdef BaseMainLoop < handle
                 obj.save_rng_state_for_model_list(true);
             end
             
+            sw.restore();
+            
             obj.l.info('--- Returning from Main Loop! ---');
         end
     end
@@ -59,9 +64,14 @@ classdef BaseMainLoop < handle
     methods(Access = protected)
         
         function load_models_list(obj)
+            % % takes ~50 sec for 50MB file!
+            obj.l.info('Reading cached data from disc...');
             read_data = load(obj.model_list);
+            obj.l.info('Read completed.');
+            
             models_data = read_data.(obj.data_var_name);
-            obj.models = struct2table(models_data.models);
+            obj.models = models_data.models;
+            
         end
         
         function init(obj)
@@ -131,7 +141,10 @@ classdef BaseMainLoop < handle
                 for i=1:num_models
                     obj.l.info(sprintf('Processing %d of %d models', i, num_models));
                     a_result = emi.mutate_single_model(i, models_cpy(i, :), obj.exp_data);
-                    ret(i) = a_result.is_ok() && a_result.are_mutants_ok();
+                    
+                    ret(i) = a_result.is_ok() &&...
+                        a_result.are_mutants_ok() && ...
+                        a_result.difftest_ok();
                     
                     if emi.cfg.STOP_IF_ERROR && ~ret(i)
                         obj.l.error('Breaking from MAIN LOOP since model/mutant error');
