@@ -18,7 +18,7 @@ classdef ExecutionReport < handle
         
         exception;          % Exceptions (utility.cell)
         
-        preexec_file = [];
+        preexec_file = [];  % Freshly created pre-execution file
         
         %% Comparison Related
         

@@ -106,7 +106,7 @@ classdef BaseExecutor < utility.DecoratorClient
         function pre_execution_wrapper(obj)
             % Change/decorate model before execution 
             
-            if obj.resuse_pre_exec
+            if obj.resuse_pre_exec || isempty(obj.exec_report.preexec_file)
                 return;
             end
             
