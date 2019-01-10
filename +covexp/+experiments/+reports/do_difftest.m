@@ -23,7 +23,9 @@ for i=1:numel(data)
        skipped(i) = false;
        is_exception(i) = ~ cur.is_ok;
        
-       is_comp_e(i) = ~ cur.is_comp_ok;
+       if ~ isempty(cur.is_comp_ok)
+        is_comp_e(i) = ~ cur.is_comp_ok;
+       end
        
        % cur.exc_last_ok is now a cell, following won't make sense
 %        ok_phases(i) = uint32(cur.exc_last_ok);

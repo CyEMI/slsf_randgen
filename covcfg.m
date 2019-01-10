@@ -84,7 +84,7 @@ classdef covcfg < handle
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
 %         DO_THESE_EXPERIMENTS = [3 7]; % Multiple experiments
-        DO_THESE_EXPERIMENTS = 5;   % Single experiment
+        DO_THESE_EXPERIMENTS = 6;   % Single experiment
         
         %% Others
         
@@ -123,11 +123,16 @@ classdef covcfg < handle
         
         %% Exp 6 (Differential Testing)
         
+%         EXP6_CONFIGS = {
+%                 {
+% %                     difftest.ExecConfig('OptOn', struct('SimCompilerOptimization', 'on')) 
+%                     difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
+%                 }
+%             };
+        
         EXP6_CONFIGS = {
-                {
-%                     difftest.ExecConfig('OptOn', struct('SimCompilerOptimization', 'on')) 
-                    difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
-                }
+            {difftest.ec.solver_var, difftest.ec.solver_fix}
+            {difftest.ec.opt_off}
             };
         
         % If an EMI-PRE Processed file (with suffix _pp) exists, do
