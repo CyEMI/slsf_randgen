@@ -64,14 +64,13 @@ classdef BaseMainLoop < handle
     methods(Access = protected)
         
         function load_models_list(obj)
-            % % takes ~50 sec for 50MB file!
+            % takes ~1min to load 50 mb (==50 models) from disc!
             obj.l.info('Reading cached data from disc...');
             read_data = load(obj.model_list);
             obj.l.info('Read completed.');
             
             models_data = read_data.(obj.data_var_name);
-            obj.models = models_data.models;
-            
+            obj.models = struct2table(models_data.models);
         end
         
         function init(obj)
