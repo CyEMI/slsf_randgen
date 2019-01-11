@@ -1,6 +1,8 @@
 function [ ret ] = report( varargin )
-%REPORT See reports for covcollect
+%REPORT Generate reports for covcollect
 %   varargin{1}: file to load for report
+% varargin{2} additional functions to call with the `covexp_results`
+% argument.
 covexp.addpaths();
 
 ret = [];

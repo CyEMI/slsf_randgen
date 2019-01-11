@@ -4,5 +4,6 @@ function ret = preprocess_models_init(ret)
 ret.preprocess_error = false; % If a model is skipped, it is not error
 ret.preprocess_exp = [];
 ret.peprocess_skipped = true;
+ret.pp_duration = [];
 end
 

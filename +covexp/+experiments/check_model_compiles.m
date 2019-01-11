@@ -6,6 +6,8 @@ function ret = check_model_compiles(sys, h, ret)
     
     simob = utility.TimedSim(sys, covcfg.SIMULATION_TIMEOUT, l);
     
+    my_tic = tic();
+    
     try
         simob.start(true);
     catch e
@@ -13,6 +15,7 @@ function ret = check_model_compiles(sys, h, ret)
         ret.compile_exp = e;
     end
     
+    e = [];
     
     if ret.compiles
         % Collect compiled data types for blocks
@@ -42,8 +45,6 @@ function ret = check_model_compiles(sys, h, ret)
             
         catch e
             utility.print_error(e, l);
-            simob.term();
-            throw(e);
         end
         
         % Terminate
@@ -51,5 +52,10 @@ function ret = check_model_compiles(sys, h, ret)
         
     end % compiles
     
+    ret.compile_dur = toc(my_tic);
+    
+    if ~ isempty(e)
+        rethrow(e);
+    end
 end
 

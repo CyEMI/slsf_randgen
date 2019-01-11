@@ -8,6 +8,8 @@ end
 
 ret.peprocess_skipped = false;
 
+pp_start = tic;
+
 model_data = struct2table(ret, 'AsArray', true);
 
 mutator = emi.ModelPreprocessor(model_data);
@@ -19,5 +21,6 @@ mutant_res = mutator.result.mutants{1};
 ret.preprocess_error = mutant_res.preprocess_error;
 ret.preprocess_exp = mutant_res.exception;
 ret.datatypes = mutator.compiled_types;
+ret.pp_duration = toc(pp_start);
 end
 

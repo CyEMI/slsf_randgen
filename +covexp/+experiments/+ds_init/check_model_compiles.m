@@ -5,5 +5,6 @@ function ret = check_model_compiles(ret)
 ret.compiles = true;
 ret.compile_exp = [];
 ret.datatypes = [];
+ret.compile_dur = [];
 end
 

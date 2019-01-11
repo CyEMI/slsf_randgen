@@ -6,7 +6,7 @@ Simulink models (aka Model), cache them and aggregate results
 Results on individual Models are cached in the disc with the `covdata.mat`
 suffix
 
-### Why covexp?
+### Why call `covexp`?
 
 We initially creatd the package to experiment with Model coverage. 
 Now this is used for other types of experiments with the Models
@@ -43,3 +43,8 @@ Next, copy the tar.bz2 file in your machine and extract:
 Since the cached `covdata.mat` files were created in a different machine, 
 they contain absolute directory locations for that machine. To fix these,
 run the `fix_input_loc` (5th) experiment
+
+## Results
+
+- `simdur` : duration to simulate the original model
+- `duration` : duration to collect coverage
