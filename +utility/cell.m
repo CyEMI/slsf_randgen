@@ -65,17 +65,25 @@ classdef cell < handle
         
         
         function ret = get(obj, indx)
+            % Returns scalar if `indx` is scalar else cell.
+            % If you are unsure whether `indx` is scalar and would always
+            % want a cell as return value, use `get_cell`
             if isscalar(indx)
                 ret = obj.data{indx};
             else
-                ret = obj.get_cell();
-                ret = ret(indx);
+                ret = obj.get_cell(indx);
             end
         end
         
-        function ret = get_cell(obj)
-            % Returns row vector
-            ret = obj.data(1:obj.len);
+        function ret = get_cell(obj, indx)
+            % Returns cell of the entire container if `indx` is missing.
+            % Else only those elements whose indices are in `indx` array
+            
+            if nargin == 2  % selective
+                ret = obj.data(indx);
+            else            % entire collection 
+                ret = obj.data(1:obj.len);
+            end
         end
         
         function ret = get_cell2D(obj, nr, nc)

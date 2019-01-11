@@ -105,7 +105,9 @@ classdef ExecutionReport < handle
         end
         
         function ret = get_report(obj)
-            %%
+            %% Prepares report to store in disc.
+            % Currently creates large files. Consider not storing signal
+            % values, e.g. when pre-processing?
             ret = utility.get_struct_from_object(obj);
         end
         

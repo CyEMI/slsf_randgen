@@ -1,5 +1,5 @@
 classdef TesterReport < handle
-    %TESTERREPORT Summary of this class goes here
+    %TESTERREPORT Result of one BaseTester operation
     %   Detailed explanation goes here
     
     properties
@@ -66,7 +66,9 @@ classdef TesterReport < handle
         end
         
         function ret = are_oks_ok(obj)
-            %%
+            %% Whether all COMPARISONS ran successfully
+            % `oks` data structure contains executions which compiled and
+            % executed successfully and was eventually sent to diff-test.
             ret = all(cellfun(@(p)p.is_ok() , obj.oks));
         end
         
@@ -84,14 +86,14 @@ classdef TesterReport < handle
                 if ~ cur.is_ok()
                     obj.exception.add( cur.exception);
                     obj.exc_config.add( i);
-                    obj.exc_shortname.add( cur.shortname);
+                    obj.exc_shortname.add( cur.id);
                 else
                     okays.add(i);
                 end
             end
             
             obj.oks_idx = okays.get_mat();
-            obj.oks = obj.executions.get(okays.get_mat());
+            obj.oks = obj.executions.get_cell(obj.oks_idx);
             
             obj.is_ok = okays.len == obj.executions.len;
         end
