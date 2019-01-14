@@ -5,6 +5,8 @@ mutator = emi.SimpleModelMutator(exp_data, exp_no, model_data);
 
 mutator.go();
 
-ret = mutator.result;
+ret = mutator.result.is_ok() &&...
+    mutator.result.are_mutants_ok() && ...
+    mutator.result.difftest_ok();
 end
 

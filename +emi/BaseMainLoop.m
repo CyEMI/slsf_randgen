@@ -29,6 +29,8 @@ classdef BaseMainLoop < handle
         function go(obj)
             obj.l.info('--- Starting Main Loop! ---')
             
+            tic_rec = tic();
+            
             sw = utility.SuppressWarnings();
             sw.set_val('off');
             
@@ -57,6 +59,9 @@ classdef BaseMainLoop < handle
             
             sw.restore();
             
+            total_dur = toc(tic_rec);
+            
+            obj.l.info('Total runtime %f second', total_dur);
             obj.l.info('--- Returning from Main Loop! ---');
         end
     end
@@ -127,23 +132,29 @@ classdef BaseMainLoop < handle
                 randi([1, size(obj.models, 1)], 1, emi.cfg.NUM_MAINLOOP_ITER), :);
         end
         
+        function ret = is_a_model_ok(~, a_result)
+            ret = a_result.is_ok() &&...
+                a_result.are_mutants_ok() && ...
+                a_result.difftest_ok();
+        end
+        
         function ret = process_all_models(obj)
             models_cpy = obj.models;
+            exp_data_cpy = obj.exp_data;
             
             num_models = size(models_cpy, 1);
             
             ret = zeros(num_models, 1);
             
             if emi.cfg.PARFOR
-                error('TODO');
+                parfor i=1:num_models
+                    fprintf('<<PARFOR>> Processing %d of %d models', i, num_models);
+                    ret(i) = emi.mutate_single_model(i, models_cpy(i, :), exp_data_cpy);
+                end
             else
                 for i=1:num_models
                     obj.l.info(sprintf('Processing %d of %d models', i, num_models));
-                    a_result = emi.mutate_single_model(i, models_cpy(i, :), obj.exp_data);
-                    
-                    ret(i) = a_result.is_ok() &&...
-                        a_result.are_mutants_ok() && ...
-                        a_result.difftest_ok();
+                    ret(i) = emi.mutate_single_model(i, models_cpy(i, :), exp_data_cpy);
                     
                     if emi.cfg.STOP_IF_ERROR && ~ret(i)
                         obj.l.error('Breaking from MAIN LOOP since model/mutant error');

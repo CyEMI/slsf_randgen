@@ -5,16 +5,16 @@ classdef cfg
     properties(Constant = true)
         %% Commonly used 
         
-        NUM_MAINLOOP_ITER = 1;
+        NUM_MAINLOOP_ITER = 200;
         
-        PARFOR = false;
+        PARFOR = true;
         
         % Load previously saved random number seed. This would NOT
         % reproduce previous experiment results, but useful for actually
         % running this tool 24/7 and doing new stuff everytime the script
         % is run.
         
-        LOAD_RNG_STATE = true;
+        LOAD_RNG_STATE = false;
         
         INTERACTIVE_MODE = false;
         
@@ -30,7 +30,7 @@ classdef cfg
         %% Differential Testing
         
         % Run differential testing after mutation
-        RUN_DIFFTEST = true;
+        RUN_DIFFTEST = false;
         
         % Creates cartesian product
         SUT_CONFIGS = {

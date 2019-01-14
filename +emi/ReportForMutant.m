@@ -39,9 +39,11 @@ classdef ReportForMutant < handle
         live_blocks;        % Of original model
         
         % stats
-        num_deleted = 0;
+        num_deleted = 0;  % dead blocks which were deleted
         num_skip_delete = 0;
         
+        % Total time spent (except compilation/execution)
+        duration = 0;
         %% Pre-processing bookkeeping
         
         % Some blocks output data types cannot be fixated through the
@@ -118,6 +120,13 @@ classdef ReportForMutant < handle
             ret.loc = obj.mutant.loc; 
             ret.preprocess_error = obj.preprocess_error;
             ret.exception = obj.exception.get_cell_T();
+            ret.num_mutation = obj.get_num_mutation_ops();
+            ret.duration = obj.duration;
+        end
+        
+        function ret = get_num_mutation_ops(obj)
+            % How many mutation operations performed?
+            ret = obj.num_deleted;
         end
         
         function ret = is_ok(obj)

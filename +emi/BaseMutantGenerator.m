@@ -77,7 +77,9 @@ classdef BaseMutantGenerator < utility.DecoratorClient
         
         function implement_mutation(obj)
             %% Call decorators to execute mutation strategies!
+            rec_tic = tic();
             obj.call_fun(@main_phase);
+            obj.r.duration = toc(rec_tic);
         end
         
         function compile_model_and_return(obj, phase, close_on_success)
