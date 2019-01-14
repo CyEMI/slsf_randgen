@@ -6,7 +6,9 @@ classdef SimpleModelMutator < emi.BaseModelMutator
     end
     
     methods
-        
+        function obj = SimpleModelMutator (varargin)
+            obj = obj@emi.BaseModelMutator(varargin{:});
+        end
     end
     
 end

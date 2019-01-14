@@ -7,6 +7,11 @@ classdef SlsfModel < cps.Model
     end
     
     methods
+        
+        function obj = SlsfModel (varargin)
+            obj = obj@cps.Model(varargin{:});
+        end
+        
         function copy_from(obj, src)
             %% Create self copying from `src`
             try

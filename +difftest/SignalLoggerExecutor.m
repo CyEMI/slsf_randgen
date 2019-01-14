@@ -8,6 +8,10 @@ classdef SignalLoggerExecutor < difftest.DecoratedExecutor
     
     methods
         
+        function obj = SignalLoggerExecutor (varargin)
+            obj = obj@difftest.DecoratedExecutor(varargin{:});
+        end
+        
         function pre_execution(obj)
             % Need pre-execution becuase we are checking whether the model
             % would compile after ony changing the SignalLogging attribute.

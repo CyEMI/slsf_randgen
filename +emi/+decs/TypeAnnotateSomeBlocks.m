@@ -3,6 +3,11 @@ classdef TypeAnnotateSomeBlocks < emi.decs.DecoratedMutator
     %   WARNING Legacy decorator and have not been tested after refactoring
     
     methods
+        
+        function obj = TypeAnnotateSomeBlocks (varargin)
+            obj = obj@emi.decs.DecoratedMutator(varargin{:});
+        end
+        
         function preprocess_phase(obj) 
             %% Filter blocks by type and then apply a function on that block
             configs = {...

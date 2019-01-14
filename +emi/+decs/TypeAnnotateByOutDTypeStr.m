@@ -9,6 +9,11 @@ classdef TypeAnnotateByOutDTypeStr < emi.decs.DecoratedMutator
     
     
     methods
+        
+        function obj = TypeAnnotateByOutDTypeStr (varargin)
+            obj = obj@emi.decs.DecoratedMutator(varargin{:});
+        end
+        
         function preprocess_phase(obj)
             
             % Blocks which possibly do not support OutDataTypeStr

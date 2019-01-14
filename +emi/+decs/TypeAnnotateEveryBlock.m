@@ -5,6 +5,11 @@ classdef TypeAnnotateEveryBlock < emi.decs.DecoratedMutator
     %   data-type of the DTC block.
     
     methods
+        
+        function obj = TypeAnnotateEveryBlock (varargin)
+            obj = obj@emi.decs.DecoratedMutator(varargin{:});
+        end
+        
         function preprocess_phase(obj) 
             %% Insert DTC before all blocks' all input ports
             target_blocks = obj.r.blocks_to_annotate; 

@@ -7,6 +7,10 @@ classdef CoverageComparator < difftest.BaseComparator
     
     methods
         
+        function obj = CoverageComparator (varargin)
+            obj = obj@difftest.BaseComparator(varargin{:});
+        end
+        
         function refine_a_execution(~, exec_report)
             exec_report.refined = containers.Map;
               

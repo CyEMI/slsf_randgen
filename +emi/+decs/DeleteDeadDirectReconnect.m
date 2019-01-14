@@ -5,6 +5,11 @@ classdef DeleteDeadDirectReconnect < emi.decs.DeadBlockDeleteStrategy
     
     
     methods
+        
+        function obj = DeleteDeadDirectReconnect (varargin)
+            obj = obj@emi.decs.DeadBlockDeleteStrategy(varargin{:});
+        end
+        
         function post_delete_strategy(obj, sources, dests, parent_sys)
             %% Reconncet source->dests without placing any DTC in middle
             

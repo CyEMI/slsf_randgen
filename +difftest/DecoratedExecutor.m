@@ -4,6 +4,10 @@ classdef DecoratedExecutor < utility.Decorator
     
     methods
         
+        function obj = DecoratedExecutor (varargin)
+            obj = obj@utility.Decorator(varargin{:});
+        end
+        
         function pre_execution(obj) %#ok<MANU>
         end
         

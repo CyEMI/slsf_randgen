@@ -13,6 +13,10 @@ classdef DecoratedMutator < utility.Decorator
 
     methods
         
+        function obj = DecoratedMutator(varargin)
+            obj = obj@utility.Decorator(varargin{:});
+        end
+        
         function ret = get.r(obj)
             ret = obj.hobj.r;
         end

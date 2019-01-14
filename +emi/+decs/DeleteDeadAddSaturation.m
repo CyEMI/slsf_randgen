@@ -5,6 +5,11 @@ classdef DeleteDeadAddSaturation < emi.decs.DeadBlockDeleteStrategy
     
     
     methods
+        
+        function obj = DeleteDeadAddSaturation (varargin)
+            obj = obj@emi.decs.DeadBlockDeleteStrategy(varargin{:});
+        end
+        
         function post_delete_strategy(obj, sources, dests, parent)
             blk_type = 'simulink/Discontinuities/Saturation';
             

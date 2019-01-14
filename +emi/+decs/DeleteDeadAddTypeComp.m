@@ -5,6 +5,11 @@ classdef DeleteDeadAddTypeComp < emi.decs.DeadBlockDeleteStrategy
     
     
     methods
+        
+        function obj = DeleteDeadAddTypeComp (varargin)
+            obj = obj@emi.decs.DeadBlockDeleteStrategy(varargin{:});
+        end
+        
         function address_unconnected_ports(obj, reconnect, do_s, do_d, sources, dests, parent_sys) %#ok<INUSL>
             %%
             obj.add_type_compatible_blocks(do_s, do_d, sources, dests, parent_sys);

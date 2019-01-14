@@ -5,7 +5,9 @@ classdef SimpleMutantGenerator < emi.BaseMutantGenerator
     end
     
     methods
-        
+        function obj = SimpleMutantGenerator (varargin)
+            obj = obj@emi.BaseMutantGenerator(varargin{:});
+        end
         
     end
     

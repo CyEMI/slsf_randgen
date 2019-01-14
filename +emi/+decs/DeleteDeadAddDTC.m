@@ -6,6 +6,11 @@ classdef DeleteDeadAddDTC < emi.decs.DeadBlockDeleteStrategy
 
     
     methods
+        
+        function obj = DeleteDeadAddDTC (varargin)
+            obj = obj@emi.decs.DeadBlockDeleteStrategy(varargin{:});
+        end
+        
         function post_delete_strategy(obj, sources, dests, parent_sys)
             obj.mutant.add_DTC_in_middle(sources, dests, parent_sys);
         end

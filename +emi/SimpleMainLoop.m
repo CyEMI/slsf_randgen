@@ -6,6 +6,9 @@ classdef SimpleMainLoop < emi.BaseMainLoop
     end
     
     methods
+        function obj = SimpleMainLoop (varargin)
+            obj = obj@emi.BaseMainLoop(varargin{:});
+        end
     end
     
 end

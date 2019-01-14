@@ -8,6 +8,11 @@ classdef DeadBlockDeleteStrategy < emi.decs.DecoratedMutator
     end
     
     methods
+        
+        function obj = DeadBlockDeleteStrategy(varargin)
+            obj = obj@emi.decs.DecoratedMutator(varargin{:});
+        end
+        
         function main_phase(obj)
             %% Mutation strategy by removing dead blocks from a model
             if size(obj.r.dead_blocks, 1) == 0

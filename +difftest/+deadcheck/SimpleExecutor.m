@@ -7,6 +7,11 @@ classdef SimpleExecutor < difftest.BaseExecutor
     end
     
     methods
+        
+        function obj = SimpleExecutor (varargin)
+            obj = obj@difftest.BaseExecutor(varargin{:});
+        end
+        
         function create_and_open_sys(obj)
             try
                 obj.sys = obj.exec_report.sys; % No Pre-execution model

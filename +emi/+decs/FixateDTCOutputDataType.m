@@ -10,6 +10,11 @@ classdef FixateDTCOutputDataType < emi.decs.DecoratedMutator
     % comparison errors.
     
     methods
+        
+        function obj = FixateDTCOutputDataType (varargin)
+            obj = obj@emi.decs.DecoratedMutator(varargin{:});
+        end
+        
         function preprocess_phase(obj)
             
             function ret = helper(blk)
