@@ -1,0 +1,15 @@
+#!/bin/bash
+#SBATCH -J emi              # job name
+#SBATCH -e emi.%j.err       # error file name 
+#SBATCH -o emi.%j.out       # output file name 
+#SBATCH -N 1                      # request 1 node
+#SBATCH -n 20                     # request all 16 cores 
+#SBATCH -p gpu                 # designate queue 
+#SBATCH -t 24:00:00               # designate max run time 
+#SBATCH -A Find-bugs-in-Simulin              # charge job to myproject
+#SBATCH --mail-user cyphyemi@gmail.com
+#SBATCH --mail-type all 
+
+source tacc.env
+
+matlab -nodesktop -nodisplay -nosplash -r 'emi.go(); quit();'
