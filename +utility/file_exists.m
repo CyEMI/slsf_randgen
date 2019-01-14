@@ -6,7 +6,9 @@ if nargin == 2
     parent_dir = [parent_dir filesep varargin{1}];
 end
 
-result = isfile(parent_dir);
+% result = isfile(parent_dir); % Doesn't work in 2017a
+
+result = exist(parent_dir, 'file') == 2;
 
 end
 
