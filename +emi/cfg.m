@@ -5,7 +5,7 @@ classdef cfg
     properties(Constant = true)
         %% Commonly used 
         
-        NUM_MAINLOOP_ITER = 200;
+        NUM_MAINLOOP_ITER = 2;
         
         PARFOR = true;
         
@@ -14,7 +14,7 @@ classdef cfg
         % running this tool 24/7 and doing new stuff everytime the script
         % is run.
         
-        LOAD_RNG_STATE = false;
+        LOAD_RNG_STATE = true;
         
         INTERACTIVE_MODE = false;
         
@@ -91,6 +91,9 @@ classdef cfg
         % No need to change the followings
         
         REPORTS_DIR = 'emi_results';
+        
+        % Result saved when run `emi.report`
+        RESULT_FILE = ['workdata' filesep 'emi_exp_result'];
         
         % Save random number seed and others
         WORK_DATA_DIR = 'workdata';
