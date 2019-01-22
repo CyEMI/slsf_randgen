@@ -195,10 +195,15 @@ classdef BaseCovExp < handle
             % Start counting time
             begin_timer = tic;
             
+            sw = utility.SuppressWarnings();
+            sw.set_val();
+            
             % Start experiment
             obj.init_data();
             obj.do_analysis();
             % End experiment
+            
+            sw.restore();
             
             total_time = toc(begin_timer);
             obj.l.info(sprintf('Total runtime %f second ', total_time));

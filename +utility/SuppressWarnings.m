@@ -12,24 +12,22 @@ classdef SuppressWarnings < handle
     
         last_state;
     
-%         prev_states;
     end
     
     methods
         
-        function set_val(obj, val)
-%             obj.prev_states = cellfun(@(p)warning(val, p), obj.w_ids,...
-%                 'UniformOutput', false);
+        function set_val(obj, val) %#ok<INUSD>
             obj.last_state = warning;
             
-            cellfun(@(p)warning(val, p), obj.w_ids,...
-                'UniformOutput', false);
+%             cellfun(@(p)warning(val, p), obj.w_ids,...
+%                 'UniformOutput', false);
+            
+            % Set all off!
+            warning('off');
         end
         
         function restore(obj)
             warning(obj.last_state);
-%             cellfun(@(p)warning(p.state, p.identifier), obj.prev_states,...
-%                 'UniformOutput', false);
         end
     end
 end

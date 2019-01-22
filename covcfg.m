@@ -33,7 +33,7 @@ classdef covcfg < handle
         % have bug in the code initially. Please experiment with 1-2 models
         % first so that you do not discard many of the cached results for
         % ALL of your models!
-        MAX_NUM_MODEL = 100;
+        MAX_NUM_MODEL = 1;
         
         % Subgrouping is not used for Expmode.All
         SUBGROUP_BEGIN = 101;
@@ -83,7 +83,7 @@ classdef covcfg < handle
         };
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
-        DO_THESE_EXPERIMENTS = [1 2 3]; % Multiple experiments
+        DO_THESE_EXPERIMENTS = [1 2 3 6 7]; % Multiple experiments
 %         DO_THESE_EXPERIMENTS = 6;   % Single experiment
         
         %% Others
