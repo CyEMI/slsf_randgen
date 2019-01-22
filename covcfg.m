@@ -51,7 +51,7 @@ classdef covcfg < handle
         % structures', then try setting it to false.
         % Note: this does not depend on any other caching configuration
         % variables.
-        USE_CACHED_RESULTS = false;
+        USE_CACHED_RESULTS = true;
         
         % Perform experiments even if cached data is found. Useful when we
         % want to recompute. If you just want to aggregate previously

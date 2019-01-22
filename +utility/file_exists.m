@@ -8,7 +8,7 @@ end
 
 % result = isfile(parent_dir); % Doesn't work in 2017a
 
-result = exist(parent_dir, 'file') == 2;
+result = exist(parent_dir, 'file') > 0;
 
 end
 
