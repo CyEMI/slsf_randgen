@@ -44,7 +44,7 @@ try
     % Mutation Stats
     
     utility.plot(blks_sz, merged{:, 'avg_mut_ops'}, {'Mutation Operation (Avg)'},...
-        blks_per_model_label, 'Mutation Operation Count');
+        blks_per_model_label, 'Operation Count');
     
  
     %%% Others %%%

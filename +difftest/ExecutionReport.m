@@ -123,6 +123,13 @@ classdef ExecutionReport < handle
                 'UniformOutput', false);
         end
         
+        function print_exception_messages(obj, l)
+            emsgs = obj.get_exception_messages();
+            for i=1:numel(emsgs)
+                l.warn(emsgs);
+            end
+        end
+        
     end
     
 end
