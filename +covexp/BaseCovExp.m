@@ -86,6 +86,8 @@ classdef BaseCovExp < handle
             
             obj.subgroup_begin = sga_begin;
             obj.subgroup_end = sga_end;
+            
+            obj.l.info('Subgroup info saved! %d to %d', obj.subgroup_begin, obj.subgroup_end);
         end
         
         function do_analysis(obj)
@@ -105,7 +107,7 @@ classdef BaseCovExp < handle
             load_system('simulink');
             
             if covcfg.EXP_MODE.is_subgroup
-                assert(obj.subgroup_end <= size(all_models, 1));
+                assert(obj.subgroup_end <= length(all_models));
 %                 obj.subgroup_end = min(size(all_models, 1), obj.subgroup_end);
                 all_models = all_models(obj.subgroup_begin:obj.subgroup_end);
                 all_models_path = all_models_path(obj.subgroup_begin:obj.subgroup_end);
