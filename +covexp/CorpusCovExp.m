@@ -27,7 +27,7 @@ classdef CorpusCovExp < covexp.BaseCovExp
                     if isempty(cov_meta(i).path) || strcmp(cov_meta(i).group, 'tutorial')
                         obj.models_path{i} = '';
                     else
-                        obj.models_path{i} = strjoin(cov_meta(i).path, filesep);
+                        obj.models_path{i} = [covcfg.CORPUS_HOME filesep strjoin(cov_meta(i).path, filesep)];
                     end
                 end
                 
