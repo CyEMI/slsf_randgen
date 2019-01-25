@@ -27,7 +27,9 @@ classdef CorpusCovExp < covexp.BaseCovExp
                     if isempty(cov_meta(i).path) || strcmp(cov_meta(i).group, 'tutorial')
                         obj.models_path{i} = '';
                     else
-                        obj.models_path{i} = [covcfg.CORPUS_HOME filesep strjoin(cov_meta(i).path, filesep)];
+                        tmp = cov_meta(i).path;
+                        obj.models_path{i} = [covcfg.CORPUS_HOME filesep...
+                            strjoin(tmp(1:end-1), filesep)]; % except extension
                     end
                 end
                 
