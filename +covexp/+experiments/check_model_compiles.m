@@ -15,7 +15,7 @@ function ret = check_model_compiles(sys, h, ret)
         ret.compile_exp = e;
     end
     
-    e = [];
+    e = []; % Do not throw the previous error which is a model issue
     
     if ret.compiles
         % Collect compiled data types for blocks
@@ -44,11 +44,20 @@ function ret = check_model_compiles(sys, h, ret)
             ret.datatypes = all_blocks;
             
         catch e
+            % Should we not check what went wrong? Yes, at the end of this
+            % file we are throwing this :-)
             utility.print_error(e, l);
         end
         
-        % Terminate
-        simob.term();
+        % Terminate. Turns out a model can compile and then fail to 
+        % terminate (e.g. aero_guidance) due to:
+        % Error evaluating 'StopFcn' callback of block_diagram.
+        try
+            simob.term();
+        catch e2
+            ret.compiles = false;
+            ret.compile_exp = e2;
+        end
         
     end % compiles
     

@@ -19,8 +19,7 @@ function ret = get_coverage(sys, h, ret)
         ret.exception = true;
         ret.exception_ob = e;
              
-        % Close
-        covexp.sys_close(sys);
+        return;
     end
     
     
@@ -36,9 +35,6 @@ function ret = get_coverage(sys, h, ret)
     catch e
         ret.exception = true;
         ret.exception_ob = e;
-        
-        getReport(e)
-        
     end
 
 end

@@ -15,6 +15,10 @@ Now this is used for other types of experiments with the Models
 
 Edit the `../covcfg.m` file
 
+### Parallel run
+
+set `PARFOR = true`
+
 ## Running
 
     covexp.covcollect();
@@ -25,6 +29,11 @@ To create an experiment, write a script inside `+covexp/+experiments`
 
 Initialize the results that the experiment would return inside 
 `+covexp/+experiments/+ds_init`
+
+- Experiment should not throw errors. If an experiment throws, following experiments for the same model will not run.
+- In Parallel mode other models will be run, but the `touched` file will not be cleared so that you know which model threw.
+- In serial mode the script will stop sot that you can fix the bug.
+- Do not close the model inside experiments
 
 ## Copying cached results created elsewhere
 
@@ -45,6 +54,8 @@ they contain absolute directory locations for that machine. To fix these,
 run the `fix_input_loc` (5th) experiment
 
 ## Results
+
+Explain how to interpret the cached results
 
 - `simdur` : duration to simulate the original model
 - `duration` : duration to collect coverage

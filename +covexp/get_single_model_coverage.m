@@ -35,7 +35,9 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
     covdata = covexp.init_results(covcfg.DO_THESE_EXPERIMENTS, covdata);
     
     [covdata, h] = covexp.experiments.check_model_opens(sys, model_id, model_path, covdata);
-        
+    
+    error_exp = [];
+    
     if ~ covdata.skipped && covdata.opens
         
         for i = 1:numel(covcfg.DO_THESE_EXPERIMENTS)
@@ -43,12 +45,31 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
                 cur_experi = covcfg.EXPERIMENTS{covcfg.DO_THESE_EXPERIMENTS(i)};
                 covdata = cur_experi(sys, h, covdata);
             catch e
+                % Bug in your code! Fix it!
                 utility.print_error(e);
-                error('Experiment %d threw error', i);
+                error_exp = i;
+                % Experiments may depend on previous experiment's data, so
+                % do not run the following experiments till this bug is
+                % fixed.
+                break; 
             end
         end
         
         covexp.sys_close(sys);
+
+    end
+    
+    if ~isempty(model_path)
+        rmpath(model_path);
+    end
+    
+    % All clean-ups done. Throw so that you know you have a bug to fix. 
+    % Will not change the cached result
+    % Maybe its a good idea to leave the touched file so that we know
+    % something unexpected happenned? 
+    
+    if ~ isempty(error_exp)
+        throw(MException('covexp:exp:crash', int2str(error_exp)));
     end
     
     if do_append
@@ -56,12 +77,9 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
     else
         save(report_loc, '-struct', 'covdata');
     end
-    
+
     end_touch(touch_loc);
-    
-    if ~isempty(model_path)
-        rmpath(model_path);
-    end
+
 end
 
 

@@ -129,8 +129,12 @@ classdef BaseCovExp < handle
                     model_id = model_id_offset + i;
                     try
                         covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
-                    catch 
-                        covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
+                    catch e
+                        if strcmp(e.identifier, 'covexp:exp:crash')
+                            fprintf('Experiment crashed! Will not impact other files.');
+                        else
+                            covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
+                        end
                     end
                 end
                 res = struct();
@@ -151,7 +155,13 @@ classdef BaseCovExp < handle
                         end
                     catch e
                         obj.l.error('Error running single experiment:');
-                        utility.print_error(e, obj.l);
+                        
+                        if strcmp(e.identifier, 'covexp:exp:crash')
+                            error('Experiment crashed! Stopping since experiments should not throw.');
+                        end
+                        
+                        % Continue hoping error occurred while loading
+                        % bad cache from disc
                         
                         my_res = covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
                         
