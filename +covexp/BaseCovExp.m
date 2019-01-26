@@ -208,7 +208,7 @@ classdef BaseCovExp < handle
             begin_timer = tic;
             
             sw = utility.SuppressWarnings();
-            sw.set_val();
+            sw.set_val('off');
             
             % Start experiment
             obj.init_data();

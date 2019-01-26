@@ -5,7 +5,7 @@ classdef cfg
     properties(Constant = true)
         %% Commonly used 
         
-        NUM_MAINLOOP_ITER = 2;
+        NUM_MAINLOOP_ITER = 600;
         
         PARFOR = true;
         
@@ -14,7 +14,8 @@ classdef cfg
         % running this tool 24/7 and doing new stuff everytime the script
         % is run.
         
-        LOAD_RNG_STATE = true;
+        LOAD_RNG_STATE = false;
+        RNG_SHUFFLE = true;     % non-repeatable, recommended for TACC
         
         INTERACTIVE_MODE = false;
         

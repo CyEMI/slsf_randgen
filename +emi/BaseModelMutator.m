@@ -107,6 +107,10 @@ classdef (Abstract) BaseModelMutator < handle
     methods(Access = protected)
         
         function save_random_number_generator_state(~)
+            if emi.cfg.RNG_SHUFFLE
+                return;
+            end
+            
             rng_state = rng; %#ok<NASGU>
             save(emi.cfg.WS_FILE_NAME, emi.cfg.RNG_VARNAME_IN_WS, '-append');
         end

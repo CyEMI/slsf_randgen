@@ -91,7 +91,11 @@ classdef BaseMainLoop < handle
         end
         
         function handle_random_number_seed(obj)
-            if emi.cfg.LOAD_RNG_STATE
+            if emi.cfg.RNG_SHUFFLE
+                obj.l.info('Shuffling random numbers, experiments would be unique');
+                rng('shuffle');
+                % TODO save rng state in experiment directory
+            elseif emi.cfg.LOAD_RNG_STATE
                 % Backup the variable first
                 try
                     copyfile(emi.cfg.WS_FILE_NAME, obj.exp_data.REPORTS_BASE);
@@ -116,6 +120,10 @@ classdef BaseMainLoop < handle
         end
         
         function save_rng_state_for_model_list(~, do_append)
+            if emi.cfg.RNG_SHUFFLE
+                return;
+            end
+            
             rng_state_models = rng; %#ok<NASGU>
             
             if do_append

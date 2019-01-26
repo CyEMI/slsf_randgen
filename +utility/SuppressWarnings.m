@@ -23,7 +23,7 @@ classdef SuppressWarnings < handle
 %                 'UniformOutput', false);
             
             % Set all off!
-            warning('off');
+            warning('off', 'all');
         end
         
         function restore(obj)
