@@ -1,5 +1,14 @@
-function plot(x, y, y_legends, xLab, yLab)
+function plot(x, y, y_legends, xLab, yLab, xScale, yScale)
     % y can be a vector or matrix
+    
+    if nargin < 6
+        xScale = 'linear';
+    end
+    
+    if nargin < 7
+        yScale = 'linear';
+    end
+    
     figure();
     
     % Make column vector
@@ -22,14 +31,22 @@ function plot(x, y, y_legends, xLab, yLab)
             ydata = cell2mat(ydata);
         end
         
+        ydata = ydata + eps;
+        
         scatter(x, ydata, markers{i}, 'MarkerEdgeColor', 'k');
         hold on;
     end
     
     hold off;
     
-    legend(y_legends{:});
+    if ~ isempty(y_legends)
+        legend(y_legends{:});
+    end
 
     xlabel(xLab);
     ylabel(yLab);
+
+    set(gca, 'XScale', xScale);
+    set(gca, 'YScale', yScale);
+
 end

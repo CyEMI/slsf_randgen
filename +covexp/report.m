@@ -54,6 +54,7 @@ if ~isempty(numzero)
     total_blocks = arrayfun(@(p)numel(p{1}) - 1, model_blocks);
     
     numzero_ratio = arrayfun(@(p,q) p/q*100.0, numzero, total_blocks);
+    l.info('Mean dead block percentage: %f; median: %f', mean(numzero_ratio), median(numzero_ratio));
     
     boxplot(numzero_ratio);
     title('Total blocks with no coverage / number of blocks');
