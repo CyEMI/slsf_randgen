@@ -5,9 +5,9 @@ classdef cfg
     properties(Constant = true)
         %% Commonly used 
         
-        NUM_MAINLOOP_ITER = 600;
+        NUM_MAINLOOP_ITER = 1;
         
-        PARFOR = true;
+        PARFOR = false;
         
         % Load previously saved random number seed. This would NOT
         % reproduce previous experiment results, but useful for actually
@@ -19,7 +19,8 @@ classdef cfg
         
         INTERACTIVE_MODE = false;
         
-        % If any error occurs, replicate the experiment in next run
+        % If any error occurs, replicate the experiment in next run. Not
+        % applicable if RNG_SHUFFLE
         REPLICATE_EXP_IF_ANY_ERROR = true;
         
         % Debug/Interactive mode for a particular subsystem. Will pause
@@ -31,13 +32,13 @@ classdef cfg
         %% Differential Testing
         
         % Run differential testing after mutation
-        RUN_DIFFTEST = false;
+        RUN_DIFFTEST = true;
         
         % Creates cartesian product
         SUT_CONFIGS = {
             {
 %                     difftest.ExecConfig('OptOn', struct('SimCompilerOptimization', 'on')) 
-                difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
+                difftest.ec.opt_off
             }
         };
     
@@ -57,19 +58,25 @@ classdef cfg
         % Break from the main loop if any model mutation errors
         STOP_IF_ERROR = false;
         
+        %% Generic Mutation
+        
+        MUTANTS_PER_MODEL = 1;
+        
+        % Remove this percentage of dead blocks
+        DEAD_BLOCK_REMOVE_PERCENT = 0.5;
+        
+        %% EMI strategies
+        
+        MUTATOR_DECORATORS = {
+            @emi.decs.TypeAnnotateEveryBlock                % Pre-process
+            @emi.decs.TypeAnnotateByOutDTypeStr             % Pre-process
+            @emi.decs.DeleteDeadAddSaturation
+            };
+
         %% Preprocessing %%
         
-        % Workflow 1 (caching): Preprocess models and cache them.
-        
-        % Use following while caching by running covexp.covcollect.
-        
-        % Note: this is automatically done by the ModelPreprocessor class,
-        % you don't need to change any configuration here.
-        
-%         DONT_PREPROCESS = false;        
-        
-        % Use following after caching i.e. generating mutants via the
-        % emi.go script
+        % Legacy configuration, do not change. This parameter is only
+        % respected by the emi.go method, and ignored by covexp.covcollect.
         
         DONT_PREPROCESS = true;
         
@@ -77,10 +84,10 @@ classdef cfg
         MUTANT_PREPROCESSED_FILE_SUFFIX = 'pp';
         
         % Don't rely on this extension since this value is cached already
-        % during covcollect process
+        % during covcollect process (legacy configuration)
         MUTANT_PREPROCESSED_FILE_EXT = '.slx';
         
-        %% Random numbers and reporting file names
+        %% Random numbers and reporting file names -- do not change
         
         % Name of the variable for storing random number generator state.
         % We need to save two states because first we randomly select the
@@ -112,27 +119,12 @@ classdef cfg
         REPORT_FOR_A_MODEL_FILENAME = 'modelreport';
         REPORT_FOR_A_MODEL_VARNAME = 'modelreport';
         
-        %% Mutation: Block delete and reconnection strategies
-        
-        MUTATOR_DECORATORS = {
-            @emi.decs.TypeAnnotateEveryBlock                % Pre-process
-            @emi.decs.TypeAnnotateByOutDTypeStr             % Pre-process
-            @emi.decs.DeleteDeadAddSaturation
-            };
-        
         % Specify input and output data-type of a newly added block in the
         % compiled data-type registry. Recommended: true
         % Used in cps.SlsfModel::add_block_in_middle
         SPECIFY_NEW_BLOCK_DATATYPE = true;        
         
-        %% Generic Mutation
-        
-        MUTANTS_PER_MODEL = 1;
-        
-        % Remove this percentage of dead blocks
-        DEAD_BLOCK_REMOVE_PERCENT = 0.5;
-        
-        %% Others
+        %% Which compiler tool chain to target?
         CPS_TOOL = @cps.SlsfModel;
         
         % Don't delete these blocks during dead block removal

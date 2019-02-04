@@ -51,11 +51,15 @@ classdef BaseTester < handle
                 comparator = difftest.cfg.COMPARATOR;
             end
             
+            rec = tic();
+            
             obj.init_exec_reports();
             obj.execute_all();
             obj.r.aggregate_before_comp();
             
             obj.run_comparison(compare, comparator);
+            
+            obj.r.total_duration = toc(rec);
             
             obj.cleanup();       
         end

@@ -1,6 +1,8 @@
 classdef ReportForMutant < handle
     %REPORTFORMUTANT Report for a single mutant
     %   Main data structure/model for a single mutant
+    % Note: not all member fields are saved in the disc. See the get_report
+    % method.
     
     properties
         %% 
@@ -42,8 +44,10 @@ classdef ReportForMutant < handle
         num_deleted = 0;  % dead blocks which were deleted
         num_skip_delete = 0;
         
-        % Total time spent (except compilation/execution)
+        % Total time spent to generate mutant (except compilation/execution)
         duration = 0;
+        % Time for compiling after mutant generation
+        compile_duration = 0;
         %% Pre-processing bookkeeping
         
         % Some blocks output data types cannot be fixated through the
@@ -112,7 +116,7 @@ classdef ReportForMutant < handle
         %% Reporting
         
         function ret = get_report(obj)
-            %% 
+            %% Return structure which would be saved in the disc
             % calling struct constructor with non-scalars is problematic.
             % Individually assign each of the fields
             ret = struct('my_id', obj.my_id);
@@ -122,6 +126,7 @@ classdef ReportForMutant < handle
             ret.exception = obj.exception.get_cell_T();
             ret.num_mutation = obj.get_num_mutation_ops();
             ret.duration = obj.duration;
+            ret.compile_duration = obj.compile_duration;
         end
         
         function ret = get_num_mutation_ops(obj)

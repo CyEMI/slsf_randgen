@@ -5,13 +5,13 @@ classdef covcfg < handle
     properties(Constant = true)
         
         % Instead of corpus models, analyze a directory to discover models
-        EXPLORE_A_DIRECTORY = false;
+        EXPLORE_A_DIRECTORY = true;
         
         % Explore path should be set using the environment variable
         % `COVEXPEXPLORE`. A non-none value for the following will override
         % the environment variable.
-%         EXPLORE_DIR_OVERRIDE = 'C:\Users\ishaf\ws\explore\notows';
-        EXPLORE_DIR_OVERRIDE = [];
+        EXPLORE_DIR_OVERRIDE = 'C:\Users\shafiul\workspace\explore\2018-07-30-14-04-32\success';
+%         EXPLORE_DIR_OVERRIDE = [];
         
         % Generate lists of models before experiment. If false, will reuse
         % the list generated during last experiment.
@@ -21,11 +21,11 @@ classdef covcfg < handle
         % Set false when aggregating results or debugging. If set to true,
         % will  process inidivual models paralelly. Results willb be cached
         % for each file, but no aggregated report will be generated.
-        PARFOR = true;
+        PARFOR = false;
         
         %% Experiment Mode (see covexp.Expmode)
         
-        EXP_MODE = covexp.Expmode.SUBGROUP_AUTO;
+        EXP_MODE = covexp.Expmode.ALL;
         
         % Upper limit on how many models to process
         % For SUBGROUP_AUTO, process these many models 
@@ -34,7 +34,7 @@ classdef covcfg < handle
         % have bug in the code initially. Please experiment with 1-2 models
         % first so that you do not discard many of the cached results for
         % ALL of your models!
-        MAX_NUM_MODEL = 55;
+        MAX_NUM_MODEL = 60;
         
         % Subgrouping is not used for Expmode.All
         SUBGROUP_BEGIN = 101;
@@ -52,12 +52,12 @@ classdef covcfg < handle
         % structures', then try setting it to false.
         % Note: this does not depend on any other caching configuration
         % variables.
-        USE_CACHED_RESULTS = false;
+        USE_CACHED_RESULTS = true;
         
         % Perform experiments even if cached data is found. Useful when we
         % want to recompute. If you just want to aggregate previously
         % stored caches, set to false. 
-        FORCE_UPDATE_CACHED_RESULT = true;
+        FORCE_UPDATE_CACHED_RESULT = false;
         
         % When force update is on, instead of throwing away previously
         % cached results try to reuse it FOR THE EXPERIMENTS WHICH WILL NOT
@@ -84,7 +84,7 @@ classdef covcfg < handle
         };
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
-        DO_THESE_EXPERIMENTS = [1 2]; % Multiple experiments
+        DO_THESE_EXPERIMENTS = [1 2 3]; % Multiple experiments
 %         DO_THESE_EXPERIMENTS = 6;   % Single experiment
         
         %% Others
@@ -126,8 +126,8 @@ classdef covcfg < handle
         
 %         EXP6_CONFIGS = {
 %                 {
-% %                     difftest.ExecConfig('OptOn', struct('SimCompilerOptimization', 'on')) 
-%                     difftest.ExecConfig('OptOff', struct('SimCompilerOptimization', 'off')) 
+% %                     difftest.ec.opt_on
+%                     difftest.ec.opt_off 
 %                 }
 %             };
         

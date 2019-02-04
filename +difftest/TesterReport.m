@@ -40,6 +40,10 @@ classdef TesterReport < handle
         
         is_comp_ok = []; % Will be set to boolean when aggregator runs 
         
+        %% Runtime
+        
+        total_duration = 0;
+        
     end
  
     

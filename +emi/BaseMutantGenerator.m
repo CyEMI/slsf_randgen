@@ -50,7 +50,7 @@ classdef BaseMutantGenerator < utility.DecoratorClient
             % TODO do this when filtering list of blocks to be efficient
             obj.l.info('Deleted: %d; Delete skipped: %d', obj.r.num_deleted, obj.r.num_skip_delete);
             
-            obj.compile_model_and_return('MUTANT-GEN', true);
+            obj.compile_after_mutation();
             
             obj.l.info(['End mutant generation: ' obj.r.mutant.sys]);
         end
@@ -80,6 +80,12 @@ classdef BaseMutantGenerator < utility.DecoratorClient
             rec_tic = tic();
             obj.call_fun(@main_phase);
             obj.r.duration = toc(rec_tic);
+        end
+        
+        function compile_after_mutation(obj)
+            rec = tic();
+            obj.compile_model_and_return('MUTANT-GEN', true);
+            obj.r.compile_duration = toc(rec);
         end
         
         function compile_model_and_return(obj, phase, close_on_success)
