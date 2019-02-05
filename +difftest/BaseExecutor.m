@@ -38,7 +38,12 @@ classdef BaseExecutor < utility.DecoratorClient
             emi.open_or_load_model(obj.exec_report.sys);
         end
         
-        function go(obj)
+        function go(obj, previous_preexec_err)
+            
+            if nargin < 2
+                previous_preexec_err = [];
+            end
+            
             obj.exec_report.validate_input();
             obj.init();
             obj.create_and_open_sys();
@@ -47,7 +52,7 @@ classdef BaseExecutor < utility.DecoratorClient
                 return;
             end
             
-            obj.pre_execution_wrapper();
+            obj.pre_execution_wrapper(previous_preexec_err);
             if ~ obj.exec_report.is_ok()
                 obj.l.error('Error during pre-execution');
                 return;
@@ -103,14 +108,20 @@ classdef BaseExecutor < utility.DecoratorClient
             emi.open_or_load_model(obj.sys);
         end
         
-        function pre_execution_wrapper(obj)
+        function pre_execution_wrapper(obj, previous_preexec_err)
             % Change/decorate model before execution 
             
-            if obj.resuse_pre_exec || isempty(obj.exec_report.preexec_file)
-                return;
-            end
-            
             try
+                if ~ isempty(previous_preexec_err)
+                    throw(MException('CyEMI:DiffTest:PrevPreExec',...
+                        'Skipping this SUT config due to previous preexec error'));
+                end
+                
+                
+                if obj.resuse_pre_exec || isempty(obj.exec_report.preexec_file)
+                    return;
+                end
+                
                 obj.call_fun(@pre_execution);
                 obj.exec_report.last_ok = difftest.ExecStatus.PreExec;
             catch e

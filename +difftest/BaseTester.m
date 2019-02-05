@@ -122,18 +122,24 @@ classdef BaseTester < handle
             %%
             seen = struct;
             
+            % Error after enabling signal logging aka pre-exec. If this
+            % happens once, skip rest of the executions to save time.
+            preexec_err = [];
+            
             for i = 1: obj.r.executions.len
                 cur = obj.r.executions.get(i);
                 
                 reuse_pre_exec_copy = isfield(seen, cur.sys);
                 
                 executor = obj.executor_class(cur, reuse_pre_exec_copy, obj.execution_decs);
-                executor.go();
+                executor.go(preexec_err);
                 executor.cleanup();
                 
-                if cur.is_ok(difftest.ExecStatus.PreExec)
-                    seen.(cur.sys) = true;
+                if ~ cur.is_ok(difftest.ExecStatus.PreExec)
+                    preexec_err = true;
                 end
+                
+                seen.(cur.sys) = true;
                 
                 if ~ cur.is_ok()
                     obj.l.error('Error config # %d. Last successful step: %s', i, cur.last_ok);
