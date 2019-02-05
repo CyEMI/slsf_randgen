@@ -16,7 +16,7 @@ ret = ret + legacy;
 % Recent covexp
 
 recent = sum( utility.batch_process(covcfg.RESULT_DIR_COVEXP, 'covexp_result',... 
-        {{@(p,~) utility.starts_with(p, 'covexp_result'),{}}}, @process_legacy, '', true, true) ); %  filename starts with covexp_result
+        {{@(p) utility.starts_with(p, 'covexp_result')}}, @process_legacy, '', true, true) ); %  filename starts with covexp_result
     
 ret = ret + recent;
 

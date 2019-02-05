@@ -15,7 +15,7 @@ function [emi_result, stats_table] = report(report_loc)
     end
 
     emi_result = utility.batch_process(report_loc, 'modelreport',... % variable name and file name should be 'modelreport'
-        {{@(p,~) strcmp(p, 'modelreport.mat'),{}}}, @process_data, '', true, true); % explore subdirs; uniform output
+        {{@(p) strcmp(p, 'modelreport.mat')}}, @process_data, '', true, true); % explore subdirs; uniform output
     
     % Num mutants and duration per experiment
     
