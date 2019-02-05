@@ -23,6 +23,10 @@ classdef covcfg < handle
         % for each file, but no aggregated report will be generated.
         PARFOR = false;
         
+        % Merge results for all models into a big file. Set to TRUE before
+        % running EMI experiments
+        MERGE_RESULTS = FALSE;
+        
         %% Experiment Mode (see covexp.Expmode)
         
         EXP_MODE = covexp.Expmode.ALL;
@@ -84,8 +88,8 @@ classdef covcfg < handle
         };
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
-        DO_THESE_EXPERIMENTS = [1 2 3]; % Multiple experiments
-%         DO_THESE_EXPERIMENTS = 6;   % Single experiment
+%         DO_THESE_EXPERIMENTS = [1 2 3]; % Multiple experiments
+        DO_THESE_EXPERIMENTS = 6;   % Single experiment
         
         %% Others
         
@@ -125,22 +129,19 @@ classdef covcfg < handle
         %% Exp 6 (Differential Testing)
         
 %         EXP6_CONFIGS = {
-%                 {
-% %                     difftest.ec.opt_on
-%                     difftest.ec.opt_off 
-%                 }
+%             {difftest.ec.solver_var, difftest.ec.solver_fix}
+%             {difftest.ec.opt_off}
 %             };
         
         EXP6_CONFIGS = {
-            {difftest.ec.solver_var, difftest.ec.solver_fix}
-            {difftest.ec.opt_off}
-            };
+            {difftest.ec.opt_off, difftest.ec.opt_on}
+            {difftest.ec.mode_normal, difftest.ec.mode_acc}
+        };
         
         % If an EMI-PRE Processed file (with suffix _pp) exists, do
         % differential test ONLY on the _pp version.
         EXP6_USE_PRE_PROCESSED = true;
         EXP6_RUN_COMPARATOR = true;
-        
         EXP6_COMPARATOR = @difftest.FinalValueComparator;
         
         %% Legacy

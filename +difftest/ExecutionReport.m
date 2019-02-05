@@ -106,9 +106,10 @@ classdef ExecutionReport < handle
         
         function ret = get_report(obj)
             %% Prepares report to store in disc.
-            % Currently creates large files. Consider not storing signal
-            % values, e.g. when pre-processing?
-            ret = utility.get_struct_from_object(obj);
+            % Currently creates large files if include the following
+            % ignored fields
+            ret = utility.get_struct_from_object(obj, containers.Map(...
+                {'simdata', 'refined'}, {1, 1}));
         end
         
         function throw_comp_error(obj)

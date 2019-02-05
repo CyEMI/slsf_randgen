@@ -148,10 +148,12 @@ classdef BaseCovExp < handle
                     try
                         my_res = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); 
                         
-                        if i == 1
-                            res = utility.init_struct_array(my_res, loop_count);
-                        else
-                            res(i) = my_res;
+                        if covcfg.MERGE_RESULTS
+                            if i == 1
+                                res = utility.init_struct_array(my_res, loop_count);
+                            else
+                                res(i) = my_res;
+                            end
                         end
                     catch e
                         obj.l.error('Error running single experiment:');
@@ -165,10 +167,12 @@ classdef BaseCovExp < handle
                         
                         my_res = covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
                         
-                        if i == 1
-                            res = utility.init_struct_array(my_res, loop_count);
-                        else
-                            res(i) = my_res;
+                        if covcfg.MERGE_RESULTS
+                            if i == 1
+                                res = utility.init_struct_array(my_res, loop_count);
+                            else
+                                res(i) = my_res;
+                            end
                         end
                     end
                 end
