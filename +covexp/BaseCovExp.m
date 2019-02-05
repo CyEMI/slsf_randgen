@@ -176,6 +176,10 @@ classdef BaseCovExp < handle
                         end
                     end
                 end
+                
+                if ~ covcfg.MERGE_RESULTS
+                    res = struct();
+                end
             end
             
             obj.result = res;
