@@ -7,6 +7,9 @@ classdef ec < handle
         
         solver_var = difftest.ExecConfig('VarSlvr', struct('SolverType', 'Variable-step'));
         solver_fix = difftest.ExecConfig('FixSlvr', struct('SolverType', 'Fixed-step'));
+        
+        mode_normal = difftest.ExecConfig('Nrml', struct('SimulationMode', 'normal'));
+        mode_acc = difftest.ExecConfig('Acc', struct('SimulationMode', 'accelerator'));
     end
     
 end
