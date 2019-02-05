@@ -95,7 +95,7 @@ classdef BaseComparator < handle
                     obj.refine_a_execution(cur);
                     cur.last_ok = difftest.ExecStatus.CompRefine;
                 catch e
-                    cur.e = e;
+                    cur.exception.add(e);
                 end
                 
             end

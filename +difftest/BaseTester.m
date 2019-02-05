@@ -136,8 +136,8 @@ classdef BaseTester < handle
                 end
                 
                 if ~ cur.is_ok()
-                    obj.l.error('Error config # %d. Last successful step: %s \nSkipping %d remaining configs.', i, cur.last_ok, (obj.r.executions.len - i));
-                    return;
+                    obj.l.error('Error config # %d. Last successful step: %s', i, cur.last_ok);
+%                     return;
                 end
                 
             end
