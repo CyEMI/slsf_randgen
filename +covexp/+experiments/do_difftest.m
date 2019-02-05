@@ -20,7 +20,7 @@ difftest_exception = [];
 try
     
     dt = difftest.BaseTester({sys}, {ret.loc_input}, covcfg.EXP6_CONFIGS);
-    dt.go();
+    dt.go(covcfg.EXP6_RUN_COMPARATOR, covcfg.EXP6_COMPARATOR);
     ret.difftest = dt.r.get_report();
 catch e
     difftest_exception = e;

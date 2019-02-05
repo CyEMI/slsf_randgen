@@ -139,6 +139,7 @@ classdef covcfg < handle
         % If an EMI-PRE Processed file (with suffix _pp) exists, do
         % differential test ONLY on the _pp version.
         EXP6_USE_PRE_PROCESSED = true;
+        EXP6_RUN_COMPARATOR = true;
         
         EXP6_COMPARATOR = @difftest.FinalValueComparator;
         
