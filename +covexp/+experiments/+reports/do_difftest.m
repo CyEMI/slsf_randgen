@@ -50,5 +50,14 @@ tabulate(is_exception);
 l.info('DIFFTEST (After comp): Errored?');
 tabulate(is_comp_e);
 
+
+rt(models, l);
+
 end
 
+
+function rt(models, l)
+    rts = cellfun(@(p)p.total_duration,  {models.difftest});
+    l.info('DIFFTEST total runtime: %f hours', sum(rts)/3600 );
+    
+end
