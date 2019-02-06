@@ -12,7 +12,7 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
         try
             covdata = load(report_loc);
             do_append = true;
-            if ~ covcfg.FORCE_UPDATE_CACHED_RESULT
+            if covcfg.MERGE_RESULTS_ONLY || ~ covcfg.FORCE_UPDATE_CACHED_RESULT
                 return;
             end
         catch
