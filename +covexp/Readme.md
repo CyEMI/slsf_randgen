@@ -1,4 +1,4 @@
-# Experiment on Data and Aggregate Results
+# Experiment on Data (aka Models) and Aggregate Results
 
 This package contains scripts helpful for running various experiments on
 Simulink models (aka Model), cache them and aggregate results

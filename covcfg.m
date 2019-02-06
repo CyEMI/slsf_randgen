@@ -1,10 +1,11 @@
 classdef covcfg < handle
-    %COVCFG Configure `covcollect` - collecting coverage of models 
+    %COVCFG Configuration for `covcollect` - Experimentation Utility
     %   See the Readme.md file for details
+    % A model is something which you want to do experiment with.
     
     properties(Constant = true)
         
-        % Instead of corpus models, analyze a directory to discover models
+        % Instead of corpus, analyze a directory to discover models
         EXPLORE_A_DIRECTORY = true;
         
         % Explore path should be set using the environment variable
@@ -19,13 +20,20 @@ classdef covcfg < handle
         
         % Use Parallel Computing Toolbox
         % Set false when aggregating results or debugging. If set to true,
-        % will  process inidivual models paralelly. Results willb be cached
-        % for each file, but no aggregated report will be generated.
+        % will  process inidivual models paralelly. Results will be cached
+        % for each file
         PARFOR = false;
         
-        % Merge results for all models into a big file. Set to TRUE before
-        % running EMI experiments
-        MERGE_RESULTS = FALSE;
+        % Merge results for all models into a big file DURING experiments.
+        % Ignored if PARFOR
+        MERGE_RESULTS_ONLINE = false;
+        
+        % If you have not merged results online or used PARFOR, 
+        % use this to just merge the
+        % results from individual result caches. 
+        % Followings would be ignored: PARFOR;
+        % FORCE_UPDATE_CACHE_RESULTS; EXP_MODE; MERGE_RESULTS_ONLINE 
+        MERGE_RESULTS_ONLY = false;
         
         %% Experiment Mode (see covexp.Expmode)
         

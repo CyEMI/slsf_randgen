@@ -50,8 +50,8 @@ classdef BaseCovExp < handle
                 'sldemo_mdlref_variants_enum'};
         end
         
-        function manage_subgroup_auto(obj)
-            if covcfg.EXP_MODE ~= covexp.Expmode.SUBGROUP_AUTO
+        function manage_subgroup_auto(obj, merge_only)
+            if merge_only || covcfg.EXP_MODE ~= covexp.Expmode.SUBGROUP_AUTO
                 return;
             end
             
@@ -90,8 +90,12 @@ classdef BaseCovExp < handle
             obj.l.info('Subgroup info saved! %d to %d', obj.subgroup_begin, obj.subgroup_end);
         end
         
-        function do_analysis(obj)
+        function do_analysis(obj, merge_only)
             % Analyze ALL models
+            if merge_only
+                obj.l.info('%%% Merge Only Mode! %%%');
+            end
+            
             all_models = obj.models;
             all_models_path = obj.models_path;
             
@@ -99,15 +103,16 @@ classdef BaseCovExp < handle
                 all_models_path = cell(size(all_models));
             end
             
-            obj.manage_subgroup_auto();
+            obj.manage_subgroup_auto(merge_only);
             
             obj.report_log_filename = obj.get_logfile_name(obj.exp_start_time);
             
             obj.l.info('Loading Simulink...');
             load_system('simulink');
             
-            if covcfg.EXP_MODE.is_subgroup
-                assert(obj.subgroup_end <= length(all_models));
+            if ~ merge_only && covcfg.EXP_MODE.is_subgroup
+                assert(obj.subgroup_end <= length(all_models),...
+                    'Subgroup end is greater than models count %d', length(all_models));
 %                 obj.subgroup_end = min(size(all_models, 1), obj.subgroup_end);
                 all_models = all_models(obj.subgroup_begin:obj.subgroup_end);
                 all_models_path = all_models_path(obj.subgroup_begin:obj.subgroup_end);
@@ -122,7 +127,7 @@ classdef BaseCovExp < handle
             
             cur_exp_dir = obj.CUR_EXP_DIR;
                         
-            if covcfg.PARFOR
+            if ~ merge_only && covcfg.PARFOR
                 obj.l.info('USING PARFOR');
                 parfor i = 1:loop_count
                     fprintf('%s Analyzing %d of %d models\n', log_append, i, loop_count );
@@ -139,7 +144,9 @@ classdef BaseCovExp < handle
                 end
                 res = struct();
             else
-                obj.l.info('Using Simple For Loop');
+                obj.l.info('Using serial mode: For Loop');
+                
+                is_merge = merge_only || covcfg.MERGE_RESULTS_ONLINE;
                 
                 for i = 1:loop_count
                     obj.l.info(sprintf('%s Analyzing %d of %d models', log_append, i, loop_count ));
@@ -148,7 +155,7 @@ classdef BaseCovExp < handle
                     try
                         my_res = covexp.get_single_model_coverage(all_models{i}, model_id, all_models_path{i}, cur_exp_dir); 
                         
-                        if covcfg.MERGE_RESULTS
+                        if is_merge
                             if i == 1
                                 res = utility.init_struct_array(my_res, loop_count);
                             else
@@ -167,7 +174,7 @@ classdef BaseCovExp < handle
                         
                         my_res = covexp.single_model_result_error(all_models{i}, model_id, all_models_path{i}, cur_exp_dir);
                         
-                        if covcfg.MERGE_RESULTS
+                        if is_merge
                             if i == 1
                                 res = utility.init_struct_array(my_res, loop_count);
                             else
@@ -177,7 +184,7 @@ classdef BaseCovExp < handle
                     end
                 end
                 
-                if ~ covcfg.MERGE_RESULTS
+                if ~ is_merge
                     res = struct();
                 end
             end
@@ -220,7 +227,7 @@ classdef BaseCovExp < handle
             
             % Start experiment
             obj.init_data();
-            obj.do_analysis();
+            obj.do_analysis(covcfg.MERGE_RESULTS_ONLY);
             % End experiment
             
             sw.restore();
@@ -228,8 +235,8 @@ classdef BaseCovExp < handle
             total_time = toc(begin_timer);
             obj.l.info(sprintf('Total runtime %f second ', total_time));
             
-            if covcfg.PARFOR
-                obj.l.info('No report generated due to PARFOR. Results are cached');
+            if ~ covcfg.MERGE_RESULTS_ONLY && (covcfg.PARFOR || ~ covcfg.MERGE_RESULTS_ONLINE)
+                obj.l.info('Results are cached and not merged. Run me with MERGE_RESULTS_ONLY to merge the results.');
                 covexp_result = [];
                 return;
             end
