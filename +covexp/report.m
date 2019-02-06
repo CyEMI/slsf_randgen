@@ -17,7 +17,7 @@ end
 
 clear covexp_result;
 
-load(result_file); %#ok<LOAD>
+load(result_file); 
 
 models = covexp_result.models;
 
@@ -67,5 +67,12 @@ l.info('Does model has at least one block with no cov?');
 haszero = arrayfun(@(p)p>0, numzero);
 tabulate(haszero);
 
+
+
 end
 
+
+function runtime (models)
+    durations = {'simdur', 'duration', 'compile_dur', 'avg_mut_dur'};
+    dur_legends = {'Run seed', 'Get Coverage', 'Get DataType', 'Mutant Gen (mean)'};
+end

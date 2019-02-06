@@ -3,6 +3,18 @@ function [dur_vals] = scaling(result, l)
 %   Detailed explanation goes here
 ret = true;
 
+if nargin < 2
+    l = logging.getLogger('report');
+end
+
+if nargin < 1
+    result_file = covcfg.RESULT_FILE;
+else
+    result_file = [covcfg.RESULT_DIR_COVEXP filesep result];
+end
+
+result = load(result_file);
+
 try
     l.info('--- Scaling Reports ---');
     
