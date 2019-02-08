@@ -74,7 +74,7 @@ classdef BaseComparator < handle
                             n_e.num_found_signals, n_e.num_signals,...
                             n_e.num_missing_in_base);
                     else
-                        n_e.print_exception_messages(l);
+                        n_e.print_exception_messages(obj.l);
                     end
                 catch e
                     obj.l.error('Exception while running comparison!');
