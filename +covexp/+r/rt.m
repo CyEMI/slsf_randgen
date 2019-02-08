@@ -1,6 +1,7 @@
 function ret = rt()
-%RT Runtime analysis for FSE paper
-%   Returns time in hours
+%RT Returns duration (hours) of running the covexp.covcollect experiments
+%   How many CPU hours were spent for the EMI phases up to actual EMI
+%   generation.
 
 
 % compute from coverage experiments

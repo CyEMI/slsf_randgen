@@ -2,20 +2,25 @@ function [emi_result, stats_table] = report(report_loc, aggregate)
 % Aggregates all reports in `report_loc` directory. 
 % If aggregate is missing then aggregates individual cache results to a 
 % file. Otherwise uses it or loades from disc if empty.
+% Example:
+% report() Aggregate from the latest directory in emi.cfg.REPORTS_DIR
+% report('abc') aggregate but from 'abc' directory
+% report([], []) don't aggregate. Load from emi.cfg.RESULT_FILE
+% report([], data) don't aggregate, use data
 
     l = logging.getLogger('emi_report');
-    
-    if nargin == 0 && ~isempty(report_loc)
-        report_loc = utility.get_latest_directory(emi.cfg.REPORTS_DIR);
-        
-        if isempty(report_loc)
-            l.warn('Nothing found in %s', emi.cfg.REPORTS_DIR);
-            return;
-        end
-        l.info('Collected report from "latest" directory: %s', report_loc);
-    end
 
     if nargin < 2 % Run aggregation
+        if nargin < 1 % From latest directory
+            report_loc = utility.get_latest_directory(emi.cfg.REPORTS_DIR);
+
+            if isempty(report_loc)
+                l.warn('No direcotry found in %s', emi.cfg.REPORTS_DIR);
+                return;
+            end
+            l.info('Aggregating from "latest" directory: %s', report_loc);
+        end
+        
         emi_result = utility.batch_process(report_loc, 'modelreport',... % variable name and file name should be 'modelreport'
             {{@(p) strcmp(p, 'modelreport.mat')}}, @process_data, '', true, true); % explore subdirs; uniform output
         emi_result = struct2table(emi_result);
