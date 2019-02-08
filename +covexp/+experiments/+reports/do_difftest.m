@@ -2,11 +2,21 @@ function models = do_difftest(models, l)
 %DO_DIFFTEST Report generator for difftest experiments
 %   This function is automatically called by covexp.report
 
-if ~isfield(models, 'difftest')
-    return;
-end
+l.info('--- Differential Testing (DIFFTEST) Report ---');
 
-data = {models.difftest};
+if isstruct(models) % struct array from covexp.report
+    if ~isfield(models, 'difftest')
+        l.warn('No difftest result available!');
+        return;
+    end
+    data = {models.difftest};
+else % table from emi.report
+    if ~ ismember('difftest_r', models.Properties.VariableNames)
+        l.warn('No difftest result available!');
+        return;
+    end
+    data = models.difftest_r;
+end
 
 n_data = numel(data);
 
@@ -26,11 +36,7 @@ for i=1:numel(data)
        if ~ isempty(cur.is_comp_ok)
         is_comp_e(i) = ~ cur.is_comp_ok;
        end
-       
-       % cur.exc_last_ok is now a cell, following won't make sense
-%        ok_phases(i) = uint32(cur.exc_last_ok);
-       
-       
+      
     end
     
 end
@@ -50,14 +56,17 @@ tabulate(is_exception);
 l.info('DIFFTEST (After comp): Errored?');
 tabulate(is_comp_e);
 
+% Strip out empty data
 
-rt(models, l);
+data = data(~ cellfun(@isempty, data));
+
+rt(data, l);
 
 end
 
 
-function rt(models, l)
-    rts = cellfun(@(p)p.total_duration,  {models.difftest});
+function rt(difftest_data, l)
+    rts = cellfun(@(p)p.total_duration,  difftest_data);
     l.info('DIFFTEST total runtime: %f hours', sum(rts)/3600 );
     
 end

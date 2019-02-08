@@ -1,8 +1,6 @@
 function [dur_vals] = scaling(result, l)
 %SCALING Summary of this function goes here
 %   Detailed explanation goes here
-ret = true;
-
 if nargin < 2
     l = logging.getLogger('report');
 end
@@ -14,6 +12,7 @@ else
 end
 
 result = load(result_file);
+result = result.covexp_result;
 
 try
     l.info('--- Scaling Reports ---');
@@ -42,8 +41,8 @@ try
     
     %%% Plot Durations %%%
     
-    durations = {'simdur', 'duration', 'compile_dur', 'avg_mut_dur'};
-    dur_legends = {'Run seed', 'Get Coverage', 'Get DataType', 'Mutant Gen (mean)'};
+    durations = {'simdur', 'duration', 'compile_dur', 'avg_mut_dur', 'avg_compile_dur', 'avg_difftest_dur'};
+    dur_legends = {'Run seed', 'Get Coverage', 'Get DataType', 'Mutant Gen', 'Mutant Compile', 'Diff. Test'};
     
     % merged.duration is a cell, convert it to double
     
@@ -59,6 +58,10 @@ try
     
  
     %%% Others %%%
+    
+    l.info('Mutant gen + compile + Difftest runtime: %f (avg); %f (max) sec',...
+        (mean(merged.avg_mut_dur) + mean(merged.avg_compile_dur) + mean(merged.avg_difftest_dur)),...
+        (max(merged.avg_mut_dur) + max(merged.avg_compile_dur) + max(merged.avg_difftest_dur)) );
     
     % Phase Duration Percentage
     
