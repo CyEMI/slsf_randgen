@@ -68,7 +68,6 @@ function ret = process_data(data)
     ret.num_mutants = numel(data.mutants);
     ret.n_mut_ops = cellfun(@(m)m.num_mutation, data.mutants);
     ret.durations = cellfun(@(m)m.duration, data.mutants); % Mutant gen time
-    ret.compile_dur = cellfun(@(m)m.duration, data.compile_duration); % Mutant compile time
 end
 
 
@@ -80,7 +79,7 @@ end
 
 function [stats_table] = get_stats(ret)
 
-    cmpl_d = cellfun(@(p)p.compile_duration,ret.mutants);
+    cmpl_d = cellfun(@(p)utility.na(p, @(q)q.compile_duration),ret.mutants);
     
     if ismember('difftest_r', ret.Properties.VariableNames)
         diff_d = cellfun(@(p)utility.na(p, @(q)q.total_duration),...
