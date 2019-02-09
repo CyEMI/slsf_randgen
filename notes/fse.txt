@@ -1,0 +1,34 @@
+# Runtime Stats
+
+EMI gen + compile + difftest max: 215.8 sec/model
+
+## Node default 	(mainly for EMI)
+
+ - covexp	: 1.8502 Hrs 	
+ - EMI		: Total: 74; difftest: 10; without_difftest: 64
+ - SLforge	: 0
+
+## Node default @ slab 	(mainly for EMI)
+
+ - covexp	: 10.8154
+ - EMI		: 653; 157;496
+ - SLforge	: 0
+
+## Node TJ1 @ slab 	(mainly for SLforge)
+
+ - covexp	: 0 
+ - EMI		: 0
+ - SLforge	: 108.2232 (gen) 21.6309 (difftest)
+
+## Node TJ4 @ slab 	(mainly for SLforge)
+
+ - covexp	: 0
+ - EMI		: 0
+ - SLforge	: 6.0097 (gen) 9.4286 (difftest) 
+
+## Node @ vlab 		(mainly for EMI)
+
+ - covexp	: 
+ - EMI		:
+ - SLforge	:
+

@@ -19,7 +19,7 @@ model_result.sys_ext = []; % Model extension
 model_result.skipped = false;
 model_result.opens = false;
 
-if isfield(covcfg.SKIP_LIST, sprintf('x%d', model_id))
+if ~covcfg.EXPLORE_A_DIRECTORY && isfield(covcfg.SKIP_LIST, sprintf('x%d', model_id))
     model_result.skipped = true;
     return;
 end

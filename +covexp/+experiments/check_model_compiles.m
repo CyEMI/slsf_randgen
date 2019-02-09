@@ -1,6 +1,9 @@
 function ret = check_model_compiles(sys, h, ret)
 %CHECK_MODEL_COMPILES Compile model to cache data-types of blocks
-%   Detailed explanation goes here
+%   Note: due to Simulink implementation differences, a model might not
+%   compile but simulate successfully. This is because compilation is a
+%   sperate implementation (likely) and does not respect all of the
+%   optimization parameters.
     
     l = logging.getLogger('singlemodel');
     
@@ -18,9 +21,10 @@ function ret = check_model_compiles(sys, h, ret)
     e = []; % Do not throw the previous error which is a model issue
     
     if ret.compiles
-        % Collect compiled data types for blocks
         
-        try
+        try % To ensure we terminate the compilation process
+            
+            %%% Collect compiled data types for blocks
             blocks = covexp.get_all_blocks(h);
 
             all_blocks = containers.Map();
@@ -42,6 +46,14 @@ function ret = check_model_compiles(sys, h, ret)
             end
                         
             ret.datatypes = all_blocks;
+            
+            %%% Collect compiled sample times
+            
+            st_compiled = cellfun(@(p) utility.na(p,...
+                @(q)get_param(q, 'CompiledSampleTime'), []),...
+                {ret.blocks.fullname}, 'UniformOutput', false);
+
+            [ret.blocks.st_compiled] = st_compiled{:};
             
         catch e
             % Should we not check what went wrong? Yes, at the end of this
