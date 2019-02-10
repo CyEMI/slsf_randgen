@@ -21,7 +21,7 @@ classdef BaseMainLoop < handle
     end
     
     properties(Constant = true)
-        
+       
     end
     
     methods
@@ -60,6 +60,7 @@ classdef BaseMainLoop < handle
             sw.restore();
             
             total_dur = toc(tic_rec);
+            obj.save_global_report(total_dur);
             
             obj.l.info('Total runtime %f second', total_dur);
             obj.l.info('--- Returning from Main Loop! ---');
@@ -88,6 +89,14 @@ classdef BaseMainLoop < handle
             mkdir(obj.exp_data.REPORTS_BASE);
             
             copyfile(['+emi' filesep 'cfg.m'], obj.exp_data.REPORTS_BASE);
+        end
+        
+        function save_global_report(obj, total_time)
+            emi_global_report = struct;
+            emi_global_report.total_duration = total_time; %#ok<STRNU>
+            
+            save([obj.exp_data.REPORTS_BASE filesep emi.cfg.GLOBAL_REPORT_FILENAME],...
+                'emi_global_report');
         end
         
         function handle_random_number_seed(obj)

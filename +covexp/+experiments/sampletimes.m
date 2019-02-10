@@ -3,7 +3,8 @@ function ret = sampletimes(~, ~, ret)
 %   Assumes you have already collected coverage (Experiment 1)
 
 if ~ isfield(ret, 'blocks')
-    error('sampletimes experiment depends on coverage collection!');
+    return;
+%     error('sampletimes experiment depends on coverage collection!');
 end
 
 st_param = cellfun(@(p) utility.na(p, @(q)get_param(q, 'SampleTime'), []),...

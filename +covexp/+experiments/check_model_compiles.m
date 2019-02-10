@@ -49,11 +49,14 @@ function ret = check_model_compiles(sys, h, ret)
             
             %%% Collect compiled sample times
             
-            st_compiled = cellfun(@(p) utility.na(p,...
-                @(q)get_param(q, 'CompiledSampleTime'), []),...
-                {ret.blocks.fullname}, 'UniformOutput', false);
+            if isfield(ret, 'blocks')
+                st_compiled = cellfun(@(p) utility.na(p,...
+                    @(q)get_param(q, 'CompiledSampleTime'), []),...
+                    {ret.blocks.fullname}, 'UniformOutput', false);
 
-            [ret.blocks.st_compiled] = st_compiled{:};
+                [ret.blocks.st_compiled] = st_compiled{:};
+            end
+            
             
         catch e
             % Should we not check what went wrong? Yes, at the end of this

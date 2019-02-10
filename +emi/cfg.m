@@ -107,6 +107,8 @@ classdef cfg
         WORK_DATA_DIR = 'workdata';
         WS_FILE_NAME_ = 'savedws.mat';
         
+        % Global results for an experiment, e.g. total duration
+        GLOBAL_REPORT_FILENAME = 'emi_global'; 
         
         % Before generating list of models
         MODELS_RNG_VARNAME_IN_WS = 'rng_state_models';

@@ -33,7 +33,7 @@ classdef covcfg < handle
         % results from individual result caches. 
         % Followings would be ignored: PARFOR;
         % FORCE_UPDATE_CACHE_RESULTS; EXP_MODE; MERGE_RESULTS_ONLINE 
-        MERGE_RESULTS_ONLY = false;
+        MERGE_RESULTS_ONLY = true;
         
         %% Experiment Mode (see covexp.Expmode)
         

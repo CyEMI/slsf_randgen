@@ -185,7 +185,7 @@ classdef BaseCovExp < handle
                 end
                 
                 if ~ is_merge
-                    res = struct();
+                    res = [];
                 end
             end
             
@@ -201,6 +201,7 @@ classdef BaseCovExp < handle
             
             mkdir(obj.CUR_EXP_DIR);
             mkdir([obj.CUR_EXP_DIR filesep covcfg.TOUCHED_MODELS_DIR]);
+            copyfile('covcfg.m', obj.CUR_EXP_DIR);
             
             % Backup previous report 
             try
@@ -235,32 +236,30 @@ classdef BaseCovExp < handle
             total_time = toc(begin_timer);
             obj.l.info(sprintf('Total runtime %f second ', total_time));
             
-            if ~ covcfg.MERGE_RESULTS_ONLY && (covcfg.PARFOR || ~ covcfg.MERGE_RESULTS_ONLINE)
-                obj.l.info('Results are cached and not merged. Run me with MERGE_RESULTS_ONLY to merge the results.');
-                covexp_result = [];
-                return;
-            end
-            
             % covexp_result contains everything to be saved in disc
             covexp_result = obj.save_result(obj.result, total_time);
             
             % Save Result
-            if ~ isempty(covcfg.RESULT_FILE)
-                if covcfg.SAVE_RESULT_AS_JSON
-                    covexp_models = covexp_result.models;
-                    covexp_models = jsonencode(covexp_models);
-                    fid = fopen([covcfg.RESULT_FILE '_txt.json'],'wt');
-                    fprintf(fid, covexp_models);
-                    fclose(fid);
-                end
-                
+            if ~ isempty(covcfg.RESULT_FILE)                
                 save(covcfg.RESULT_FILE, 'covexp_result');
-                
             end
             
             obj.l.info('Report saved in %s', obj.report_log_filename);
             
             % Run report generation
+            if ~ covcfg.MERGE_RESULTS_ONLY && (covcfg.PARFOR || ~ covcfg.MERGE_RESULTS_ONLINE)
+                obj.l.info('Results are cached and not merged. Run me with MERGE_RESULTS_ONLY to merge the results.');
+                return;
+            end
+            
+            if covcfg.SAVE_RESULT_AS_JSON
+                covexp_models = covexp_result.models;
+                covexp_models = jsonencode(covexp_models);
+                fid = fopen([covcfg.RESULT_FILE '_txt.json'],'wt');
+                fprintf(fid, covexp_models);
+                fclose(fid);
+            end
+            
             covexp.report();
         end
         

@@ -1,18 +1,8 @@
-function [dur_vals] = scaling(result, l)
-%SCALING Summary of this function goes here
+function [dur_vals] = scaling(varargin)
+%SCALING Scaling related results
 %   Detailed explanation goes here
-if nargin < 2
-    l = logging.getLogger('report');
-end
 
-if nargin < 1
-    result_file = covcfg.RESULT_FILE;
-else
-    result_file = [covcfg.RESULT_DIR_COVEXP filesep result];
-end
-
-result = load(result_file);
-result = result.covexp_result;
+[result, l] = covexp.r.init(varargin{:});
 
 try
     l.info('--- Scaling Reports ---');
