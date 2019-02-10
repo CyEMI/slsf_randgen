@@ -1,31 +1,39 @@
-function ret = rt()
+function [total, mymax] = rt()
 %RT Returns duration (hours) of running the covexp.covcollect experiments
 %   How many CPU hours were spent for the EMI phases up to actual EMI
-%   generation.
-
+%   generation. Returns total (hours), max (seconds)
+% Using the max hours to approximate missing data. When using PARFOR, we
+% did not record total duration. 
+% To approximate, go to the covexp_results folder:
+% `find . -type d -name "2018-*" | wc -l` will give total experiments
+% starting in 2018. Substract from it:
+% find . -type d -name "2018-*" -exec find {} -name "covexp_result*" \; | wc -l
+% which gives experiment count for which we have data.
 
 % compute from coverage experiments
 
-ret = 0;
+total = 0;
+mymax = 0;
 
 % Legacy covexp
 
-legacy = sum(utility.batch_process(covcfg.RESULT_DIR_COVEXP, 'covexp_result',... % variable name
-        [], @process_legacy, '*.mat', false, true)); %  subdirs; uniform output
-ret = ret + legacy;
+legacy = utility.batch_process(covcfg.RESULT_DIR_COVEXP, 'covexp_result',... % variable name
+        [], @process_legacy, '*.mat', false, true); %  subdirs; uniform output
+
+total = total + sum(legacy);
+mymax = max(mymax, max(legacy));
 
 % Recent covexp
 
-recent = sum( utility.batch_process(covcfg.RESULT_DIR_COVEXP, 'covexp_result',... 
-        {{@(p) utility.starts_with(p, 'covexp_result')}}, @process_legacy, '', true, true) ); %  filename starts with covexp_result
+recent = utility.batch_process(covcfg.RESULT_DIR_COVEXP, 'covexp_result',... 
+        {{@(p) utility.starts_with(p, 'covexp_result')}}, @process_legacy, '', true, true); %  filename starts with covexp_result
     
-ret = ret + recent;
+total = total + sum(recent);
+mymax = max(mymax, max(recent));
 
 % EMI exps
 
-
-
-ret = ret / 3600; 
+total = total / 3600; 
 
 end
 
