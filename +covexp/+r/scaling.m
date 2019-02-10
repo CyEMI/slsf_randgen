@@ -41,8 +41,12 @@ try
     
     %%% Plot Durations %%%
     
-    durations = {'simdur', 'duration', 'compile_dur', 'avg_mut_dur', 'avg_compile_dur', 'avg_difftest_dur'};
-    dur_legends = {'Run seed', 'Get Coverage', 'Get DataType', 'Mutant Gen', 'Mutant Compile', 'Diff. Test'};
+    compile_d = merged.compile_dur;
+    pp_dur = cell2mat(merged.pp_duration);
+    merged.pp_tot_dur = compile_d + pp_dur;
+    
+    durations = {'simdur', 'duration', 'pp_tot_dur', 'avg_mut_dur', 'avg_compile_dur', 'avg_difftest_dur'};
+    dur_legends = {'Run Seed', 'Coverage', 'DataType', 'Mutant Gen', 'Run Mutant', 'Diff. Test'};
     
     % merged.duration is a cell, convert it to double
     
@@ -59,9 +63,12 @@ try
  
     %%% Others %%%
     
-    l.info('Mutant gen + compile + Difftest runtime: %f (avg); %f (max) sec',...
-        (mean(merged.avg_mut_dur) + mean(merged.avg_compile_dur) + mean(merged.avg_difftest_dur)),...
-        (max(merged.avg_mut_dur) + max(merged.avg_compile_dur) + max(merged.avg_difftest_dur)) );
+    l.info('Phases:');
+    disp(durations);
+    
+    l.info('Maximum duration (seconds) for each phase:');
+    disp(max(merged{:, durations}, [], 1));
+    
     
     % Phase Duration Percentage
     
@@ -93,12 +100,9 @@ try
     
     l.info('Total duration (sec): %f', sum(tot_durs));
     
-    l.info('Phases:');
-    disp(durations);
-    
     l.info('Each seed mutated %f times', mean(emi_stats.count_mutants));
     
-    %%% Total Runtime as if linear 
+    %%% Total Runtime as if linear aka CPU time
     
     % Fill missing vals
     
@@ -107,7 +111,7 @@ try
     merged.emi_gen_tot_dur = merged.count_mutants .* merged.avg_mut_dur;
     
     dur_vals = merged{:,...
-        {'simdur', 'duration', 'compile_dur', 'emi_gen_tot_dur'}};
+        {'simdur', 'duration', 'pp_tot_dur', 'emi_gen_tot_dur'}};
     
     l.info('Total linear duration: %f minutes', sum(sum(dur_vals)) / 60);
     
