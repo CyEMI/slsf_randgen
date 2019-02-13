@@ -1,4 +1,4 @@
-function plot(x, y, y_legends, xLab, yLab, xScale, yScale)
+function [f, l] = plot(x, y, y_legends, xLab, yLab, xScale, yScale)
     % y can be a vector or matrix
     
     if nargin < 6
@@ -9,7 +9,7 @@ function plot(x, y, y_legends, xLab, yLab, xScale, yScale)
         yScale = 'linear';
     end
     
-    figure();
+    f = figure();
     
     % Make column vector
     if isvector(y)
@@ -40,7 +40,9 @@ function plot(x, y, y_legends, xLab, yLab, xScale, yScale)
     hold off;
     
     if ~ isempty(y_legends)
-        legend(y_legends{:});
+        l = legend(y_legends{:});
+    else
+        l = [];
     end
 
     xlabel(xLab);

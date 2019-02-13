@@ -42,15 +42,34 @@ try
     
     merged.duration = cellfun(@(p)p, merged{:, 'duration'});
     
-    utility.plot(blks_sz, merged{:,durations}, dur_legends,...
+    [f, lgnd] = utility.plot(blks_sz, merged{:,durations}, dur_legends,...
         blks_per_model_label, 'Runtime (sec)', 'log', 'log');
+    
+    lgnd.Orientation = 'horizontal';
+    lgnd.Location = 'southwest';
+    
+    x_tick_low = 0; %129
+    x_tick_hi = max(blks_sz); 
+    
+    % Clip axes
+    xlim([x_tick_low, x_tick_hi]);
+    ylim([10e-2,  max(max(merged{:, durations}))])
+    
+    f.Position = [800 800 800 200]; % first two are meaningless
+    
+    % Where are the ticks?
+    my_x_ticks = [x_tick_low, 1000]; % only 2 ticks since block size < 10e4
+    xticks(my_x_ticks);
+    xticklabels(utility.exp_plot_ticks(my_x_ticks));
     
     % Mutation Stats
     
-    utility.plot(blks_sz, merged{:, 'avg_mut_ops'}, [],...
+    [f, ~] = utility.plot(blks_sz, merged{:, 'avg_mut_ops'}, [],...
         blks_per_model_label, 'Mutations (mean)', 'log', 'log');
     
- 
+    f.Position = [800 800 200 200];
+    xticks(my_x_ticks);
+    xticklabels(utility.exp_plot_ticks(my_x_ticks));
     %%% Others %%%
     
     l.info('Phases:');
@@ -64,14 +83,14 @@ try
     
     % Filtering out those did not mutated
     
-    blks_sz = cellfun(@(p) length(p), merged{~isnan(merged.m_id_emi_stats), 'blocks'});
-    
     dur_vals = merged{~isnan(merged.m_id_emi_stats), durations};
     tot_durs = sum(dur_vals, 2);
     dur_fracs = (dur_vals ./ tot_durs) .* 100;
     
-    utility.plot(blks_sz, dur_fracs, [],...
-        blks_per_model_label, 'Experiment Duration (%)', 'log');
+    % Commenting out following as percentage is not important
+%     blks_sz = cellfun(@(p) length(p), merged{~isnan(merged.m_id_emi_stats), 'blocks'});
+%     utility.plot(blks_sz, dur_fracs, [],...
+%         blks_per_model_label, 'Experiment Duration (%)', 'log');
     
     % max phase
     
