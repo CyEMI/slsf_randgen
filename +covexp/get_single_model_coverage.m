@@ -8,7 +8,7 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
     
     covdata = struct;
     
-    if covcfg.USE_CACHED_RESULTS
+    if covcfg.MERGE_RESULTS_ONLY || covcfg.USE_CACHED_RESULTS
         try
             covdata = load(report_loc);
             do_append = true;

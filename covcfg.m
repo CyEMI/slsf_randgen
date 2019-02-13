@@ -22,18 +22,18 @@ classdef covcfg < handle
         % Set false when aggregating results or debugging. If set to true,
         % will  process inidivual models paralelly. Results will be cached
         % for each file
-        PARFOR = false;
+        PARFOR = true;
         
         % Merge results for all models into a big file DURING experiments.
         % Ignored if PARFOR
-        MERGE_RESULTS_ONLINE = false;
+        MERGE_RESULTS_ONLINE = true;
         
         % If you have not merged results online or used PARFOR, 
         % use this to just merge the
         % results from individual result caches. 
         % Followings would be ignored: PARFOR;
         % FORCE_UPDATE_CACHE_RESULTS; EXP_MODE; MERGE_RESULTS_ONLINE 
-        MERGE_RESULTS_ONLY = true;
+        MERGE_RESULTS_ONLY = false;
         
         %% Experiment Mode (see covexp.Expmode)
         
@@ -46,7 +46,7 @@ classdef covcfg < handle
         % have bug in the code initially. Please experiment with 1-2 models
         % first so that you do not discard many of the cached results for
         % ALL of your models!
-        MAX_NUM_MODEL = 3;
+        MAX_NUM_MODEL = 200;
         
         % Subgrouping is not used for Expmode.All
         SUBGROUP_BEGIN = 101;
@@ -97,8 +97,8 @@ classdef covcfg < handle
         };
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
-        DO_THESE_EXPERIMENTS = [2, 8]; % Multiple experiments
-%         DO_THESE_EXPERIMENTS = 8;   % Single experiment
+%         DO_THESE_EXPERIMENTS = [2, 8]; % Multiple experiments
+        DO_THESE_EXPERIMENTS = 8;   % Single experiment
         
         %% Others
         
@@ -148,7 +148,9 @@ classdef covcfg < handle
         };
         
         % If an EMI-PRE Processed file (with suffix _pp) exists, do
-        % differential test ONLY on the _pp version.
+        % differential test ONLY on the _pp version. Set this for
+        % EMI/coverage experiments, but unset to evaluate SLforge or
+        % any other model directly where we do not pre-process.
         EXP6_USE_PRE_PROCESSED = true;
         EXP6_RUN_COMPARATOR = true;
         EXP6_COMPARATOR = @difftest.FinalValueComparator;
@@ -205,7 +207,8 @@ classdef covcfg < handle
         DATETIME_STR_TO_DATE = 'yyyy-MM-dd-HH-mm-ss';
         DATETIME_DATE_TO_STR = 'yyyy-mm-dd-HH-MM-SS';
         
-        %% Model IDs to skip, start with x. Only in Corpus mode
+        %% Model IDs to skip, start with x. 
+        % Used Only in Corpus mode i.e. EXPLORE_DIRECTORY is false
 %         SKIP_LIST = struct();
         SKIP_LIST = struct(...
             'x71', '',... 
