@@ -56,6 +56,11 @@ tabulate(is_exception);
 l.info('DIFFTEST (After comp): Errored?');
 tabulate(is_comp_e);
 
+if sum(is_comp_e) ~= 0
+    l.info('Following comps errored');
+    disp(find(is_comp_e)');
+end
+
 % Strip out empty data
 
 data = data(~ cellfun(@isempty, data));
