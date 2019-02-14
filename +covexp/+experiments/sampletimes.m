@@ -2,7 +2,7 @@ function ret = sampletimes(~, ~, ret)
 %SAMPLETIMES Collect sample time stats and other block params
 %   Assumes you have already collected coverage (Experiment 1)
 
-if ~ isfield(ret, 'blocks')
+if ~ isfield(ret, 'blocks') || isempty(ret.blocks)
     return;
 %     error('sampletimes experiment depends on coverage collection!');
 end
