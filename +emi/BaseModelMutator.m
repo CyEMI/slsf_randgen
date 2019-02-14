@@ -312,7 +312,8 @@ classdef (Abstract) BaseModelMutator < handle
         function aggregate_data_for_mutant_generator(obj)
             %%
             function x = get_nonempty(x)
-                x = x(rowfun(@(~,p,~) ~isempty(p{1}) , x(:,:),...
+                x = x(rowfun(@(p) ~isempty(p) , x,...
+                    'InputVariables', {'percentcov'}, 'ExtractCellContents', true,...
                 'OutputFormat', 'uniform'), :);
             end
             

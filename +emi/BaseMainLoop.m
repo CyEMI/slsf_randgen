@@ -76,7 +76,7 @@ classdef BaseMainLoop < handle
             obj.l.info('Read completed.');
             
             models_data = read_data.(obj.data_var_name);
-            obj.models = struct2table(models_data.models);
+            obj.models = struct2table(models_data.models, 'AsArray', true);
         end
         
         function init(obj)

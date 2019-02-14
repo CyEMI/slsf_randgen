@@ -9,13 +9,14 @@ classdef cfg
         
         PARFOR = false;
         
+        RNG_SHUFFLE = false;     % non-repeatable, recommended for TACC
+        
         % Load previously saved random number seed. This would NOT
         % reproduce previous experiment results, but useful for actually
         % running this tool 24/7 and doing new stuff everytime the script
         % is run.
         
-        LOAD_RNG_STATE = false;
-        RNG_SHUFFLE = true;     % non-repeatable, recommended for TACC
+        LOAD_RNG_STATE = true;
         
         INTERACTIVE_MODE = false;
         
@@ -32,7 +33,7 @@ classdef cfg
         %% Differential Testing
         
         % Run differential testing after mutation
-        RUN_DIFFTEST = true;
+        RUN_DIFFTEST = false;
         
         % Creates cartesian product
         SUT_CONFIGS = {
@@ -68,6 +69,7 @@ classdef cfg
         %% EMI strategies
         
         MUTATOR_DECORATORS = {
+            @emi.decs.FixSourceSampleTimes                  % Pre-process
             @emi.decs.TypeAnnotateEveryBlock                % Pre-process
             @emi.decs.TypeAnnotateByOutDTypeStr             % Pre-process
             @emi.decs.DeleteDeadAddSaturation

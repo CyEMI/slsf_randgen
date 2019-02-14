@@ -150,6 +150,11 @@ classdef SlsfModel < cps.Model
             obj.l.debug('Added new %s block %s', new_blk_type, n_blk_full);
         end
         
+        function ret = get_root_sources(obj)
+            % Get root-level source blocks
+            sources = obj.blocks(cps.slsf.filter_source_blocks(obj.blocks), :);
+            ret = sources{cps.slsf.unspecified_st(sources), 'fullname'};
+        end
         
         function ret = get_model_builder(obj, parent)
             %% Create new or get existing ModelBuilder
@@ -197,8 +202,16 @@ classdef SlsfModel < cps.Model
             ret = get_param([obj.sys '/' blk], 'BlockType');
         end
         
+        function e = fixate_sample_time(obj, blk)
+            f_blk = [obj.sys '/' blk];
+            e = obj.set_param(f_blk, 'SampleTime', '1', true);
+            if ~ isempty(e)
+                e = obj.set_param(f_blk, 'tsamp', '1', true);
+            end
+        end
+        
         function e = set_param(~, slob, k, v, use_try_catch)
-            %% 
+            %% Safely try setting a parameter through Simulink APIs
             % When we are not sure whether setting will throw, use
             % use_try_catch = true
             
