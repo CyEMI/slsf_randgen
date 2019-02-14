@@ -169,6 +169,14 @@ classdef BaseCovExp < handle
                             error('Experiment crashed! Stopping since experiments should not throw.');
                         end
                         
+                        if strcmp(e.identifier, 'MATLAB:heterogeneousStrucAssignment')
+                            pf = fieldnames(res(i-1));
+                            mf = fieldnames(my_res);
+                            uncommon = setdiff(union(pf, mf), intersect(pf, mf));
+                            error('Result of different experiments have different fields. Delete these fields using EXP 5: %s',...
+                                strjoin(uncommon, '; '));
+                        end
+                        
                         % Continue hoping error occurred while loading
                         % bad cache from disc
                         

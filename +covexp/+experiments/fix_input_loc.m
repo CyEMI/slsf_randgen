@@ -6,5 +6,11 @@ function ret = fix_input_loc(~, ~, ret)
 
 %% Do some other rectification
 
+for i=1:numel(covcfg.EXP5_FIELDS_TO_DEL)
+    if isfield(ret, covcfg.EXP5_FIELDS_TO_DEL{i})
+        ret = rmfield(ret, covcfg.EXP5_FIELDS_TO_DEL{i});
+    end
+end
+
 end
 

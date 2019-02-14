@@ -46,7 +46,7 @@ classdef covcfg < handle
         % have bug in the code initially. Please experiment with 1-2 models
         % first so that you do not discard many of the cached results for
         % ALL of your models!
-        MAX_NUM_MODEL = 1;
+        MAX_NUM_MODEL = 5;
         
         % Subgrouping is not used for Expmode.All
         SUBGROUP_BEGIN = 101;
@@ -95,10 +95,14 @@ classdef covcfg < handle
             @difftest.experiments.comp_with_pp                      % 7
             @covexp.experiments.sampletimes                         % 8
         };
+    
+        % For exp # 6  and #7, make sure that pre-processed files are not
+        % re-used if you change the pre-processing logic (exp#3) -- the
+        % configuration is in `difftest.cfg`
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
-%         DO_THESE_EXPERIMENTS = [2, 8]; % Multiple experiments
-        DO_THESE_EXPERIMENTS = 3;   % Single experiment
+%         DO_THESE_EXPERIMENTS = [3, 7]; % Multiple experiments
+        DO_THESE_EXPERIMENTS = 8;   % Single experiment
         
         %% Others
         
@@ -135,17 +139,24 @@ classdef covcfg < handle
         % path. Replace it with `EXPLORE_DIR` to fix path problems. Just
         % enable experiment 5 and set FORCE_UPDATE to true.
         
+        % If want to delete specific fields from the models data. Helpful
+        % when merging causes error because some experiemnts have a
+        % particular field and some don't.
+        
+%         EXP5_FIELDS_TO_DEL = {};
+        EXP5_FIELDS_TO_DEL = {'difftest'};
+        
         %% Exp 6 (Differential Testing)
         
-%         EXP6_CONFIGS = {
-%             {difftest.ec.solver_var, difftest.ec.solver_fix}
-%             {difftest.ec.opt_off}
-%             };
-        
         EXP6_CONFIGS = {
-            {difftest.ec.opt_off, difftest.ec.opt_on}
-            {difftest.ec.mode_normal, difftest.ec.mode_acc}
-        };
+%             {difftest.ec.solver_var, difftest.ec.solver_fix}
+            {difftest.ec.solver_fix}
+            };
+        
+%         EXP6_CONFIGS = {
+%             {difftest.ec.opt_off, difftest.ec.opt_on}
+%             {difftest.ec.mode_normal, difftest.ec.mode_acc}
+%         };
         
         % If an EMI-PRE Processed file (with suffix _pp) exists, do
         % differential test ONLY on the _pp version. Set this for
