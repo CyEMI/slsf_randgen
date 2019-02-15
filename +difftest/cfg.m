@@ -12,7 +12,7 @@ classdef cfg
         DELETE_PRE_EXEC_MODELS = false;
         
         % Don't create the pre-exec file if one already exists
-        PRE_EXEC_SKIP_CREATE_IF_EXISTS = false;
+        PRE_EXEC_SKIP_CREATE_IF_EXISTS = true;
         
     end
     

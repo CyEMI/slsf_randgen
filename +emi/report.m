@@ -1,4 +1,4 @@
-function [emi_result, stats_table] = report(report_loc, aggregate)
+function [emi_result, stats_table, cmp_errs] = report(report_loc, aggregate)
 % Aggregates all reports in `report_loc` directory. 
 % If aggregate is missing then aggregates individual cache results to a 
 % file. Otherwise uses it or loades from disc if empty.
@@ -32,6 +32,8 @@ function [emi_result, stats_table] = report(report_loc, aggregate)
         emi_result = aggregate;
     end
     
+    emi_result = utility.table_cell(emi_result, 'difftest_r');
+    
     utility.tabulate('is_ok', emi_result, 'No Exception and mutant error?', l);
     
     stats_table = [];
@@ -47,7 +49,7 @@ function [emi_result, stats_table] = report(report_loc, aggregate)
     % Write in disc
     save(emi.cfg.RESULT_FILE, 'emi_result', 'stats_table');
     
-    covexp.experiments.reports.do_difftest(emi_result, l);
+    [~, cmp_errs] = covexp.experiments.reports.do_difftest(emi_result, l);
 end
 
 function ret = process_data(data)

@@ -5,7 +5,7 @@ classdef cfg
     properties(Constant = true)
         %% Commonly used 
         
-        NUM_MAINLOOP_ITER = 1;
+        NUM_MAINLOOP_ITER = 40;
         
         PARFOR = false;
         
@@ -33,13 +33,13 @@ classdef cfg
         %% Differential Testing
         
         % Run differential testing after mutation
-        RUN_DIFFTEST = false;
+        RUN_DIFFTEST = true;
         
         % Creates cartesian product
         SUT_CONFIGS = {
             {
 %                     difftest.ExecConfig('OptOn', struct('SimCompilerOptimization', 'on')) 
-                difftest.ec.opt_off
+                difftest.ec.solver_fix
             }
         };
     
@@ -57,7 +57,7 @@ classdef cfg
         KEEP_ERROR_MUTANT_PARENT_OPEN = false;
         
         % Break from the main loop if any model mutation errors
-        STOP_IF_ERROR = false;
+        STOP_IF_ERROR = true;
         
         %% Generic Mutation
         

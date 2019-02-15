@@ -1,8 +1,9 @@
-function models = do_difftest(models, l)
+function [models, cmp_e_dts] = do_difftest(models, l)
 %DO_DIFFTEST Report generator for difftest experiments
 %   This function is automatically called by covexp.report
 
 l.info('--- Differential Testing (DIFFTEST) Report ---');
+cmp_e_dts = [];
 
 if isstruct(models) % struct array from covexp.report
     if ~isfield(models, 'difftest')
@@ -57,8 +58,14 @@ l.info('DIFFTEST (After comp): Errored?');
 tabulate(is_comp_e);
 
 if sum(is_comp_e) ~= 0
-    l.info('Following comps errored');
+    l.info('Following comps (indices, not experiment numbers) errored');
     disp(find(is_comp_e)');
+    
+    l.info('First exception message for each errored experiment:');
+    l.info('The exception objects are also returned!');
+    cmp_e_dts = models{find(is_comp_e), 'difftest_r'}; %#ok<FNDSB>
+    msgs = cellfun(@difftest.comp_invest, cmp_e_dts, 'UniformOutput', false);
+    l.error('%s', strjoin(cellfun(@(p)p.identifier, msgs, 'UniformOutput', false), '\n'));
 end
 
 % Strip out empty data

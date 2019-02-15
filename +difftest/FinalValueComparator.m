@@ -60,7 +60,12 @@ classdef FinalValueComparator < difftest.BaseComparator
                         next_exec, [], [], e, next_exec_idx);
                 else
                     d_1 = data_1.Data(numel(data_1.Data));
-                    d_2 = data_2.Data(numel(data_2.Data));
+                    try
+                        d_2 = data_2.Data(numel(data_2.Data));
+                    catch e
+                        disp(e)
+                        rethrow(e);
+                    end
 
                     t_1 = data_1.Time(numel(data_1.Time));
                     t_2 = data_2.Time(numel(data_2.Time));
