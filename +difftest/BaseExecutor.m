@@ -14,7 +14,10 @@ classdef BaseExecutor < utility.DecoratorClient
         
         sim_args_cache; % used by decorators
 
+        sim_start_args = {}; % Arguments for TimedSim.start method
+        
         simOut = [];
+        
     end
     
     
@@ -108,6 +111,7 @@ classdef BaseExecutor < utility.DecoratorClient
             emi.open_or_load_model(obj.sys);
         end
         
+        
         function pre_execution_wrapper(obj, previous_preexec_err)
             % Change/decorate model before execution 
             
@@ -143,13 +147,24 @@ classdef BaseExecutor < utility.DecoratorClient
         
         function execution(obj)
             obj.l.info('Executing...');
+            
+            
+            % Check if we need to make a copy of the model. Required when
+            % the model is shared i.e. seed. 
+            % seed detection currently only works for SLforge model
+            
+            if difftest.cfg.PARFOR && difftest.cfg.COPY_IF_PARFOR 
+                ext = emi.slsf.get_extension(obj.sys);
+                obj.sim_start_args = {false, ext};
+            end
+            
             obj.simOut = obj.sim_command(obj.sim_args);
         end
         
         function ret = sim_command(obj, varargin)
             % varargin{1}: simulation arguments (struct)
             simob = utility.TimedSim(obj.sys, difftest.cfg.SIMULATION_TIMEOUT, obj.l, varargin{:});
-            simob.start();
+            simob.start(obj.sim_start_args{:});
             ret = simob.simOut;
         end
 

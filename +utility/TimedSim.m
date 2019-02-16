@@ -9,6 +9,8 @@ classdef TimedSim < handle
         l;                  % logger
         simargs;
         simOut = [];     % Simulation Results
+        
+        tmp_dir = [];
     end
     
     methods
@@ -30,20 +32,51 @@ classdef TimedSim < handle
             eval([obj.sys '([], [], [], ''term'')']);
         end
         
+        function create_temp(obj, ext)
+            obj.tmp_dir = tempname;
+            mkdir(obj.tmp_dir);
+            new_name = [obj.sys '_tmp'];
+            full_path = emi.slsf.copy_model(...
+                            obj.sys, obj.tmp_dir, new_name, ext);
+            obj.l.info('Created temp model: %s', full_path);
+            obj.sys = new_name;
+        end
+        
+        function cleanup(obj)
+            if ~ isempty(obj.tmp_dir)
+                assert(rmdir(obj.tmp_dir, 's'));
+            end
+        end
+        
         function timed_out = start(obj, varargin)
             % First argument, if present, denotes whether to only compile
             % WARNING timed_out is kept for legacy code. Now we always
             % throw exception when time-out
+            % If want to make a temporary copy of the model first, pass 2nd
+            % argument: extension of the model e.g. 'slx'
             compile_only = false;
             
-            if nargin > 1
+            create_temp = false;
+            tmp_ext = [];
+            
+            if nargin >= 2
                 compile_only = varargin{1};
+            end
+            
+            if nargin >= 3
+                create_temp = true;
+                tmp_ext = varargin{2};
+            end
+            
+            if create_temp
+                obj.create_temp(tmp_ext);
             end
             
             timed_out = false;
             obj.sim_status = [];
             myTimer = timer('StartDelay', obj.duration, 'TimerFcn', {@utility.TimedSim.sim_timeout_callback, obj});
             start(myTimer);
+            e = [];
             try
                 if compile_only
                     % Sending the compile command results in error similar
@@ -62,7 +95,12 @@ classdef TimedSim < handle
                 
                 obj.l.info('Compile/simulation completed');
             catch e
-                throw(e);
+            end
+            
+            obj.cleanup();
+            
+            if ~ isempty(e)
+                rethrow(e);
             end
             
             if ~isempty(obj.sim_status) && ~strcmp(obj.sim_status, 'stopped')

@@ -14,6 +14,13 @@ classdef cfg
         % Don't create the pre-exec file if one already exists
         PRE_EXEC_SKIP_CREATE_IF_EXISTS = true;
         
+        % When running in parallel, make a copy of the model to prevent
+        % issues
+        COPY_IF_PARFOR = true;
+        
+        % Don't change
+        PARFOR = emi.cfg.PARFOR;
+        
     end
     
     
