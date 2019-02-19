@@ -5,7 +5,7 @@ function [total, mymax] = rt()
 % Using the max hours to approximate missing data. When using PARFOR, we
 % did not record total duration. 
 % To approximate, go to the covexp_results folder:
-% `find . -type d -name "2018-*" | wc -l` will give total experiments
+% find . -type d -name "2018-*" | wc -l will give total experiments
 % starting in 2018. Substract from it:
 % find . -type d -name "2018-*" -exec find {} -name "covexp_result*" \; | wc -l
 % which gives experiment count for which we have data.
