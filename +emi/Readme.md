@@ -1,4 +1,15 @@
-# Equivalence-based Mutation of CPS models
+# Equivalence-based Mutation of CPS (e.g. Simulink) models
+
+## Running
+
+- Set environment variable `COVEXPEXPLORE` to point to your seed model location
+- Preprocess seeds by running experiment# 1, 2 and 3 using [covexp.covcollect](../+covexp/)
+- After preprocessing invoke `emi.go()` to generate mutants
+- Use `emi.report` to see reports
+
+## Configuration
+
+Configure [cfg.m](cfg.m) in MATLAB using `edit emi.cfg`
 
 ## Mutation Strategies
 
@@ -35,7 +46,7 @@ See `emi.decs.FixateDTCOutputDataType`
 
 ### Delete dead block and directly connect predecessors and successors
 
-Issue: May change semantics in live path
+Issue: May change semantics in live (zombie) path
 
 Code:
 
