@@ -3,7 +3,7 @@
 ## Running
 
 - Set environment variable `COVEXPEXPLORE` to point to your seed model location
-- Preprocess seeds by running experiment# 1, 2 and 3 using [covexp.covcollect](../+covexp/)
+- Preprocess seeds by running experiment# 1, 2 and 3 using [covexp.covcollect](../+covexp/Readme.md)
 - After preprocessing invoke `emi.go()` to generate mutants
 - Use `emi.report` to see reports
 

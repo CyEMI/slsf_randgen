@@ -7,7 +7,7 @@ Here we provide data and information required to reproduce the runtime analysis 
 
 ## Recreate Runtime Plots
 
-First, please see installation and requirments from the [homepage](../../). Then:
+First, please see installation and requirments from the [homepage](../../Readme.md). Then:
 
 - Copy the `.mat` files from [here](https://drive.google.com/open?id=1ExFqmPXZrZcTYo6a65-xZqLJQve-PGV1) to the `workdata` folder
 - Run `covexp.r.scaling()` in a MATLAB prompt 
