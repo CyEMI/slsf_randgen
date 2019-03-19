@@ -1,6 +1,4 @@
-function [f, l] = plot(x, y, y_legends, xLab, yLab, xScale, yScale)
-    % y can be a vector or matrix
-    
+function [ l] = plot(x, y, y_legends, xLab, yLab, xScale, yScale)
     if nargin < 6
         xScale = 'linear';
     end
@@ -9,7 +7,7 @@ function [f, l] = plot(x, y, y_legends, xLab, yLab, xScale, yScale)
         yScale = 'linear';
     end
     
-    f = figure();
+    %f = figure();
     
     % Make column vector
     if isvector(y)
@@ -20,10 +18,10 @@ function [f, l] = plot(x, y, y_legends, xLab, yLab, xScale, yScale)
     
 %     markers = {'o', 's', 'd', '^', 'v', '<', '>'};
     
-    markers = {'o', '+', '*', '^', 'x', '<', '>'};
+    markers = {'*', '+', 'o', '^', 'x', '<', '>'};
     
     assert(length(markers) >= n_y );
-    
+   
     for i = 1: n_y
         ydata = y(:, i);
         
@@ -37,6 +35,11 @@ function [f, l] = plot(x, y, y_legends, xLab, yLab, xScale, yScale)
         hold on;
     end
     
+    % Reference line plot 
+    y=zeros(1,146);% y values for straight line
+    x=0:145;% y values for straight line
+    plot(x,y,'--','HandleVisibility','off');
+    
     hold off;
     
     if ~ isempty(y_legends)
@@ -45,10 +48,10 @@ function [f, l] = plot(x, y, y_legends, xLab, yLab, xScale, yScale)
         l = [];
     end
 
-    xlabel(xLab);
-    ylabel(yLab);
+   % xlabel(xLab);
+     ylabel(yLab,'FontSize', 14,'color','k'); %ylabel for right y axis
 
-    set(gca, 'XScale', xScale);
-    set(gca, 'YScale', yScale);
+   set(gca, 'XScale', xScale);
+   set(gca, 'YScale', yScale);
 
 end

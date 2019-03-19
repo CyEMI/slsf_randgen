@@ -20,10 +20,11 @@ try
     
     % Turns out a model might not get selected for mutation at lot, the
     % following line raises error in these cases.
-%     assert(all(merged.m_id_m_wo_e == merged.m_id_emi_stats));
+    % assert(all(merged.m_id_m_wo_e == merged.m_id_emi_stats));
+    
     
     blks_sz = cellfun(@(p) length(p), merged.blocks);
-    
+
     l.info('block cnt:%d \t avg:\t %f min:%d \t max:%d',...
         numel(blks_sz), mean(blks_sz), min(blks_sz), max(blks_sz));
     
@@ -36,40 +37,90 @@ try
     merged.pp_tot_dur = compile_d + pp_dur;
     
     durations = {'simdur', 'duration', 'pp_tot_dur', 'avg_mut_dur', 'avg_compile_dur', 'avg_difftest_dur'};
-    dur_legends = {'Run Seed', 'Coverage', 'DataType', 'Mutant Gen', 'Run Mutant', 'Diff. Test'};
+    dur_legends = {'Run Seed', 'Coverage', 'DataType', 'Mutant Gen', 'Run Mutant', 'Diff. Test','Avg. Mutation'};
     
     % merged.duration is a cell, convert it to double
     
     merged.duration = cellfun(@(p)p, merged{:, 'duration'});
     
-    [f, lgnd] = utility.plot(blks_sz, merged{:,durations}, dur_legends,...
-        blks_per_model_label, 'Runtime (sec)', 'log', 'log');
+    %[f, lgnd] = utility.plot(blks_sz, merged{:,durations}, dur_legends,...
+     %   blks_per_model_label, 'Runtime (sec)', 'log', 'log');
     
+    [f] = utility.plot_bar(blks_sz, merged{:,durations}, dur_legends,...
+        blks_per_model_label, 'Runtime (sec)','linear','linear');
+    %scatter plot for average mutation
+    yyaxis right;
+    x = 1:size(blks_sz);
+    [blkssize_sorted,row_ids]= sort(blks_sz);% get the row id while sorting based on number of blocks /models 
+    y = merged{:, 'avg_mut_ops'};
+    y = y(row_ids,:); % sorted y based on number of blocks per model
+    [lgnd] = utility.plot(x, y,dur_legends,...
+        blks_per_model_label, 'Mutations (mean)','linear','linear');
+      
     lgnd.Orientation = 'horizontal';
-    lgnd.Location = 'southwest';
+    lgnd.Location = 'northwest';
+    lgnd.FontSize = 10;
     
-    x_tick_low = 0; %129
-    x_tick_hi = max(blks_sz); 
+    xlim([0, 140]);
+    
+    %To convert color stacked bar into black n white hatch patterns
+    %Resolution too low since bitmap used: Unusable for latex. 
+    % covexp.util.applyhatch_pluscolor(gcf,'wkwkwk', 0,[101010],[],300,1,2);
+   
+    %To save figure directly to pdf 
+    %ax = gca;
+    %outerpos = ax.OuterPosition;
+    %ti = ax.TightInset; 
+    %left = outerpos(1) + ti(1);
+    %bottom = outerpos(2) + ti(2);
+    %ax_width = outerpos(3) - ti(1) - ti(3);
+    %ax_height = outerpos(4) - ti(2) - ti(4);
+    %ax.Position = [left bottom ax_width ax_height];
+
+    %fig = gcf;
+    %fig.PaperPositionMode = 'auto'
+    %fig_pos = fig.PaperPosition;
+    %fig.PaperSize = [fig_pos(3) fig_pos(4)];
+    %print(fig,'MySavedFile','-dpdf')
+    
+    
+    %x_tick_low = min(blks_sz); %129
+    %x_tick_high = max(blks_sz); 
     
     % Clip axes
-    xlim([x_tick_low, x_tick_hi]);
-    ylim([10e-2,  max(max(merged{:, durations}))])
     
-    f.Position = [800 800 800 200]; % first two are meaningless
-    
-    % Where are the ticks?
-    my_x_ticks = [x_tick_low, 1000]; % only 2 ticks since block size < 10e4
-    xticks(my_x_ticks);
-    xticklabels(utility.exp_plot_ticks(my_x_ticks));
+    f.Position = [0 0 1500 200]; % first two are meaningful. Change according to your machine. 
     
     % Mutation Stats
     
-    [f, ~] = utility.plot(blks_sz, merged{:, 'avg_mut_ops'}, [],...
-        blks_per_model_label, 'Mutations (mean)', 'log', 'log');
+    %[f, ~] = utility.plot(blks_sz, merged{:, 'avg_mut_ops'}, [],...
+    %    blks_per_model_label, 'Mutations (mean)', 'log', 'log');
     
-    f.Position = [800 800 200 200];
+    %f.Position = [800 800 400 400];
+    
+    %xlim([x_tick_low, x_tick_hi]);
+    %ylim([10e-3,  max(max(merged{:, durations}))])
+    ylim([-100,  400]); %y limit for right y axis
+    
+    % Where are the ticks?
+    my_x_ticks = 0:20: 145; % Ticks every 20    
+    my_x_ticks(1)= 1;
     xticks(my_x_ticks);
-    xticklabels(utility.exp_plot_ticks(my_x_ticks));
+    
+    %my_x_ticks vector based on the blocks/model 
+    my_x_ticks= zeros(1,8);
+    my_x_ticks(1) = blkssize_sorted(1);
+    j=2;
+    for i =20:20: 145
+         my_x_ticks(j) =  blkssize_sorted(i);
+         j=j+1;
+    end
+    %xticks([]);
+    xticklabels(my_x_ticks);
+   
+    %xticklabels(utility.exp_plot_ticks(my_x_ticks));
+    %xticks(my_x_ticks);
+    %xticklabels(utility.exp_plot_ticks(my_x_ticks));
     %%% Others %%%
     
     l.info('Phases:');
