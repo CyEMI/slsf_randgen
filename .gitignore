@@ -49,3 +49,4 @@ workdata/*.json
 */.idea/*
 slearner/output/*
 slcov_output
++difftest/tests/tmp/*
