@@ -1,7 +1,7 @@
-# Experiment on Data (aka Models) and Aggregate Results
+# Rapid Experiment on Data/Models
 
 This package contains scripts helpful for running various experiments on
-Simulink models (aka Model), cache them and aggregate results
+Simulink programs (aka Model), cache them and aggregate results
 
 Results on individual Models are cached in the disc with the `covdata.mat`
 suffix
@@ -9,17 +9,17 @@ suffix
 ### Why call `covexp`?
 
 We initially creatd the package to experiment with Model coverage. 
-Now this is used for other types of experiments with the Models
+Now we use it for general-purpose experiments on the Models
 
 ## Configuring
 
-Edit the `../covcfg.m` file
+Edit the [../covcfg.m](../covcfg.m) file
 
 ### Parallel run
 
 set `PARFOR = true`
 
-## Running
+## Running the Tool
 
     covexp.covcollect();
 
