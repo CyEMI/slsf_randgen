@@ -3,8 +3,8 @@ function inspect_model(difftest_ob)
 %   Detailed explanation goes here
 l = logging.getLogger('inspect_models');
 
-% cellfun(@(p)utility.d(@()open_system([p.loc filesep p.sys '_' difftest.cfg.PRE_EXEC_SUFFIX])),...
-%     difftest_ob.executions);
+cellfun(@(p)utility.d(@()open_system([p.loc filesep p.sys '_' difftest.cfg.PRE_EXEC_SUFFIX])),...
+    difftest_ob.executions);
 
 
 l.info('--Comp Diffs--');

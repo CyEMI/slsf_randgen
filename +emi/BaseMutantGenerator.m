@@ -44,7 +44,8 @@ classdef BaseMutantGenerator < utility.DecoratorClient
                 obj.r.mutant.close_model();
                 utility.print_error(e, obj.l);
                 obj.l.error('Error while mutant generation -- bug in our end');
-                rethrow(e);
+                throw(MException('emi:exp:crash', int2str(obj.r.exp_data.exp_no)));
+%                 rethrow(e);
             end
             
             % TODO do this when filtering list of blocks to be efficient
