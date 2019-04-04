@@ -11,23 +11,36 @@ classdef SuppressWarnings < handle
         };
     
         last_state;
+        
+        is_parfor;
     
     end
     
     methods
         
-        function set_val(obj, val) %#ok<INUSD>
+        function set_val(obj, is_parfor)
+            obj.is_parfor = is_parfor;
             obj.last_state = warning;
-            
-%             cellfun(@(p)warning(val, p), obj.w_ids,...
-%                 'UniformOutput', false);
             
             % Set all off!
             warning('off', 'all');
+            
+            if is_parfor
+                try
+                    pctRunOnAll warning('off', 'all');
+                catch
+                    gcp(); % Creates parallel pool - bad coding
+                    pctRunOnAll warning('off', 'all');
+                end
+            end
         end
         
         function restore(obj)
             warning(obj.last_state);
+            
+%             if obj.is_parfor
+%                 pctRunOnAll warning(obj.last_state);
+%             end
         end
     end
 end

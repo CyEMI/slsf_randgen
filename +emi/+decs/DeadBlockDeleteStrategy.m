@@ -55,12 +55,17 @@ classdef DeadBlockDeleteStrategy < emi.decs.DecoratedMutator
             
             [block_parent, this_block] = utility.strip_last_split(block, '/');
             
-            % Pause for containing (parent) subsystem?
-            pause_ss = emi.pause_for_ss(block_parent);
+            % Pause for containing (parent) subsystem or the block iteself?
+            pause_d = emi.pause_for_ss(block_parent, block);
             
-            emi.hilite_system(block, emi.cfg.DELETE_BLOCK_P || pause_ss);
+            if pause_d
+                % Enable breakpoints
+                disp('Pause for debugging');
+            end
             
-            emi.pause_interactive(emi.cfg.DELETE_BLOCK_P || pause_ss, 'Delete block %s', block);
+            % To enable hilighting and pausing, uncomment the following:
+%             emi.hilite_system(block, emi.cfg.DELETE_BLOCK_P || pause_ss);
+%             emi.pause_interactive(emi.cfg.DELETE_BLOCK_P || pause_ss, 'Delete block %s', block);
             
             is_if_block = strcmp(get_param(block, 'blockType'), 'If');
             

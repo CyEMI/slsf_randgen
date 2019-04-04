@@ -288,6 +288,8 @@ classdef (Abstract) BaseModelMutator < handle
             
             obj.save_my_result();
             
+            Simulink.sdi.clear(); % Wathout - this should not throw
+            
             if ~isempty(e)
                 rethrow(e);
             end

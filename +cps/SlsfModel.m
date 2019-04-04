@@ -203,6 +203,9 @@ classdef SlsfModel < cps.Model
         end
         
         function e = fixate_sample_time(obj, blk)
+            % TODO uses sample time "1" as SLforge-generated models may
+            % have this rate. Will not work for models in general where
+            % there are some other rate/multiple rates
             f_blk = [obj.sys '/' blk];
             e = obj.set_param(f_blk, 'SampleTime', '1', true);
             if ~ isempty(e)

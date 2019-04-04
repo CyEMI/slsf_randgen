@@ -5,30 +5,26 @@ classdef cfg
     properties(Constant = true)
         %% Commonly used 
         
-        NUM_MAINLOOP_ITER = 40;
+        % How many exepriments to run. In each experiment it's recommended
+        % to create only one mutant, although you can create multiple. Some
+        % features may break for multiple mutants per experiment.
+        NUM_MAINLOOP_ITER = 600; 
         
-        PARFOR = false;
+        PARFOR = true;
         
-        RNG_SHUFFLE = false;     % non-repeatable, recommended for TACC
+        % Non-repeatable experiments, recommended
+        RNG_SHUFFLE = true;     
         
-        % Load previously saved random number seed. This would NOT
-        % reproduce previous experiment results, but useful for actually
-        % running this tool 24/7 and doing new stuff everytime the script
-        % is run.
+        % Debug/Interactive mode for a particular subsystem or block. 
+        % Will pause
+        % when mutating this block or ANY block inside a subsystem
         
-        LOAD_RNG_STATE = true;
-        
-        INTERACTIVE_MODE = false;
-        
-        % If any error occurs, replicate the experiment in next run. Not
-        % applicable if RNG_SHUFFLE
-        REPLICATE_EXP_IF_ANY_ERROR = true;
-        
-        % Debug/Interactive mode for a particular subsystem. Will pause
-        % when mutating any object inside this subsystem
-        
+        % dummy value "1" for the map data-structure
 %         DEBUG_SUBSYSTEM = containers.Map({'cfblk257/cfblk14'}, {1});
         DEBUG_SUBSYSTEM = containers.Map(); 
+        
+        DEBUG_BLOCK = containers.Map();
+%         DEBUG_BLOCK = containers.Map({'cfblk212' }, { 1 });
         
         %% Differential Testing
         
@@ -38,7 +34,7 @@ classdef cfg
         % Creates cartesian product
         SUT_CONFIGS = {
             {
-%                     difftest.ExecConfig('OptOn', struct('SimCompilerOptimization', 'on')) 
+%                 difftest.ec.opt_on
                 difftest.ec.solver_fix
             }
         };
@@ -57,11 +53,17 @@ classdef cfg
         KEEP_ERROR_MUTANT_PARENT_OPEN = false;
         
         % Break from the main loop if any model mutation errors
-        STOP_IF_ERROR = true;
+        STOP_IF_ERROR = false;
+        
+        %% Filtering Seed Models
+        
+        SEED_FILTERS = {
+%             @(seeds)seeds.m_id==179 % Seed model ID (``m_id'') is 40
+            };
         
         %% Generic Mutation
         
-        MUTANTS_PER_MODEL = 1;
+        MUTANTS_PER_MODEL = 1; % Do not change. 
         
         % Remove this percentage of dead blocks
         DEAD_BLOCK_REMOVE_PERCENT = 0.5;
@@ -75,6 +77,22 @@ classdef cfg
             @emi.decs.DeleteDeadAddSaturation
             };
 
+        %% Random experiments
+        
+        % This section only makes sense when RNG_SHUFFLE is false.
+        
+        % Load previously saved random number seed. This would NOT
+        % reproduce previous experiment results, but useful for actually
+        % running this tool 24/7 and doing new stuff everytime the script
+        % is run.
+        
+        LOAD_RNG_STATE = true;
+        INTERACTIVE_MODE = false;
+        
+        % If any error occurs, replicate the experiment in next run. Not
+        % applicable if RNG_SHUFFLE
+        REPLICATE_EXP_IF_ANY_ERROR = true;
+        
         %% Preprocessing %%
         
         % Legacy configuration, do not change. This parameter is only

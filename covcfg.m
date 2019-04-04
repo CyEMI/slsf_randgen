@@ -26,17 +26,18 @@ classdef covcfg < handle
         
         % Merge results for all models into a big file DURING experiments.
         % Ignored if PARFOR
-        MERGE_RESULTS_ONLINE = true;
+        MERGE_RESULTS_ONLINE = false;
         
         % If you have not merged results online or used PARFOR, 
         % use this to just merge the
         % results from individual result caches. 
         % Followings would be ignored: PARFOR;
         % FORCE_UPDATE_CACHE_RESULTS; EXP_MODE; MERGE_RESULTS_ONLINE 
-        MERGE_RESULTS_ONLY = false;
+        MERGE_RESULTS_ONLY = true;
         
-        %% Experiment Mode (see covexp.Expmode)
-        
+        %% Experiment Mode - which models to include in the experiments? 
+        % See covexp.Expmode
+        % e.g. ALL: all models; SUBGROUP: subset of models
         EXP_MODE = covexp.Expmode.ALL;
         
         % Upper limit on how many models to process
@@ -46,11 +47,11 @@ classdef covcfg < handle
         % have bug in the code initially. Please experiment with 1-2 models
         % first so that you do not discard many of the cached results for
         % ALL of your models!
-        MAX_NUM_MODEL = 5;
+        MAX_NUM_MODEL = 200;
         
-        % Subgrouping is not used for Expmode.All
-        SUBGROUP_BEGIN = 101;
-        SUBGROUP_END = 210;
+        % Following two are not used in Expmode.All
+        SUBGROUP_BEGIN = 179;
+        SUBGROUP_END = 179;
         
         
         %% %%%%%%%% Caching Result %%%%%%%%%%%%%
@@ -84,30 +85,35 @@ classdef covcfg < handle
         %% %%%%%%% Experiments to Perform %%%%%%%%%%%
         
         % List of all available experiments. 
-        % See at the bottom of this file for details
+        % See at the bottom of this file for details and warnings below
         EXPERIMENTS = {
             @covexp.experiments.get_coverage                        % 1
             @covexp.experiments.check_model_compiles                % 2
-            @emi.preprocess_models                                  % 3
+            @emi.preprocess_models                                  % 3 (see notes below)
             @covexp.experiments.get_model_simulates                 % 4
             @covexp.experiments.fix_input_loc                       % 5
             @covexp.experiments.do_difftest                         % 6
             @difftest.experiments.comp_with_pp                      % 7
             @covexp.experiments.sampletimes                         % 8
         };
-    
-        % For exp # 6  and #7, make sure that pre-processed files are not
-        % re-used if you change the pre-processing logic (exp#3) -- the
-        % configuration is in `difftest.cfg`
+        
+        % WARNING: REGENERATE PRE-EXEC FILES IF CHANGE PREPROCESSING LOGIC:
+        
+        % For exp # 6  and #7, and mutant generation (emi.go function)
+        % make sure that pre-exec files are not
+        % re-used if you change the pre-processing logic (exp#3)
+        % Either delete the preexec files (`rm *_difftest`) or change the
+        % configuration to not reuse the pre-exec files in `difftest.cfg`
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
 %         DO_THESE_EXPERIMENTS = [3, 7]; % Multiple experiments
-        DO_THESE_EXPERIMENTS = 8;   % Single experiment
+        DO_THESE_EXPERIMENTS = 3;   % Single experiment
         
         %% Others
         
         SIMULATION_TIMEOUT = 150;   % seconds
         
+        % Only needed for exporting report to be consumed by some other tool
         SAVE_RESULT_AS_JSON = false;
         
         

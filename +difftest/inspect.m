@@ -1,4 +1,4 @@
-function inspect_model(difftest_ob)
+function inspect(difftest_ob)
 %INSPECT_MODEL Open up models from a difftest object
 %   Detailed explanation goes here
 l = logging.getLogger('inspect_models');
@@ -7,7 +7,7 @@ cellfun(@(p)utility.d(@()open_system([p.loc filesep p.sys '_' difftest.cfg.PRE_E
     difftest_ob.executions);
 
 
-l.info('--Comp Diffs--');
+l.info('--Comparison Differences--');
 
 c_d_keys = difftest_ob.comp_diffs.keys();
 for i=1:numel(c_d_keys)

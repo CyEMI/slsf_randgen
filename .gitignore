@@ -50,3 +50,5 @@ workdata/*.json
 slearner/output/*
 slcov_output
 +difftest/tests/tmp/*
+.hg/*
+.hgignore

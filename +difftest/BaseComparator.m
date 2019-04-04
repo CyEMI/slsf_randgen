@@ -127,7 +127,7 @@ classdef BaseComparator < handle
         end
         
         function handle_comp_err(obj, diff_ob, blk, next_exec, ground_data, exec_data, exc, j)
-            % diff_ob can be obj.r.cov_diffs
+            % diff_ob can be obj.r.cov_diffs.
             next_exec.exception.add(exc);
             
             if ~ diff_ob.isKey(blk)
@@ -137,7 +137,7 @@ classdef BaseComparator < handle
             end
             
             t = diff_ob(blk);
-            t{j} = exec_data;
+            t{j+1} = exec_data;
             
             diff_ob(blk) = t; %#ok<NASGU>
         end

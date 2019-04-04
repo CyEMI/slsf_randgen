@@ -1,39 +1,58 @@
-# Rapid Experiment on Data/Models
+# covexp: Rapid Experiment on Data/Simulink Models
 
-This package contains scripts helpful for running various experiments on
-Simulink programs (aka Model), cache them and aggregate results
+`covexp` is a MATLAB package which runs your experiments on
+Simulink programs (i.e. *subjects*), caches them and aggregates results.
 
-Results on individual Models are cached in the disc with the `covdata.mat`
-suffix
 
 ### Why call `covexp`?
 
-We initially creatd the package to experiment with Model coverage. 
-Now we use it for general-purpose experiments on the Models
+We initially created it to **exp**eriment with Simulink model **cov**erage. 
+Now we use it for general-purpose experiments on some subjects.
 
-## Configuring
+## Running
 
-Edit the [../covcfg.m](../covcfg.m) file
-
-### Parallel run
-
-set `PARFOR = true`
-
-## Running the Tool
+Clone this git repo, `cd` to the cloned directory, then in a MATLAB prompt:
 
     covexp.covcollect();
 
+## Configuring
+
+Edit [../covcfg.m](../covcfg.m) which is self-documented.
+
+### Parallel run utilizing multiple cores
+
+set `PARFOR = true`
+
+
+## Results
+
+Results on individual subjects are cached in the disc with the `covdata.mat`
+suffix
+
 ## Experiments
 
-To create an experiment, write a script inside `+covexp/+experiments`
+To create an experiment, write a function and put that function name in 
+`covcfg.m`'s `EXPERIMENTS` field.
 
-Initialize the results that the experiment would return inside 
-`+covexp/+experiments/+ds_init`
+Existing experiments are in `+covexp/+experiments`
 
-- Experiment should not throw errors. If an experiment throws, following experiments for the same model will not run.
+If your experiment would return result, you need to initialize data-structures. 
+Initialize results that the experiment would return using a function in
+, and point to that function in `covcfg.m` using `EXP_INITS`
+
+Existing data-structure initialization functions are inside `+covexp/+experiments/+ds_init`
+
+- Experiment should not throw errors. If an experiment throws, subsequent experiments for the same subject will not run.
 - In Parallel mode other models will be run, but the `touched` file will not be cleared so that you know which model threw.
 - In serial mode the script will stop sot that you can fix the bug.
-- Do not close the model inside experiments
+- Do not close the Simulink model inside experiments
+
+## Running selected experiments
+
+Choose which experiments you want to run in `DO_THESE_EXPERIMENTS` configuration. 
+You can pass in an array of experiment ids. Experiments would be perfomed sequentially on a subject.
+
+# Simulink specific/advanced information
 
 ## Copying cached results created elsewhere
 
@@ -47,7 +66,7 @@ Next, copy the tar.bz2 file in your machine and extract:
 
   tar -xjvf backup.tar.bz2 --overwrite
 
-### Fixing Model locations
+## Fixing subject locations
 
 Since the cached `covdata.mat` files were created in a different machine, 
 they contain absolute directory locations for that machine. To fix these,

@@ -84,7 +84,7 @@ classdef BaseExecutor < utility.DecoratorClient
         
         function create_and_open_sys(obj)
             try
-                obj.sys = sprintf('%s_%s', obj.exec_report.sys, difftest.cfg.PRE_EXEC_SUFFIX);
+                obj.sys = difftest.get_preexec_name(obj.exec_report.sys);
 
                 if ~ obj.resuse_pre_exec
                     ext = emi.slsf.get_extension(obj.exec_report.sys);

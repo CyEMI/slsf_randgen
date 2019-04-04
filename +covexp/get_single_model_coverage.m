@@ -72,7 +72,16 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
         throw(MException('covexp:exp:crash', int2str(error_exp)));
     end
     
-    if do_append
+    if ~iscell(covcfg.DO_THESE_EXPERIMENTS)
+        is_exp5_only = covcfg.DO_THESE_EXPERIMENTS == 5;
+    else
+        is_exp5_only = numel(covcfg.DO_THESE_EXPERIMENTS) == 1 && ...
+                        covcfg.DO_THESE_EXPERIMENTS{1} == 5 ;
+    end
+    
+    if do_append && ~ is_exp5_only
+        % EXP#5 may delete some fields, appending would not be correct.
+        % Running exp#5 only means we are fixing some cached data.
         save(report_loc, '-append', '-struct', 'covdata');
     else
         save(report_loc, '-struct', 'covdata');

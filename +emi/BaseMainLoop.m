@@ -32,7 +32,7 @@ classdef BaseMainLoop < handle
             tic_rec = tic();
             
             sw = utility.SuppressWarnings();
-            sw.set_val('off');
+            sw.set_val(emi.cfg.PARFOR);
             
             emi.cfg.validate_configurations();
             
@@ -166,8 +166,9 @@ classdef BaseMainLoop < handle
             if emi.cfg.PARFOR
                 parfor i=1:num_models
                     fprintf('<<PARFOR>> Processing %d of %d models', i, num_models);
-                    ret(i) = emi.mutate_single_model(i, models_cpy(i, :), exp_data_cpy);
+                    emi.mutate_single_model(i, models_cpy(i, :), exp_data_cpy);
                 end
+                ret = true; % dummy
             else
                 for i=1:num_models
                     obj.l.info(sprintf('Processing %d of %d models', i, num_models));

@@ -18,6 +18,7 @@ classdef FinalValueComparator < difftest.BaseComparator
         
         function compare_single(obj, ground_exec, next_exec, next_exec_idx)
             %%
+            % next_exec_idx starts from 1
 
             f = ground_exec.refined;
             blocks = f.keys();
@@ -59,8 +60,8 @@ classdef FinalValueComparator < difftest.BaseComparator
                     obj.handle_comp_err(obj.r.comp_diffs, bl_name,...
                         next_exec, [], [], e, next_exec_idx);
                 else
-                    d_1 = data_1.Data(numel(data_1.Data));
                     try
+                        d_1 = data_1.Data(numel(data_1.Data));
                         d_2 = data_2.Data(numel(data_2.Data));
                     catch e
                         disp(e)

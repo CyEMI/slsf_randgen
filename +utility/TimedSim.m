@@ -33,9 +33,10 @@ classdef TimedSim < handle
         end
         
         function create_temp(obj, ext)
+            % Create a new Simulink model with a random name in a temp dir
             obj.tmp_dir = tempname;
             mkdir(obj.tmp_dir);
-            new_name = [obj.sys '_tmp'];
+            new_name = sprintf('%s_tmp_%d', obj.sys, randi(10^9) );
             full_path = emi.slsf.copy_model(...
                             obj.sys, obj.tmp_dir, new_name, ext);
             obj.l.info('Created temp model: %s', full_path);
@@ -44,6 +45,7 @@ classdef TimedSim < handle
         
         function cleanup(obj)
             if ~ isempty(obj.tmp_dir)
+                bdclose(obj.sys);
                 assert(rmdir(obj.tmp_dir, 's'));
             end
         end

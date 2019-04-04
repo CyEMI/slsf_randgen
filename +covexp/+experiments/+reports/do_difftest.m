@@ -57,15 +57,22 @@ tabulate(is_exception);
 l.info('DIFFTEST (After comp): Errored?');
 tabulate(is_comp_e);
 
-if sum(is_comp_e) ~= 0
+if any(is_comp_e)
     l.info('Following comps (indices, not experiment numbers) errored');
     disp(find(is_comp_e)');
+    l.info('Model IDs:');
+    disp(models{find(is_comp_e), 'm_id'}'); %#ok<FNDSB>
     
-    l.info('First exception message for each errored experiment:');
-    l.info('The exception objects are also returned!');
+    l.info('First errored-SUT-config exception  for each errored experiment:');
+    
+    % Following line may not work when difftest_r is not not available. See
+    % above for code where we use `difftest` as the variable name
     cmp_e_dts = models{find(is_comp_e), 'difftest_r'}; %#ok<FNDSB>
-    msgs = cellfun(@difftest.comp_invest, cmp_e_dts, 'UniformOutput', false);
-    l.error('%s', strjoin(cellfun(@(p)p.identifier, msgs, 'UniformOutput', false), '\n'));
+    ex_obs = cellfun(@difftest.comp_invest, cmp_e_dts, 'UniformOutput', false);
+    l.error('%s', strjoin(cellfun(@(p) utility.get_error(p), ex_obs, 'UniformOutput', false), '\n'));
+    
+    l.info('Errored experiments are returned in a cell (third return value of this function).')
+    l.info('Call difftest.inspect with an element of this cell to see the mismatches and open the models.');
 end
 
 % Strip out empty data
