@@ -22,7 +22,7 @@ classdef covcfg < handle
         % Set false when aggregating results or debugging. If set to true,
         % will  process inidivual models paralelly. Results will be cached
         % for each file
-        PARFOR = false;
+        PARFOR = true;
         
         % Merge results for all models into a big file DURING experiments.
         % Ignored if PARFOR
@@ -33,12 +33,12 @@ classdef covcfg < handle
         % results from individual result caches. 
         % Followings would be ignored: PARFOR;
         % FORCE_UPDATE_CACHE_RESULTS; EXP_MODE; MERGE_RESULTS_ONLINE 
-        MERGE_RESULTS_ONLY = true;
+        MERGE_RESULTS_ONLY = false;
         
         %% Experiment Mode - which models to include in the experiments? 
         % See covexp.Expmode
         % e.g. ALL: all models; SUBGROUP: subset of models
-        EXP_MODE = covexp.Expmode.ALL;
+        EXP_MODE = covexp.Expmode.SUBGROUP_AUTO;
         
         % Upper limit on how many models to process
         % For SUBGROUP_AUTO, process these many models 
@@ -47,7 +47,7 @@ classdef covcfg < handle
         % have bug in the code initially. Please experiment with 1-2 models
         % first so that you do not discard many of the cached results for
         % ALL of your models!
-        MAX_NUM_MODEL = 200;
+        MAX_NUM_MODEL = 1000;
         
         % Following two are not used in Expmode.All
         SUBGROUP_BEGIN = 179;
@@ -106,8 +106,8 @@ classdef covcfg < handle
         % configuration to not reuse the pre-exec files in `difftest.cfg`
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
-%         DO_THESE_EXPERIMENTS = [3, 7]; % Multiple experiments
-        DO_THESE_EXPERIMENTS = 3;   % Single experiment
+        DO_THESE_EXPERIMENTS = [1 2 8 3]; % Multiple experiments
+%         DO_THESE_EXPERIMENTS = 3;   % Single experiment
         
         %% Others
         

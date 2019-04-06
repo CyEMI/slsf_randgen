@@ -6,7 +6,13 @@ function ret = filename_suffix_filter( p, unexpected_suffix)
 
 without_ext = utility.strip_last_split(p, '.');
 
-ret = numel(strsplit(without_ext, ['_' unexpected_suffix])) == 1;
+if ~iscell(unexpected_suffix)
+    unexpected_suffix = {unexpected_suffix};
+end
+
+
+ret = all(cellfun(@(sfx) numel(strsplit(without_ext, ['_' sfx])) == 1,...
+    unexpected_suffix));
 
 end
 
