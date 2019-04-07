@@ -14,7 +14,7 @@ classdef cfg
         % Don't create the pre-exec file if one already exists
         % WARNING: Every time you preprocess seeds using a new logic, make
         % sure to set it to false or clear all the generated difftest files
-        PRE_EXEC_SKIP_CREATE_IF_EXISTS = true;
+        PRE_EXEC_SKIP_CREATE_IF_EXISTS = false;
         
         % When running in parallel, make a copy of the model to prevent
         % issues

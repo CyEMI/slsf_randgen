@@ -1,4 +1,5 @@
-function [ ret ] = dir_process( base_dir, filename_suffix, explore_subdirs, filename_filters, isdir_check )
+function [ ret ] = dir_process( base_dir, filename_suffix, explore_subdirs,...
+    filename_filters, isdir_check, dir_blacklist )
 %DIR_PROCESS Explores all files from `base_dir` which have suffix
 %`filename_suffix`. Then filters these filenames using `filename_filters`.
 %Will recursively process sub-directories if `explore_subdirs` is true.
@@ -11,10 +12,16 @@ function [ ret ] = dir_process( base_dir, filename_suffix, explore_subdirs, file
 % second column contains directory name.
 % If isdir_check = false (default), will skip directories. If true, skip
 % files and only include directories.
+% Any directory name in `dir_blacklist` would not be further explored for
+% files/subdirectories.
 
-if nargin == 4
+if nargin < 5
     % Files Only
     isdir_check = false;
+end
+
+if nargin < 6
+    dir_blacklist = {};
 end
 
 fields_to_return = {'name', 'folder'};
@@ -36,7 +43,15 @@ ret = table2cell(actual_files);
 
 % Apply filters to filename
 if ~ isempty(filename_filters)
-    ret = ret(cellfun(@(p, ~) all( cellfun(@(x)x{1}(p, x{2:end}),filename_filters) ) , ret(:, 1)), :);
+    ret = ret(...
+                cellfun(...
+                    @(p) all(...
+                                    cellfun(...
+                                                @(x)x{1}(p, x{2:end})...
+                                    ,filename_filters)...
+                                )...
+                , ret(:, 1))...
+            , : );
 end
 
 if ~ explore_subdirs
@@ -45,14 +60,22 @@ end
 
 % Handle Directories
 
-dir_result = rowfun(@(name, ~, isdir) isdir && base_dir_filter(name), files, 'OutputFormat', 'uniform');
+dir_result = rowfun(...
+        @(name, ~, isdir) isdir && base_dir_filter(name) && ...
+        ~any(strcmp(name, dir_blacklist)) ,...
+    files, 'OutputFormat', 'uniform');
 dirs_to_explore = files{dir_result, {'name'}};
 
 if isempty(dirs_to_explore)
     return;
 end
 
-recursive_results = cellfun(@(p) utility.dir_process([base_dir filesep p], filename_suffix, explore_subdirs, filename_filters), dirs_to_explore, 'UniformOutput', false );
+recursive_results = cellfun(...
+            @(p) utility.dir_process([base_dir filesep p], filename_suffix,...
+                            explore_subdirs, filename_filters, false,... % note: not passing original isdir_check -- may be a bug.
+                            dir_blacklist)...
+        , dirs_to_explore, 'UniformOutput', false );
+
 recursive_results = vertcat(recursive_results{:});
 % Concat results
 if ~isempty(recursive_results)

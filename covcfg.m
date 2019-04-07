@@ -16,7 +16,7 @@ classdef covcfg < handle
         
         % Generate lists of models before experiment. If false, will reuse
         % the list generated during last experiment.
-        GENERATE_MODELS_LIST = true;
+        GENERATE_MODELS_LIST = false;
         
         % Use Parallel Computing Toolbox
         % Set false when aggregating results or debugging. If set to true,
@@ -25,7 +25,7 @@ classdef covcfg < handle
         PARFOR = true;
         
         % Merge results for all models into a big file DURING experiments.
-        % Ignored if PARFOR
+        % Ignored if PARFOR or MERGE_RESULTS_ONLY
         MERGE_RESULTS_ONLINE = false;
         
         % If you have not merged results online or used PARFOR, 
@@ -49,7 +49,7 @@ classdef covcfg < handle
         % ALL of your models!
         MAX_NUM_MODEL = 1000;
         
-        % Following two are not used in Expmode.All
+        % Subgroup range - only used in Expmode.SUBGROUP
         SUBGROUP_BEGIN = 179;
         SUBGROUP_END = 179;
         
@@ -106,8 +106,8 @@ classdef covcfg < handle
         % configuration to not reuse the pre-exec files in `difftest.cfg`
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
-        DO_THESE_EXPERIMENTS = [1 2 8 3]; % Multiple experiments
-%         DO_THESE_EXPERIMENTS = 3;   % Single experiment
+%         DO_THESE_EXPERIMENTS = [1 2 8 3]; % Multiple experiments
+        DO_THESE_EXPERIMENTS = 6;   % Single experiment
         
         %% Others
         
@@ -157,18 +157,17 @@ classdef covcfg < handle
         EXP6_CONFIGS = {
 %             {difftest.ec.solver_var, difftest.ec.solver_fix}
             {difftest.ec.solver_fix}
+            {difftest.ec.opt_off, difftest.ec.opt_on}
+            {difftest.ec.mode_normal, difftest.ec.mode_acc}
+
             };
-        
-%         EXP6_CONFIGS = {
-%             {difftest.ec.opt_off, difftest.ec.opt_on}
-%             {difftest.ec.mode_normal, difftest.ec.mode_acc}
-%         };
         
         % If an EMI-PRE Processed file (with suffix _pp) exists, do
         % differential test ONLY on the _pp version. Set this for
         % EMI/coverage experiments, but unset to evaluate SLforge or
         % any other model directly where we do not pre-process.
-        EXP6_USE_PRE_PROCESSED = true;
+        EXP6_USE_PRE_PROCESSED = false; % WARNING -- see above %
+        
         EXP6_RUN_COMPARATOR = true;
         EXP6_COMPARATOR = @difftest.FinalValueComparator;
         
@@ -180,9 +179,11 @@ classdef covcfg < handle
         
         %% Cache Location
         
-        % cache is stored in the same directory where the model is
+        % cache is stored in the same directory where the model is. Set to
+        % false for corpus as it would break for ``Tutorial'' models
         USE_MODEL_PATH_AS_CACHE_LOCATION = true;
         
+        % Only effective if previous option is false
         % Save all caches in a different directory (not recommended, what
         % if two models have the same name?
         CACHE_DIR = 'covexp_results_cache';

@@ -40,7 +40,10 @@ classdef ExploreCovExp < covexp.CorpusCovExp
                     {@utility.file_extension_filter, {'slx', 'mdl'}}
                     {@utility.filename_suffix_filter,{emi.cfg.MUTANT_PREPROCESSED_FILE_SUFFIX}}
                     {@utility.filename_suffix_filter,{difftest.cfg.PRE_EXEC_SUFFIX}}
-                });
+                }, false, {... % isdir_check = false
+                            'errors', 'comperrors', 'loglenmismatch',...
+                            'othererrors'... % blacklisted dirs
+                        });
             obj.l.info('Generated list of %d models', size(models_and_dirs, 1));
             
             model_names = cellfun(@(p)utility.strip_last_split(p, '.'), models_and_dirs(:, 1), 'UniformOutput', false);

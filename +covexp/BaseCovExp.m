@@ -232,7 +232,7 @@ classdef BaseCovExp < handle
             begin_timer = tic;
             
             sw = utility.SuppressWarnings();
-            sw.set_val(covcfg.PARFOR);
+            sw.set_val(~covcfg.MERGE_RESULTS_ONLY && covcfg.PARFOR);
             
             % Start experiment
             obj.init_data();
