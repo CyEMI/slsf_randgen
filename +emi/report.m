@@ -23,7 +23,7 @@ function [emi_result, stats_table, cmp_errs] = report(report_loc, aggregate)
         
         emi_result = utility.batch_process(report_loc, 'modelreport',... % variable name and file name should be 'modelreport'
             {{@(p) strcmp(p, 'modelreport.mat')}}, @process_data, '', true, true); % explore subdirs; uniform output
-        emi_result = struct2table(emi_result);
+        emi_result = struct2table(emi_result, 'AsArray', true);
     elseif isempty(aggregate) % Use provided aggregated or load from disc
         l.info('Loading aggregated result from disc...');
         readdata = load(emi.cfg.RESULT_FILE);

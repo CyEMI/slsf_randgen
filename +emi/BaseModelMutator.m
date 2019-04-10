@@ -111,6 +111,11 @@ classdef (Abstract) BaseModelMutator < handle
                 return;
             end
             
+            % there may be a bug in this logic. we are updating the random
+            % number state after every model in a list. But next time the
+            % experiment would run, it would start with the first model. So
+            % also save the model number?
+            
             rng_state = rng; %#ok<NASGU>
             save(emi.cfg.WS_FILE_NAME, emi.cfg.RNG_VARNAME_IN_WS, '-append');
         end
@@ -204,18 +209,37 @@ classdef (Abstract) BaseModelMutator < handle
         end
         
         function ret = process_single_model(obj, return_after_preprocess)
-            %%
+            %% return_after_preprocess is set to true by ModelPreprocessor
             obj.aggregate_data_for_mutant_generator();
                         
             ret = obj.create_mutants(return_after_preprocess);
         end
         
+        function save_rng_before_mutant_create(obj)
+            %% Saves random number state before creating each mutant
+            
+            assert(emi.cfg.MUTANTS_PER_MODEL == 1, 'Feature not available');
+            
+            seed_id = obj.m_id;  %#ok<NASGU>
+            rng_state = rng;  %#ok<NASGU>
+            
+            save(...
+                [obj.REPORT_DIR_FOR_THIS_MODEL filesep emi.cfg.MUTANT_RNG_FILENAME],...
+                'rng_state', 'seed_id'...
+            );
+        end
+        
         function ret = create_mutants(obj, return_after_preprocess)
-            %%
+            %% return_after_preprocess is set to true by ModelPreprocessor
             ret = true;
             
             for i=1:obj.num_mutants
                 obj.open_model();
+                
+                if ~ return_after_preprocess
+                    obj.save_rng_before_mutant_create();
+                end
+                
                 a_mutant = emi.SimpleMutantGenerator(...
                     emi.cfg.MUTATOR_DECORATORS,...
                     i, obj.sys, obj.exp_data,...
@@ -312,7 +336,7 @@ classdef (Abstract) BaseModelMutator < handle
         end
         
         function aggregate_data_for_mutant_generator(obj)
-            %%
+            %% bad name aggregate. Actually fetches data before mutation
             function x = get_nonempty(x)
                 x = x(rowfun(@(p) ~isempty(p) , x,...
                     'InputVariables', {'percentcov'}, 'ExtractCellContents', true,...
@@ -332,9 +356,11 @@ classdef (Abstract) BaseModelMutator < handle
             obj.block_data = blocks;
             
             deads = cellfun(@(p) p ==0 ,blocks{:,'percentcov'});
+            lives = ~deads;
+            lives(1) = false; % skip the first one which is the model itself
             
             obj.dead = blocks(deads, :);
-            obj.live = blocks(~deads, :);
+            obj.live = blocks(lives, :);
             
             % compiled types
             obj.compiled_types = obj.model_data.datatypes;

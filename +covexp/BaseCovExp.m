@@ -165,6 +165,8 @@ classdef BaseCovExp < handle
                     catch e
                         obj.l.error('Error running single experiment:');
                         
+                        utility.print_error(e);
+                        
                         if strcmp(e.identifier, 'covexp:exp:crash')
                             error('Experiment crashed! Stopping since experiments should not throw.');
                         end

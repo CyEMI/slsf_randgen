@@ -2,7 +2,7 @@ function ret = preprocess_models(~, ~, ret)
 %PREPROCESS_MODELS Preprocess a model for creating mutants
 %   Detailed explanation goes here
 
-if ~ ret.compiles || ret.exception || ret.numzerocov == 0 
+if ~ ret.compiles || ret.exception
     return;
 end
 

@@ -35,6 +35,11 @@ classdef ReportForMutant < handle
         % This many dead blocks will be deleted
         num_dead_blocks_to_remove;
         
+        % live mutation
+        num_live;
+       
+        live_ops; % which mutation operator to apply on which block (cell)
+        
         % Data for original model
         
         dead_blocks;        % Of original model
@@ -43,6 +48,9 @@ classdef ReportForMutant < handle
         % stats
         num_deleted = 0;  % dead blocks which were deleted
         num_skip_delete = 0;
+        
+        n_live_mutated = 0;
+        n_live_skipped = 0
         
         % Total time spent to generate mutant (except compilation/execution)
         duration = 0;
@@ -111,6 +119,22 @@ classdef ReportForMutant < handle
             obj.num_dead_blocks_to_remove = ceil(size(obj.dead_blocks, 1) * emi.cfg.DEAD_BLOCK_REMOVE_PERCENT);
             chosen_blocks = randi([1, size(obj.dead_blocks, 1)], 1, obj.num_dead_blocks_to_remove);
             ret = obj.dead_blocks{chosen_blocks, 'fullname'};
+        end
+        
+        function ret = sample_live_blocks(obj)
+            %%
+            obj.num_live = ceil(size(obj.live_blocks, 1) * emi.cfg.LIVE_BLOCK_MUTATION_PERCENT);
+            chosen_blocks = randi([1, size(obj.live_blocks, 1)], 1, obj.num_live);
+            ret = obj.live_blocks{chosen_blocks, 'fullname'};
+            
+            % Choose mutation ops (ids)
+            obj.live_ops = num2cell(...
+                                randsample(...
+                                    numel(emi.cfg.LIVE_MUT_OPS),...
+                                    obj.num_live, true,...
+                                    emi.cfg.LIVE_MUT_WEIGHTS...
+                                )...
+                            );
         end
         
         %% Reporting

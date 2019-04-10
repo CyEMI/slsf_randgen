@@ -8,12 +8,12 @@ classdef cfg
         % How many exepriments to run. In each experiment it's recommended
         % to create only one mutant, although you can create multiple. Some
         % features may break for multiple mutants per experiment.
-        NUM_MAINLOOP_ITER = 600; 
+        NUM_MAINLOOP_ITER = 10; 
         
-        PARFOR = true;
+        PARFOR = false;
         
         % Non-repeatable experiments, recommended
-        RNG_SHUFFLE = true;     
+        RNG_SHUFFLE = false;     
         
         % Debug/Interactive mode for a particular subsystem or block. 
         % Will pause
@@ -53,7 +53,7 @@ classdef cfg
         KEEP_ERROR_MUTANT_PARENT_OPEN = false;
         
         % Break from the main loop if any model mutation errors
-        STOP_IF_ERROR = false;
+        STOP_IF_ERROR = true;
         
         %% Filtering Seed Models
         
@@ -68,13 +68,23 @@ classdef cfg
         % Remove this percentage of dead blocks
         DEAD_BLOCK_REMOVE_PERCENT = 0.5;
         
+        LIVE_BLOCK_MUTATION_PERCENT = 0.15;
+        
+        % Live mutation operations and their weights
+        LIVE_MUT_OPS = {@emi.live.VirtualChild}; 
+        LIVE_MUT_WEIGHTS = [1]; %#ok<NBRAK>
+        
         %% EMI strategies
+        
+        % Pre-process phases are not run when you invoke `emi.go`. They are
+        % invoked by running experiment#3 using `covexp.covcollect`
         
         MUTATOR_DECORATORS = {
             @emi.decs.FixSourceSampleTimes                  % Pre-process
             @emi.decs.TypeAnnotateEveryBlock                % Pre-process
             @emi.decs.TypeAnnotateByOutDTypeStr             % Pre-process
-            @emi.decs.DeleteDeadAddSaturation
+            @emi.decs.DeleteDeadAddSaturation 
+            @emi.decs.LiveMutation
             };
 
         %% Random experiments
@@ -140,6 +150,9 @@ classdef cfg
         % `REPORTS_DIR`/{EXP_ID}/`REPORT_FOR_A_MODEL_FILENAME`
         REPORT_FOR_A_MODEL_FILENAME = 'modelreport';
         REPORT_FOR_A_MODEL_VARNAME = 'modelreport';
+        
+        % Save RNG state before creating each mutant
+        MUTANT_RNG_FILENAME = 'mutantstate';
         
         % Specify input and output data-type of a newly added block in the
         % compiled data-type registry. Recommended: true

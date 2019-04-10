@@ -72,9 +72,10 @@ function [ covdata ] = get_single_model_coverage( sys, model_id, model_path, cur
         throw(MException('covexp:exp:crash', int2str(error_exp)));
     end
     
-    if ~iscell(covcfg.DO_THESE_EXPERIMENTS)
-        is_exp5_only = covcfg.DO_THESE_EXPERIMENTS == 5;
-    else
+    if ~iscell(covcfg.DO_THESE_EXPERIMENTS) % array
+        is_exp5_only = isscalar(covcfg.DO_THESE_EXPERIMENTS) && ...
+            covcfg.DO_THESE_EXPERIMENTS == 5;
+    else % cell
         is_exp5_only = numel(covcfg.DO_THESE_EXPERIMENTS) == 1 && ...
                         covcfg.DO_THESE_EXPERIMENTS{1} == 5 ;
     end

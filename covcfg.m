@@ -8,6 +8,10 @@ classdef covcfg < handle
         % Instead of corpus, analyze a directory to discover models
         EXPLORE_A_DIRECTORY = true;
         
+        % Test Mode: Instead of exploring a directory use models from the
+        % test/slmodels direcotry. 
+        TEST_MODE = true;
+        
         % Explore path should be set using the environment variable
         % `COVEXPEXPLORE`. A non-none value for the following will override
         % the environment variable.
@@ -16,17 +20,17 @@ classdef covcfg < handle
         
         % Generate lists of models before experiment. If false, will reuse
         % the list generated during last experiment.
-        GENERATE_MODELS_LIST = false;
+        GENERATE_MODELS_LIST = true;
         
         % Use Parallel Computing Toolbox
         % Set false when aggregating results or debugging. If set to true,
         % will  process inidivual models paralelly. Results will be cached
         % for each file
-        PARFOR = true;
+        PARFOR = false;
         
         % Merge results for all models into a big file DURING experiments.
         % Ignored if PARFOR or MERGE_RESULTS_ONLY
-        MERGE_RESULTS_ONLINE = false;
+        MERGE_RESULTS_ONLINE = true;
         
         % If you have not merged results online or used PARFOR, 
         % use this to just merge the
@@ -38,7 +42,7 @@ classdef covcfg < handle
         %% Experiment Mode - which models to include in the experiments? 
         % See covexp.Expmode
         % e.g. ALL: all models; SUBGROUP: subset of models
-        EXP_MODE = covexp.Expmode.SUBGROUP_AUTO;
+        EXP_MODE = covexp.Expmode.ALL;
         
         % Upper limit on how many models to process
         % For SUBGROUP_AUTO, process these many models 
@@ -47,7 +51,7 @@ classdef covcfg < handle
         % have bug in the code initially. Please experiment with 1-2 models
         % first so that you do not discard many of the cached results for
         % ALL of your models!
-        MAX_NUM_MODEL = 1000;
+        MAX_NUM_MODEL = 1;
         
         % Subgroup range - only used in Expmode.SUBGROUP
         SUBGROUP_BEGIN = 179;
@@ -106,8 +110,8 @@ classdef covcfg < handle
         % configuration to not reuse the pre-exec files in `difftest.cfg`
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
-%         DO_THESE_EXPERIMENTS = [1 2 8 3]; % Multiple experiments
-        DO_THESE_EXPERIMENTS = 6;   % Single experiment
+        DO_THESE_EXPERIMENTS = [1 2 8 3]; % Multiple experiments
+%         DO_THESE_EXPERIMENTS = 5;   % Single experiment
         
         %% Others
         
@@ -166,7 +170,7 @@ classdef covcfg < handle
         % differential test ONLY on the _pp version. Set this for
         % EMI/coverage experiments, but unset to evaluate SLforge or
         % any other model directly where we do not pre-process.
-        EXP6_USE_PRE_PROCESSED = false; % WARNING -- see above %
+        EXP6_USE_PRE_PROCESSED = true; % WARNING -- see above %
         
         EXP6_RUN_COMPARATOR = true;
         EXP6_COMPARATOR = @difftest.FinalValueComparator;
@@ -271,8 +275,12 @@ classdef covcfg < handle
         end
         
         function ret = EXPLORE_DIR()
-            ret = covcfg.get_env_config('COVEXPEXPLORE',...
-                covcfg.EXPLORE_DIR_OVERRIDE);
+            if covcfg.TEST_MODE
+                ret = ['test' filesep 'slmodels'];
+            else
+                ret = covcfg.get_env_config('COVEXPEXPLORE',...
+                    covcfg.EXPLORE_DIR_OVERRIDE);
+            end
         end
         
         function ret = SAVE_SUCCESS_DIR()

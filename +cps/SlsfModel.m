@@ -150,6 +150,41 @@ classdef SlsfModel < cps.Model
             obj.l.debug('Added new %s block %s', new_blk_type, n_blk_full);
         end
         
+        function [src_block, h] = copy_block(obj, src_parent, src_block, dest_parent, varargin)
+            %%
+            
+            if nargin == 4
+                blk_params = struct;
+            else
+                blk_params = varargin{1};
+            end
+            
+            n_blk_full = [dest_parent '/' src_block];
+            
+            h = obj.add_block([src_parent '/' src_block], n_blk_full,...
+                obj.get_pos_for_next_block(dest_parent));
+            
+            % Configure block params
+            blk_param_names = fieldnames(blk_params);
+            
+            for i=1:numel(blk_param_names)
+                p = blk_param_names{i};
+                obj.set_param(h, p, blk_params.(p));
+            end
+            
+            obj.l.debug('Block copied %s from %s to %s', src_block, src_parent, dest_parent);
+        end
+        
+        function replace_block(obj, parent, blk, srcs, dests, is_if, replacement)
+            %% Replace block 
+            
+            % Delete and replace old Connections
+            obj.delete_src_to_block(parent, blk, srcs, replacement);
+            obj.delete_block_to_dest(parent, blk, dests, is_if, replacement);
+            
+            obj.delete_block([parent '/' blk]);
+        end
+        
         function ret = get_root_sources(obj)
             % Get root-level source blocks
             sources = obj.blocks(cps.slsf.filter_source_blocks(obj.blocks), :);
@@ -179,19 +214,20 @@ classdef SlsfModel < cps.Model
             h = add_block(new_blk_type, new_blk_name, 'Position', pos);
         end
         
-        function delete_src_to_block(obj, block_parent, this_block, sources) %#ok<INUSL>
-            emi.slsf.delete_src_to_block(block_parent, this_block, sources);
+        function delete_src_to_block(obj, block_parent, this_block, sources, varargin) %#ok<INUSL>
+            emi.slsf.delete_src_to_block(block_parent, this_block, sources, varargin{:});
         end
         
-        function delete_block_to_dest(obj, block_parent, this_block, destinations, is_if_block)  %#ok<INUSL>
-            emi.slsf.delete_block_to_dest(block_parent, this_block, destinations, is_if_block);
+        function delete_block_to_dest(obj, block_parent, this_block, destinations, is_if_block, varargin)  %#ok<INUSL>
+            emi.slsf.delete_block_to_dest(block_parent, this_block, destinations, is_if_block, varargin{:});
         end
         
         function delete_block(obj, blk)  %#ok<INUSL>
             delete_block(blk);
         end
         
-        function add_line(obj, this_sys, src, dest)
+        function ret = add_line(obj, this_sys, src, dest)
+            ret = 1; %dummy
             add_line(this_sys, src, dest, 'autorouting','on');
             
             obj.l.debug('[X-->Y] In %s, connected %s ---> %s',...

@@ -52,3 +52,4 @@ slcov_output
 +difftest/tests/tmp/*
 .hg/*
 .hgignore
+test/slmodels/*.slx

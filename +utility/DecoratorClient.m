@@ -1,6 +1,6 @@
 classdef DecoratorClient < handle
     %DECORATORCONTAINER This class uses decorators i.e. subclasses of
-    %utility.AbstractDecorator.
+    %utility.AbstractDecorator to implement a decorator-like pattern.
     
     properties
         decorators = [];
@@ -14,7 +14,7 @@ classdef DecoratorClient < handle
         end
         
         function call_fun(obj, fun, varargin)
-            %%
+            %% Calls `fun` method of all decorators
             
             for i=1:numel(obj.decorators)
                 dec = obj.decorators{i};
@@ -24,6 +24,7 @@ classdef DecoratorClient < handle
         
         function delete(obj)
             %% Destructor. Address cyclic dependencies
+%             fprintf('Decorator client destructor called!\n');
             try
                 for i=1:numel(obj.decorators)
                     try

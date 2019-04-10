@@ -50,6 +50,7 @@ classdef BaseMutantGenerator < utility.DecoratorClient
             
             % TODO do this when filtering list of blocks to be efficient
             obj.l.info('Deleted: %d; Delete skipped: %d', obj.r.num_deleted, obj.r.num_skip_delete);
+            obj.l.info('Live Mutated: %d; skipped: %d', obj.r.n_live_mutated, obj.r.n_live_skipped); 
             
             obj.compile_after_mutation();
             
