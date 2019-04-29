@@ -6,7 +6,7 @@ classdef covcfg < handle
     properties(Constant = true)
         % How models/subjects are sourced.
         % See +covexp/Sourcemode.m
-        SOURCE_MODE = covexp.Sourcemode.SLFORGE;
+        SOURCE_MODE = covexp.Sourcemode.EXPLORE; % one of EXPLORE/SLFORGE/CORPUS/TEST
         
         % Explore path should be set using the environment variable
         % `COVEXPEXPLORE`. A non-none value for the following will override
