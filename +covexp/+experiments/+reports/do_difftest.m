@@ -1,9 +1,10 @@
-function [models, cmp_e_dts] = do_difftest(models, l)
+function [models, cmp_e_dts, b4_e_dts] = do_difftest(models, l)
 %DO_DIFFTEST Report generator for difftest experiments
 %   This function is automatically called by covexp.report
 
 l.info('--- Differential Testing (DIFFTEST) Report ---');
 cmp_e_dts = [];
+b4_e_dts = [];
 
 if isstruct(models) % struct array from covexp.report
     if ~isfield(models, 'difftest')
@@ -47,22 +48,28 @@ is_comp_e = logical(is_comp_e);
 l.info('DIFFtest: Skipped?');
 tabulate(skipped);
 
+is_exception = logical(is_exception);
 
 l.info('DIFFTEST (Before comp): Errored?');
 tabulate(is_exception);
 
+b4_e_dts = data(is_exception);
 
-before_errs = data(logical(is_exception));
-
-if ~ isempty(before_errs)
-    % uncomment following after storing the entire error object except the
-    % ID only 
-%     before_errs = cellfun(@(p)p.exception.get(1), before_errors, 'UniformOutput', false);
-%     before_errs = cellfun(@(p)p.exception.get(1), before_errs, 'UniformOutput', false);
-%     before_errs = cellfun(@(p)p.get(1).identifier, before_errs, 'UniformOutput', false);
-%     before_errs = utility.multi_errors(before_errs);
-%     l.error('Before comparison Errors:');
-%     disp(cellfun(@(p)p.identifier, before_errs, 'UniformOutput', false));
+if ~ isempty(b4_e_dts)
+    before_errs = cellfun(@(p)p.exception.get(1), b4_e_dts, 'UniformOutput', false);
+    before_errs = cellfun(@(p)p.get(1), before_errs, 'UniformOutput', false);
+    before_errs = utility.multi_errors(before_errs);
+    
+    l.error('Before comparison (due to signal logging) Errors:');
+    before_errs_ids = cellfun(@(p)p.identifier, before_errs, 'UniformOutput', false);
+    tabulate(before_errs_ids);
+    
+    % Show experiments that errored
+    b4_err_experiments = find(is_exception);
+    idx = 1:length(b4_err_experiments);
+    disp(table(idx', b4_err_experiments, before_errs_ids'));
+    
+    l.error('Errored objects are returned as last return value. Use `difftest.inspect`');
 end
 
 
@@ -75,11 +82,11 @@ l.info('DIFFTEST (After comp): Errored?');
 tabulate(is_comp_e);
 
 if any(is_comp_e)
-    l.info('Following comps (indices, not experiment numbers) errored');
+    l.info('Following comps errored');
     disp(find(is_comp_e)');
     
     m_ids = [models.m_id];
-    l.info('Model IDs:');
+    l.info('Following Model IDs: errored');
     disp(m_ids(is_comp_e)); 
     
     l.info('First errored-SUT-config exception  for each errored experiment:');
@@ -90,7 +97,7 @@ if any(is_comp_e)
     ex_obs = cellfun(@difftest.comp_invest, cmp_e_dts, 'UniformOutput', false);
     l.error('%s', strjoin(cellfun(@(p) utility.get_error(p), ex_obs, 'UniformOutput', false), '\n'));
     
-    l.info('Errored experiments are returned in a cell (third return value of this function).')
+    l.info('Errored experiments are returned in a cell (third (for emi.report) of this function).')
     l.info('Call difftest.inspect with an element of this cell to see the mismatches and open the models.');
 end
 

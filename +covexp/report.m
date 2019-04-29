@@ -1,4 +1,4 @@
-function [ models, comp_e_dts ] = report( varargin )
+function [ models, comp_e_dts, b4_e_dts ] = report( varargin )
 %REPORT Generate reports for covcollect
 %   varargin{1}: file to load for report
 % varargin{2} additional functions to call with the `covexp_results`
@@ -33,7 +33,7 @@ utility.tabulate('exception', models, 'Does Model error?', l);
 utility.tabulate('peprocess_skipped', models, 'Preprocess: skipped?', l);
 utility.tabulate('preprocess_error', models, 'Preprocess: error?', l);
 
-[models, comp_e_dts ] = covexp.experiments.reports.do_difftest(models, l);
+[models, comp_e_dts, b4_e_dts ] = covexp.experiments.reports.do_difftest(models, l);
 
 % Number of zero blocks
 
