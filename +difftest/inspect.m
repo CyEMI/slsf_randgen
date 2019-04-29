@@ -7,6 +7,11 @@ if nargin <2
     run_sim = false;
 end
 
+if ~isfield(difftest_ob, 'executions')
+    l.info('No Execution objects was found. Returning...');
+    return;
+end
+
 cellfun(@(p)utility.d(@()open_system([p.loc filesep p.sys '_' difftest.cfg.PRE_EXEC_SUFFIX])),...
     difftest_ob.executions);
 

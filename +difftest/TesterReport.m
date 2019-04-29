@@ -64,9 +64,9 @@ classdef TesterReport < handle
             ret = utility.get_struct_from_object(obj, containers.Map(...
                 {'oks', 'executions'}, {1, 1}));
             
-            if ~ isempty(obj.oks)
+%             if ~ isempty(obj.oks) % unsure why this check was needed
                 ret.executions = obj.executions.map(@(p)p.get_report(), false);
-            end
+%             end
         end
         
         function ret = are_oks_ok(obj)
