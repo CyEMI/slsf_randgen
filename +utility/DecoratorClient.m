@@ -28,15 +28,20 @@ classdef DecoratorClient < handle
             try
                 for i=1:numel(obj.decorators)
                     try
-                        dec = obj.decorators(i);
+                        dec = obj.decorators{i};
                         dec.hobj = [];
-                    catch
+                        
+                        delete(dec);
+                        clear dec;
+                    catch e
+                        fprintf('Error in decorator client destructor!\n');
+                        utility.print_error(e);
                     end
                 end
                 obj.decorators = [];
             catch me
                 fprintf('Error in destructor of DecoratorClient!\n');
-                disp(me);
+                utility.print_error(me);
             end
         end
     end

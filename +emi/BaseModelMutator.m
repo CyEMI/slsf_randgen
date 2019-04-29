@@ -266,6 +266,9 @@ classdef (Abstract) BaseModelMutator < handle
                     ret = false;
                     break;
                 end
+                
+                delete(a_mutant);
+                clear a_mutant;
             end
         end
         
@@ -303,6 +306,9 @@ classdef (Abstract) BaseModelMutator < handle
 
                 obj.result.difftest_r = dt.r.get_report();
                 
+                delete(dt);
+                clear dt;
+                
                 obj.handle_difftest_errors(models);
             catch e
                 disp(e); % For debugging
@@ -312,7 +318,12 @@ classdef (Abstract) BaseModelMutator < handle
             
             obj.save_my_result();
             
-            Simulink.sdi.clear(); % Wathout - this should not throw
+            try
+                Simulink.sdi.clear();
+            catch me
+                obj.l.error('SDI threw error during clear');
+                utility.print_error(me);
+            end
             
             if ~isempty(e)
                 rethrow(e);

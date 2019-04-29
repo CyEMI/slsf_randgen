@@ -2,10 +2,14 @@ classdef LiveMutation < emi.decs.DecoratedMutator
     %DEADBLOCKDELETESTRATEGY Summary of this class goes here
     %   Detailed explanation goes here
     
-%     methods(Abstract)
-%         % Implement re-connection logic
-%         post_delete_strategy(obj, sources, dests, parent_sys);
-%     end
+
+    properties
+        % skip mutation op if filter returns true.
+        % key: mut_op_id, val: lambda
+        mutop_skip = containers.Map(...
+        );
+    
+    end
     
     methods
         
@@ -15,26 +19,33 @@ classdef LiveMutation < emi.decs.DecoratedMutator
         
         function main_phase(obj)
             %% 
+            e = [];
             
-            
-            %% prev code
-            if size(obj.r.live_blocks, 1) == 0
-                obj.l.warn('No live blocks in the original model! Returning from Decorator.');
-                return;
+            try
+                if size(obj.r.live_blocks, 1) == 0
+                    obj.l.warn('No live blocks in the original model! Returning from Decorator.');
+                    return;
+                end
+
+                live_blocks = obj.r.sample_live_blocks();
+                live_blocks = cellfun(@(p) [obj.mutant.sys '/' p],...
+                    live_blocks, 'UniformOutput', false);
+
+                % blocks may have repeated contents. Use the following if you
+                % want to not mutate with replacement.
+    %             [live_blocks, blk_idx] = unique(live_blocks);
+                blk_idx = ones(length(live_blocks), 1); % repeatation allowed
+
+                cellfun( ...
+                            @(p, op) obj.mutate_a_block(p, [], op) ...
+                        , live_blocks, obj.r.live_ops(blk_idx));
+            catch e
+                rethrow(e);
             end
             
-            live_blocks = obj.r.sample_live_blocks();
-            live_blocks = cellfun(@(p) [obj.mutant.sys '/' p],...
-                live_blocks, 'UniformOutput', false);
-            
-            % blocks may have repeated contents. Use the following if you
-            % want to not mutate with replacement.
-%             [live_blocks, blk_idx] = unique(live_blocks);
-            blk_idx = ones(length(live_blocks), 1); % repeatation allowed
-            
-            cellfun( ...
-                        @(p, op) obj.mutate_a_block(p, [], op) ...
-                    , live_blocks, obj.r.live_ops(blk_idx));
+            if ~isempty(e)
+                rethrow(e);
+            end
             
         end
         
@@ -51,16 +62,39 @@ classdef LiveMutation < emi.decs.DecoratedMutator
                 return;
             end
             
-%             if emi.cfg.SKIP_DELETES.isKey(get_param(block, 'BlockType'))
-%                 obj.l.debug('Not deleting as pre-configured %s', block);
-%                 obj.r.num_skip_delete = obj.r.num_skip_delete + 1;
-%                 return;
-%             end
+            mut_op = emi.cfg.LIVE_MUT_OPS{mut_op_id} ;
+            
+            blacklist = emi.cfg.MUT_OP_BLACKLIST{mut_op_id};
+            
+            skip =  blacklist.isKey(cps.slsf.btype(block)) ;
+            
+            % Check if predecessor has constant sample time
             
             try
                 [connections,sources,destinations] = emi.slsf.get_connections(block, true, true);
             catch e
-                disp(e);
+                rethrow(e);
+            end
+            
+            try
+                if mut_op_id == 2 && ~isempty(sources)
+                    skip = skip || emi.live.modelreffilter(obj.mutant, sources);
+                end
+            catch e
+                rethrow(e);
+            end
+                            
+            if ~skip && obj.mutop_skip.isKey(mut_op_id)
+                wo_parent = utility.strip_first_split(block, '/');
+                fn = obj.mutop_skip(mut_op_id);
+                skip =  fn(obj, wo_parent);
+            end
+            
+            if skip
+                obj.l.debug('Not mutating %s',...
+                    block);
+                obj.r.n_live_skipped = obj.r.n_live_skipped + 1;
+                return;
             end
             
             is_block_not_action_subsystem = all(...
@@ -91,12 +125,11 @@ classdef LiveMutation < emi.decs.DecoratedMutator
 %             emi.hilite_system(block, emi.cfg.DELETE_BLOCK_P || pause_ss);
 %             emi.pause_interactive(emi.cfg.DELETE_BLOCK_P || pause_ss, 'Delete block %s', block);
 
-            mut_op = emi.cfg.LIVE_MUT_OPS{mut_op_id} ;
             
             bl = mut_op(obj.r, block_parent, this_block,...
                 connections, sources, destinations, is_if_block);
             
-            bl.go();
+            bl.go(obj);
             
             emi.pause_interactive(emi.cfg.DELETE_BLOCK_P, 'Block %s Live Mutation completed', block);
             

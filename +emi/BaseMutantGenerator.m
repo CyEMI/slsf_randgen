@@ -21,6 +21,16 @@ classdef BaseMutantGenerator < utility.DecoratorClient
            
         end
         
+        function delete(obj)
+            try
+                delete(obj.r);
+                clear obj.r;
+            catch e
+                fprintf('Error in BaseMutantGennerator destructor\n');
+                utility.print_error(e);
+            end
+        end
+        
         function go(obj)
             %%
             obj.init();

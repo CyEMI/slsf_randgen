@@ -35,11 +35,18 @@ function ret = check_model_compiles(sys, h, ret)
                 cur_blk_name = getfullname(cur_blk);
                 
                 try
-                    datatype = get_param(cur_blk_name, 'CompiledPortDataTypes');
+                    c_data = covexp.experiments.block_compiled_data(...
+                        get_param(cur_blk_name, 'CompiledPortDataTypes'), ...
+                        utility.na(...
+                            cur_blk_name, @(q)Simulink.Block.getSampleTimes(q),...
+                            []...
+                        )...
+                    );
+
                     
                     cur_blk_name = utility.strip_first_split(cur_blk_name, '/');
                     
-                    all_blocks(cur_blk_name) = datatype;
+                    all_blocks(cur_blk_name) = c_data;
                 catch 
                 end
 
@@ -53,8 +60,9 @@ function ret = check_model_compiles(sys, h, ret)
                 st_compiled = cellfun(@(p) utility.na(p,...
                     @(q)get_param(q, 'CompiledSampleTime'), []),...
                     {ret.blocks.fullname}, 'UniformOutput', false);
-
+                
                 [ret.blocks.st_compiled] = st_compiled{:};
+                
             end
             
             

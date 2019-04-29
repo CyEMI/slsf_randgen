@@ -4,19 +4,18 @@ classdef covcfg < handle
     % A model is something which you want to do experiment with.
     
     properties(Constant = true)
-        
-        % Instead of corpus, analyze a directory to discover models
-        EXPLORE_A_DIRECTORY = true;
-        
-        % Test Mode: Instead of exploring a directory use models from the
-        % test/slmodels direcotry. 
-        TEST_MODE = true;
+        % How models/subjects are sourced.
+        % See +covexp/Sourcemode.m
+        SOURCE_MODE = covexp.Sourcemode.SLFORGE;
         
         % Explore path should be set using the environment variable
         % `COVEXPEXPLORE`. A non-none value for the following will override
         % the environment variable.
 %         EXPLORE_DIR_OVERRIDE = '';
         EXPLORE_DIR_OVERRIDE = [];
+        
+        SLFORGE_DIR = ['..' filesep 'slforge' filesep 'slsf' filesep 'reportsneo'];
+        SLFORGE_DATE_FROM = '2019-04-22-07-06-24'; % inclusive
         
         % Generate lists of models before experiment. If false, will reuse
         % the list generated during last experiment.
@@ -26,7 +25,7 @@ classdef covcfg < handle
         % Set false when aggregating results or debugging. If set to true,
         % will  process inidivual models paralelly. Results will be cached
         % for each file
-        PARFOR = false;
+        PARFOR = true;
         
         % Merge results for all models into a big file DURING experiments.
         % Ignored if PARFOR or MERGE_RESULTS_ONLY
@@ -51,7 +50,7 @@ classdef covcfg < handle
         % have bug in the code initially. Please experiment with 1-2 models
         % first so that you do not discard many of the cached results for
         % ALL of your models!
-        MAX_NUM_MODEL = 1;
+        MAX_NUM_MODEL = 500;
         
         % Subgroup range - only used in Expmode.SUBGROUP
         SUBGROUP_BEGIN = 179;
@@ -92,7 +91,7 @@ classdef covcfg < handle
         % See at the bottom of this file for details and warnings below
         EXPERIMENTS = {
             @covexp.experiments.get_coverage                        % 1
-            @covexp.experiments.check_model_compiles                % 2
+            @covexp.experiments.check_model_compiles                % 2 (see notes below)
             @emi.preprocess_models                                  % 3 (see notes below)
             @covexp.experiments.get_model_simulates                 % 4
             @covexp.experiments.fix_input_loc                       % 5
@@ -109,9 +108,12 @@ classdef covcfg < handle
         % Either delete the preexec files (`rm *_difftest`) or change the
         % configuration to not reuse the pre-exec files in `difftest.cfg`
         
+        % If changing exp#2 also run exp#3 as it will update the compiled 
+        % datatype of the newly added data-type converters
+        
         % Will only run these experiments. Elements are index of EXPERIMENTS
         DO_THESE_EXPERIMENTS = [1 2 8 3]; % Multiple experiments
-%         DO_THESE_EXPERIMENTS = 5;   % Single experiment
+%         DO_THESE_EXPERIMENTS = [2 3];   % Single experiment
         
         %% Others
         
@@ -275,8 +277,10 @@ classdef covcfg < handle
         end
         
         function ret = EXPLORE_DIR()
-            if covcfg.TEST_MODE
+            if covcfg.SOURCE_MODE == covexp.Sourcemode.TEST
                 ret = ['test' filesep 'slmodels'];
+            elseif covcfg.SOURCE_MODE == covexp.Sourcemode.SLFORGE
+                ret = covcfg.SLFORGE_DIR;
             else
                 ret = covcfg.get_env_config('COVEXPEXPLORE',...
                     covcfg.EXPLORE_DIR_OVERRIDE);

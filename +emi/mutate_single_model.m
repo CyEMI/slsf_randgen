@@ -8,5 +8,8 @@ mutator.go();
 ret = mutator.result.is_ok() &&...
     mutator.result.are_mutants_ok() && ...
     mutator.result.difftest_ok();
+
+delete(mutator);
+clear mutator;
 end
 

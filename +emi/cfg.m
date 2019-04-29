@@ -8,23 +8,15 @@ classdef cfg
         % How many exepriments to run. In each experiment it's recommended
         % to create only one mutant, although you can create multiple. Some
         % features may break for multiple mutants per experiment.
-        NUM_MAINLOOP_ITER = 10; 
+        NUM_MAINLOOP_ITER = 75; 
         
-        PARFOR = false;
+        PARFOR = true;
         
-        % Non-repeatable experiments, recommended
-        RNG_SHUFFLE = false;     
+        % Non-repeatable experiments, recommended, specially for TACC
+        RNG_SHUFFLE = true;     
         
-        % Debug/Interactive mode for a particular subsystem or block. 
-        % Will pause
-        % when mutating this block or ANY block inside a subsystem
-        
-        % dummy value "1" for the map data-structure
-%         DEBUG_SUBSYSTEM = containers.Map({'cfblk257/cfblk14'}, {1});
-        DEBUG_SUBSYSTEM = containers.Map(); 
-        
-        DEBUG_BLOCK = containers.Map();
-%         DEBUG_BLOCK = containers.Map({'cfblk212' }, { 1 });
+        % Break from the main loop if any model mutation errors
+        STOP_IF_ERROR = false;
         
         %% Differential Testing
         
@@ -42,7 +34,17 @@ classdef cfg
         % Comparison method
         COMPARATOR = @difftest.FinalValueComparator;
         
-        %% Stopping when error
+        %% Debugging
+        
+        % Debug/Interactive mode for a particular subsystem or block. 
+        % Will pause
+        % when mutating this block or ANY block inside a subsystem
+
+        DEBUG_SUBSYSTEM = utility.set(); 
+        
+        DEBUG_BLOCK = utility.set({
+%             'cfblk212'
+        });
         
         % Note: when preprocessing models using the covcollect script,
         % don't keep any mutants/parents open. Change
@@ -51,28 +53,19 @@ classdef cfg
         % don't close a mutant if it did not compile/run
         KEEP_ERROR_MUTANT_OPEN = false;
         KEEP_ERROR_MUTANT_PARENT_OPEN = false;
-        
-        % Break from the main loop if any model mutation errors
-        STOP_IF_ERROR = true;
-        
-        %% Filtering Seed Models
+
+        % Instead of all seeds, only use interesting seed 
         
         SEED_FILTERS = {
 %             @(seeds)seeds.m_id==179 % Seed model ID (``m_id'') is 40
             };
         
-        %% Generic Mutation
-        
-        MUTANTS_PER_MODEL = 1; % Do not change. 
+        %% Mutation
         
         % Remove this percentage of dead blocks
         DEAD_BLOCK_REMOVE_PERCENT = 0.5;
         
-        LIVE_BLOCK_MUTATION_PERCENT = 0.15;
-        
-        % Live mutation operations and their weights
-        LIVE_MUT_OPS = {@emi.live.VirtualChild}; 
-        LIVE_MUT_WEIGHTS = [1]; %#ok<NBRAK>
+        LIVE_BLOCK_MUTATION_PERCENT = 0.5;
         
         %% EMI strategies
         
@@ -83,9 +76,16 @@ classdef cfg
             @emi.decs.FixSourceSampleTimes                  % Pre-process
             @emi.decs.TypeAnnotateEveryBlock                % Pre-process
             @emi.decs.TypeAnnotateByOutDTypeStr             % Pre-process
-            @emi.decs.DeleteDeadAddSaturation 
-            @emi.decs.LiveMutation
+            @emi.decs.LiveMutation                          % Live Mutation
+            @emi.decs.DeleteDeadAddSaturation               % Dead Mutation
             };
+        
+        % Live mutation operations and their weights
+        LIVE_MUT_OPS = {
+            @emi.live.VirtualChild              % 1
+            @emi.live.ModelReference            % 2 - Uses FixedStep solver
+        }; 
+        LIVE_MUT_WEIGHTS = [0 1]; 
 
         %% Random experiments
         
@@ -174,6 +174,25 @@ classdef cfg
         
         % logger level
         LOGGER_LEVEL = logging.logging.INFO;
+        
+        
+        %% Internal
+        
+        MUTANTS_PER_MODEL = 1; % Do not change. 
+        
+        % Not all blocks are supported by all mutation operators
+        MUT_OP_BLACKLIST = {
+            utility.set()   % Virtual Child
+            utility.set({...   % Referenced Model
+                'chirp', 'Clock', 'DigitalClock', 'DiscretePulseGenerator' ,...
+                'Ramp', 'Repeating table', 'Repeating Sequence Interpolated' ...
+                'Repeating Sequence Stair', 'DiscreteIntegrator' 'SignalGenerator',...
+                'Sin', 'Step', 'FromWorkspace', 'ToWorkspace' ...
+                'TransportDelay', 'VariableTransportDelay', ...
+                'Delay', 'UnitDelay', 'PID 1dof', 'PID 2dof' ,... % not in documentation
+                'VariableTransportDelay' ...
+            }) % https://www.mathworks.com/help/simulink/ug/inherit-sample-times-for-model-referencing-1.html
+        };
     end
     
     methods (Static = true)

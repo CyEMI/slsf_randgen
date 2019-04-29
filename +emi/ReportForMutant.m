@@ -1,7 +1,7 @@
 classdef ReportForMutant < handle
     %REPORTFORMUTANT Report for a single mutant
     %   Main data structure/model for a single mutant
-    % Note: not all member fields are saved in the disc. See the get_report
+    % WARNING: not all member fields are saved in the disc. See the get_report
     % method.
     
     properties
@@ -148,15 +148,14 @@ classdef ReportForMutant < handle
             ret.loc = obj.mutant.loc; 
             ret.preprocess_error = obj.preprocess_error;
             ret.exception = obj.exception.get_cell_T();
-            ret.num_mutation = obj.get_num_mutation_ops();
+            ret.num_mutation = obj.num_deleted; % dead only
+            ret.n_dead_skipped = obj.num_skip_delete;
+            ret.n_live_mutated = obj.n_live_mutated;
+            ret.n_live_skipped = obj.n_live_skipped;
             ret.duration = obj.duration;
             ret.compile_duration = obj.compile_duration;
         end
         
-        function ret = get_num_mutation_ops(obj)
-            % How many mutation operations performed?
-            ret = obj.num_deleted;
-        end
         
         function ret = is_ok(obj)
             %%

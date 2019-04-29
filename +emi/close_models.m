@@ -1,6 +1,8 @@
-function close_models(models)
+function ret = close_models(models)
 %CLOSE_MODELS Summary of this function goes here
 %   Detailed explanation goes here
+
+ret = true;
 
 if ~iscell(models)
     models = {models};

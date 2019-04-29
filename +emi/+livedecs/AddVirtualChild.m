@@ -5,6 +5,7 @@ classdef AddVirtualChild < emi.livedecs.Decorator
     
     properties
         child_type = 'simulink/Ports & Subsystems/Subsystem';
+        
     end
     
     methods
@@ -13,13 +14,18 @@ classdef AddVirtualChild < emi.livedecs.Decorator
             obj = obj@emi.livedecs.Decorator(varargin{:});
         end
         
-        function go(obj )
+        function go(obj, varargin )
+            % childtype : one of 'Subsystem'
             prev_pos = get_param(obj.hobj.blk_full, 'Position');
             
             [obj.hobj.new_ss, obj.hobj.new_ss_h] = obj.mutant.add_new_block_in_model(...
-                obj.hobj.parent, 'simulink/Ports & Subsystems/Subsystem',...
+                obj.hobj.parent, obj.child_type,...
                 struct('Position', prev_pos));
             
+            obj.configure(varargin{:});
+        end
+        
+        function configure(obj, varargin)
             % New subsystem is created with some input-output ports. Delete
             % these.
             Simulink.SubSystem.deleteContents(obj.hobj.new_ss_h);

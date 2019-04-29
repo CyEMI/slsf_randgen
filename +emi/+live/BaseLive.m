@@ -34,9 +34,10 @@ classdef BaseLive < utility.DecoratorClient
         end
         
         
-        function go(obj)
-            obj.call_fun(@go);
+        function go(obj, varargin)
+            obj.call_fun(@go, varargin{:});
         end
+        
     end
 end
 

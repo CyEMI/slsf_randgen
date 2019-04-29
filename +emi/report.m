@@ -36,6 +36,21 @@ function [emi_result, stats_table, cmp_errs] = report(report_loc, aggregate)
     
     utility.tabulate('is_ok', emi_result, 'No Exception and mutant error?', l);
     
+    errors = emi_result{~emi_result.is_ok, 'mutants'};
+    if ~ isempty(errors)
+        l.error('Following experiments errored during mut create:');
+        
+        mutant_errors = utility.multi_errors(...
+                cellfun( @(p)p.exception{1} ,...
+                            errors, 'UniformOutput', false) ...
+            );
+        
+        exp_no =  find(~emi_result.is_ok);
+        exception_ids = cellfun(@(p)p.identifier, mutant_errors, 'UniformOutput', false);
+        
+        disp(table(exp_no, exception_ids));
+    end
+    
     stats_table = [];
     
     try

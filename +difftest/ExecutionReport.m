@@ -78,23 +78,13 @@ classdef ExecutionReport < handle
             ret = obj.exception.len == 0;
         end
         
-        function ret = get_sim_args(obj)
+        function simargs = get_sim_args(obj)
             %%
-            snames = utility.cell(obj.configs.len);
-            simargs = utility.cell(obj.configs.len);
-            
-            for i=1:obj.configs.len
-                c = obj.configs.get(i);
-                
-                snames.add(c.shortname);
-                simargs.add(c.configs);
-                
-            end
+            [simargs, snames] = difftest.get_sim_config(obj.configs);
             
             obj.shortname = strjoin(snames.get_cell(), '_');
             obj.id = [obj.sys ' ::config:: ' obj.shortname];
             
-            ret = utility.merge_structs(simargs);
         end
         
         function validate_input(obj)

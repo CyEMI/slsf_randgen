@@ -124,13 +124,15 @@ classdef SlsfModel < cps.Model
         end
         
         function [new_blk_name, h] = add_new_block_in_model(obj, parent, new_blk_type, varargin)
-            %%
+            %% varargin{1} : struct containing block config params
             
-            if nargin == 3
+            
+            if nargin < 4
                 blk_params = struct;
             else
                 blk_params = varargin{1};
             end
+            
             
             new_blk_name = obj.get_new_block_name();
             
@@ -149,6 +151,7 @@ classdef SlsfModel < cps.Model
             
             obj.l.debug('Added new %s block %s', new_blk_type, n_blk_full);
         end
+
         
         function [src_block, h] = copy_block(obj, src_parent, src_block, dest_parent, varargin)
             %%
@@ -284,6 +287,9 @@ classdef SlsfModel < cps.Model
             if ~ emi.cfg.INTERACTIVE_MODE
                 bdclose(obj.sys);
             end
+            
+            % Close newly generated ones
+            obj.modelrefs.map(@emi.close_models);
         end
     end
     

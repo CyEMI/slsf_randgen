@@ -42,12 +42,29 @@ for i=1:numel(data)
     
 end
 
+is_comp_e = logical(is_comp_e);
+
 l.info('DIFFtest: Skipped?');
 tabulate(skipped);
 
 
 l.info('DIFFTEST (Before comp): Errored?');
 tabulate(is_exception);
+
+
+before_errs = data(logical(is_exception));
+
+if ~ isempty(before_errs)
+    % uncomment following after storing the entire error object except the
+    % ID only 
+%     before_errs = cellfun(@(p)p.exception.get(1), before_errors, 'UniformOutput', false);
+%     before_errs = cellfun(@(p)p.exception.get(1), before_errs, 'UniformOutput', false);
+%     before_errs = cellfun(@(p)p.get(1).identifier, before_errs, 'UniformOutput', false);
+%     before_errs = utility.multi_errors(before_errs);
+%     l.error('Before comparison Errors:');
+%     disp(cellfun(@(p)p.identifier, before_errs, 'UniformOutput', false));
+end
+
 
 % l.info('DIFFtest: completed phases (Non-Done only; not-skipped only)');
 % ok_phases = ok_phases(skipped == false);
@@ -60,14 +77,16 @@ tabulate(is_comp_e);
 if any(is_comp_e)
     l.info('Following comps (indices, not experiment numbers) errored');
     disp(find(is_comp_e)');
+    
+    m_ids = [models.m_id];
     l.info('Model IDs:');
-    disp(models{find(is_comp_e), 'm_id'}'); %#ok<FNDSB>
+    disp(m_ids(is_comp_e)); 
     
     l.info('First errored-SUT-config exception  for each errored experiment:');
     
     % Following line may not work when difftest_r is not not available. See
     % above for code where we use `difftest` as the variable name
-    cmp_e_dts = models{find(is_comp_e), 'difftest_r'}; %#ok<FNDSB>
+    cmp_e_dts = data(is_comp_e) ;
     ex_obs = cellfun(@difftest.comp_invest, cmp_e_dts, 'UniformOutput', false);
     l.error('%s', strjoin(cellfun(@(p) utility.get_error(p), ex_obs, 'UniformOutput', false), '\n'));
     

@@ -2,7 +2,7 @@ function [ result ] = covcollect(varargin)
 %COVCOLLECTFUN Summary of this function goes here
 %   Detailed explanation goes here
     
-if covcfg.EXPLORE_A_DIRECTORY 
+if covcfg.SOURCE_MODE ~= covexp.Sourcemode.CORPUS 
     exp = covexp.ExploreCovExp(varargin{:});
 else
     exp = covexp.CorpusCovExp(varargin{:});
