@@ -8,7 +8,7 @@ We are investigating automated _Equivalence Modulo Input (EMI)_-based testing of
 
 ## Notes to Reviewers
 
-- [FSE 2019 Data and Bugs](notes/fse/)
+- [ASE 2019 Data and Bugs](notes/ase/)
 
 ## Requirements
 
