@@ -29,14 +29,14 @@ classdef covcfg < handle
         
         % Merge results for all models into a big file DURING experiments.
         % Ignored if PARFOR or MERGE_RESULTS_ONLY
-        MERGE_RESULTS_ONLINE = true;
+        MERGE_RESULTS_ONLINE = false;
         
         % If you have not merged results online or used PARFOR, 
         % use this to just merge the
         % results from individual result caches. 
         % Followings would be ignored: PARFOR;
         % FORCE_UPDATE_CACHE_RESULTS; EXP_MODE; MERGE_RESULTS_ONLINE 
-        MERGE_RESULTS_ONLY = false;
+        MERGE_RESULTS_ONLY = true;
         
         %% Experiment Mode - which models to include in the experiments? 
         % See covexp.Expmode
@@ -112,8 +112,8 @@ classdef covcfg < handle
         % datatype of the newly added data-type converters
         
         % Will only run these experiments. Elements are index of EXPERIMENTS
-        DO_THESE_EXPERIMENTS = [1 2 8 3]; % Multiple experiments
-%         DO_THESE_EXPERIMENTS = [2 3];   % Single experiment
+%         DO_THESE_EXPERIMENTS = [1 2 8 3]; % Multiple experiments
+        DO_THESE_EXPERIMENTS = [6];   % Single experiment
         
         %% Others
         
@@ -172,7 +172,7 @@ classdef covcfg < handle
         % differential test ONLY on the _pp version. Set this for
         % EMI/coverage experiments, but unset to evaluate SLforge or
         % any other model directly where we do not pre-process.
-        EXP6_USE_PRE_PROCESSED = true; % WARNING -- see above %
+        EXP6_USE_PRE_PROCESSED = false; % WARNING -- see above %
         
         EXP6_RUN_COMPARATOR = true;
         EXP6_COMPARATOR = @difftest.FinalValueComparator;

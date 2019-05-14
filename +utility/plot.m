@@ -49,7 +49,7 @@ function [ l] = plot(x, y, y_legends, xLab, yLab, xScale, yScale)
     end
 
    % xlabel(xLab);
-     ylabel(yLab,'FontSize', 14,'color','k'); %ylabel for right y axis
+     ylabel(yLab,'FontSize', 20,'color','k'); %ylabel for right y axis
 
    set(gca, 'XScale', xScale);
    set(gca, 'YScale', yScale);

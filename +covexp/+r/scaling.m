@@ -59,10 +59,10 @@ try
       
     lgnd.Orientation = 'horizontal';
     lgnd.Location = 'northwest';
-    lgnd.FontSize = 10;
+    lgnd.FontSize = 20;
     
-    xlim([0, 140]);
-    
+    xlim([0, 148]);% Change this to figure zoomed in or out 
+ 
     %To convert color stacked bar into black n white hatch patterns
     %Resolution too low since bitmap used: Unusable for latex. 
     % covexp.util.applyhatch_pluscolor(gcf,'wkwkwk', 0,[101010],[],300,1,2);
@@ -100,22 +100,30 @@ try
     
     %xlim([x_tick_low, x_tick_hi]);
     %ylim([10e-3,  max(max(merged{:, durations}))])
-    ylim([-100,  400]); %y limit for right y axis
+    ylim([-99,  400]); %y limit for right y axis
     
     % Where are the ticks?
-    my_x_ticks = 0:20: 145; % Ticks every 20    
+    interval =10;
+    sizeofdata =length(blkssize_sorted);
+    
+    my_x_ticks = 0:interval: sizeofdata; % Ticks every interval    
     my_x_ticks(1)= 1;
     xticks(my_x_ticks);
     
     %my_x_ticks vector based on the blocks/model 
     my_x_ticks= zeros(1,8);
-    my_x_ticks(1) = blkssize_sorted(1);
+    my_x_ticks(1) = round(blkssize_sorted(1),-2);
     j=2;
-    for i =20:20: 145
-         my_x_ticks(j) =  blkssize_sorted(i);
+    
+    for i =interval:interval: sizeofdata
+         my_x_ticks(j) =  round(blkssize_sorted(i),-2);
          j=j+1;
     end
+    %xtick 6 and 7 are both 600 as 
+    my_x_ticks(7)= 700
     %xticks([]);
+    
+    %
     xticklabels(my_x_ticks);
    
     %xticklabels(utility.exp_plot_ticks(my_x_ticks));
@@ -128,7 +136,7 @@ try
     
     l.info('Maximum duration (seconds) for each phase:');
     disp(max(merged{:, durations}, [], 1));
-    
+    set(findall(gcf,'-property','DefaultAxesFontSize'),'DefaultAxesFontSize',20)
     
     % Phase Duration Percentage
     

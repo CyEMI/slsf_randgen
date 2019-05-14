@@ -10,4 +10,4 @@ Here we provide data and information required to reproduce the runtime analysis 
 First, please see installation and requirments from the [homepage](../../Readme.md). Then:
 
 - Copy the `.mat` files from [here](https://drive.google.com/open?id=1ExFqmPXZrZcTYo6a65-xZqLJQve-PGV1) to the `workdata` folder
-- Run `covexp.r.scaling()` in a MATLAB prompt 
+- Run `covexp.addpaths(); covexp.r.scaling()` in a MATLAB prompt 
