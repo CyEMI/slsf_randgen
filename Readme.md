@@ -8,7 +8,7 @@ We are investigating automated _Equivalence Modulo Input (EMI)_-based testing of
 
 ## Notes to Reviewers
 
-- [ASE 2019 Data and Bugs](notes/ase/)
+- [ICSE 2020 Data and Bugs](notes/icse/)
 
 ## Requirements
 
@@ -18,8 +18,8 @@ MATLAB R2018a with default Simulink toolboxes
 
 Please use `git` to properly install all third-party dependencies:
 
-    git clone https://github.com/CyEMI/slsf_randgen.git
-    cd slsf_randgen
+    git clone <REPO URL>
+    cd <REPO>
     git submodule update --init
     matlab # Opens MATLAB
 
