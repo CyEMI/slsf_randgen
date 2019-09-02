@@ -227,6 +227,14 @@ classdef Model < handle
             obj.compiled_types(utility.strip_first_split([parent '/' n_blk], '/')) = tmp;
         end
         
+        function ret = apply_all_preds(obj, sources, fun)
+            %% Applies fun to all predecessors - i.e. `sources` the Simulink connections
+            % Not used -- test before using!
+            preds = cps.slsf.predecessors([], sources);
+            preds = cellfun(@getfullname, preds, 'UniformOutput', false);
+            ret = cellfun(@(p)fun(obj, p), preds, 'UniformOutput', false);
+        end
+        
     end
 end
 

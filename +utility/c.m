@@ -3,7 +3,7 @@ function p = c(p)
 %   Detailed explanation goes here
 
 if ~iscell(p)
-    p = {p};
+    p = num2cell(p); % WARNING refarctored from {p}, watch out for issues
 end
 
 end

@@ -27,6 +27,10 @@ classdef Decorator < utility.Decorator
         
         function go(obj, varargin) %#ok<INUSD>
         end
+        
+        function ret = is_compat(obj, varargin) %#ok<INUSD>
+            ret = true;
+        end
     end
 end
 

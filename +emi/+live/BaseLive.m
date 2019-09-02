@@ -35,9 +35,32 @@ classdef BaseLive < utility.DecoratorClient
         
         
         function go(obj, varargin)
+            % Global and decorator-level compatibility check
+            
+            try
+                if ~ obj.is_compat() || ( ~ all(cell2mat(obj.call_fun_output(@is_compat, varargin{:}))) )
+                    obj.r.n_live_skipped = obj.r.n_live_skipped + 1;
+                    return;
+                end
+                
+                obj.init();
+            catch e
+                rethrow(e);
+            end
+            
             obj.call_fun(@go, varargin{:});
         end
         
+        function init(obj, varargin)  %#ok<INUSD>
+            % Called before the decorator ``go'' methods
+        end
+        
+        function ret = is_compat(obj, varargin) %#ok<INUSD>
+            % Check if this mutaiton is compatible for this block
+            ret = true;
+        end
+        
     end
+    
 end
 

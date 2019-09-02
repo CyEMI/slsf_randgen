@@ -45,7 +45,7 @@ function [emi_result, stats_table, cmp_errs] = report(report_loc, aggregate)
                             errors, 'UniformOutput', false) ...
             );
         
-        exp_no =  find(~emi_result.is_ok);
+        exp_no =  emi_result{~emi_result.is_ok, 'exp_no'};
         exception_ids = cellfun(@(p)p.identifier, mutant_errors, 'UniformOutput', false);
         
         disp(table(exp_no, exception_ids));

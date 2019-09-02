@@ -15,7 +15,6 @@ classdef AddVirtualChild < emi.livedecs.Decorator
         end
         
         function go(obj, varargin )
-            % childtype : one of 'Subsystem'
             prev_pos = get_param(obj.hobj.blk_full, 'Position');
             
             [obj.hobj.new_ss, obj.hobj.new_ss_h] = obj.mutant.add_new_block_in_model(...

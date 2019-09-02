@@ -8,15 +8,15 @@ classdef cfg
         % How many exepriments to run. In each experiment it's recommended
         % to create only one mutant, although you can create multiple. Some
         % features may break for multiple mutants per experiment.
-        NUM_MAINLOOP_ITER = 75; 
+        NUM_MAINLOOP_ITER = 1; 
         
-        PARFOR = true;
+        PARFOR = false;
         
         % Non-repeatable experiments, recommended, specially for TACC
         RNG_SHUFFLE = true;     
         
         % Break from the main loop if any model mutation errors
-        STOP_IF_ERROR = false;
+        STOP_IF_ERROR = true;
         
         %% Differential Testing
         
@@ -76,16 +76,17 @@ classdef cfg
             @emi.decs.FixSourceSampleTimes                  % Pre-process
             @emi.decs.TypeAnnotateEveryBlock                % Pre-process
             @emi.decs.TypeAnnotateByOutDTypeStr             % Pre-process
+%             @emi.decs.DeleteDeadAddSaturation               % Dead Mutation
             @emi.decs.LiveMutation                          % Live Mutation
-            @emi.decs.DeleteDeadAddSaturation               % Dead Mutation
             };
         
         % Live mutation operations and their weights
         LIVE_MUT_OPS = {
             @emi.live.VirtualChild              % 1
             @emi.live.ModelReference            % 2 - Uses FixedStep solver
+            @emi.live.Extender                  % 3
         }; 
-        LIVE_MUT_WEIGHTS = [0 1]; 
+        LIVE_MUT_WEIGHTS = [0 0 1]; 
 
         %% Random experiments
         
@@ -192,6 +193,7 @@ classdef cfg
                 'Delay', 'UnitDelay', 'PID 1dof', 'PID 2dof' ,... % not in documentation
                 'VariableTransportDelay' ...
             }) % https://www.mathworks.com/help/simulink/ug/inherit-sample-times-for-model-referencing-1.html
+            utility.set()
         };
     end
     

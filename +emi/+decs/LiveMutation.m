@@ -106,8 +106,6 @@ classdef LiveMutation < emi.decs.DecoratedMutator
                 obj.r.n_live_skipped = obj.r.n_live_skipped + 1;
                 return;
             end
-
-            obj.r.n_live_mutated = obj.r.n_live_mutated + 1;
             
             [block_parent, this_block] = utility.strip_last_split(block, '/');
             
@@ -129,7 +127,9 @@ classdef LiveMutation < emi.decs.DecoratedMutator
             bl = mut_op(obj.r, block_parent, this_block,...
                 connections, sources, destinations, is_if_block);
             
-            bl.go(obj);
+            bl.go();
+            
+            obj.r.n_live_mutated = obj.r.n_live_mutated + 1;
             
             emi.pause_interactive(emi.cfg.DELETE_BLOCK_P, 'Block %s Live Mutation completed', block);
             

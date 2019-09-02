@@ -229,7 +229,33 @@ classdef SlsfModel < cps.Model
             delete_block(blk);
         end
         
+        
+        function ret = add_conn(obj, parent, sb, sp, db, dp)
+            %% Adds connection from sb/sp --> db/dp 
+            % sp or dp can be str or ints. 
+            % sb can be handle or block without the parent part.
+            
+            if isnumeric(sb)
+                [~, sb] = cps.slsf.h2b(sb);
+            end
+            
+            if isnumeric(db)
+                [~, db] = cps.slsf.h2b(db);
+            end
+            
+            if isnumeric(sp)
+                sp = int2str(sp);
+            end
+            
+            if isnumeric(dp)
+                dp = int2str(dp);
+            end
+            
+            ret = obj.add_line(parent, [sb '/' sp], [db '/' dp]);
+        end
+        
         function ret = add_line(obj, this_sys, src, dest)
+            %% May want to use `add_conn` as higher level function
             ret = 1; %dummy
             add_line(this_sys, src, dest, 'autorouting','on');
             

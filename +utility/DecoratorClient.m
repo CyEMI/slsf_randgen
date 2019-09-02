@@ -22,6 +22,15 @@ classdef DecoratorClient < handle
             end
         end
         
+        function out = call_fun_output(obj, fun, varargin)
+            %% Calls `fun` method of all decorators, returns output
+            out = cell(length(obj.decorators), 1);
+            for i=1:numel(obj.decorators)
+                dec = obj.decorators{i};
+                out{i} = fun(dec, varargin{:});
+            end
+        end
+        
         function delete(obj)
             %% Destructor. Address cyclic dependencies
 %             fprintf('Decorator client destructor called!\n');
